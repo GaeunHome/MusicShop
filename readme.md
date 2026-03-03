@@ -68,9 +68,65 @@
 
 ## 系統需求
 
-- .NET 10.0 SDK
-- SQL Server（本機或遠端）
-- Visual Studio 2025 或 Visual Studio Code（建議）
+### 必要元件
+
+- **.NET 10.0 SDK**
+  - 下載：[https://dotnet.microsoft.com/download/dotnet/10.0](https://dotnet.microsoft.com/download/dotnet/10.0)
+  - 支援 Windows、macOS (包含 Apple Silicon M1/M2/M3) 及 Linux
+
+- **SQL Server**
+  - 本機安裝或遠端連線皆可
+  - 支援 SQL Server 2019 以上版本
+  - 確保開啟 TCP/IP 連線（遠端連線需求）
+  - 預設連接埠：1433
+
+### 開發環境
+
+- **作業系統**：Windows 10/11、macOS 11+ (含 Apple Silicon)、Linux
+- **編輯器 / IDE**：
+  - **Visual Studio Code**（建議，跨平台輕量化）
+    - 必要擴充套件：C# Dev Kit、C# Extension
+  - Visual Studio 2025（完整 IDE，僅 Windows/macOS）
+
+### 本專案開發環境
+
+- **硬體**：MacBook M1 Air
+- **作業系統**：macOS
+- **編輯器**：Visual Studio Code
+- **資料庫**：遠端 SQL Server（透過 TCP/IP 連線）
+
+### macOS (Apple Silicon) 開發注意事項
+
+1. **安裝 .NET SDK**：
+   ```bash
+   # 使用 Homebrew 安裝（推薦）
+   brew install dotnet
+
+   # 驗證安裝
+   dotnet --version
+   ```
+
+2. **遠端 SQL Server 連線**：
+   - 確認 SQL Server 已啟用 TCP/IP 協定
+   - 確認防火牆允許 1433 連接埠
+   - 在 `appsettings.json` 中設定遠端伺服器位址：
+     ```json
+     {
+       "ConnectionStrings": {
+         "DefaultConnection": "Server=<遠端IP或網域>;Database=kalbum;User Id=<帳號>;Password=<密碼>;Integrated Security=False;TrustServerCertificate=True;"
+       }
+     }
+     ```
+
+3. **VS Code 擴充套件**：
+   - C# Dev Kit
+   - C# Extension (由 Microsoft 提供)
+   - NuGet Package Manager
+   - SQL Server (mssql)（可選，用於資料庫管理）
+
+4. **M1/M2/M3 相容性**：
+   - .NET 6.0 以上版本原生支援 Apple Silicon
+   - Entity Framework Core Tools 在 ARM64 架構下運作正常
 
 ## 快速開始
 
