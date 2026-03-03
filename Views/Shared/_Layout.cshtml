@@ -21,13 +21,13 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">首頁</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Album" asp-action="Index">專輯</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">隱私權政策</a>
                         </li>
                     </ul>
                         <ul class="navbar-nav ms-auto">
@@ -57,14 +57,19 @@
         </nav>
     </header>
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main" class="pb-5 mb-5">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - MusicShop - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="border-top footer text-muted mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p class="mb-2">&copy; 2026 - MusicShop. All rights reserved.</p>
+            <p class="mb-0">
+                <a asp-controller="Home" asp-action="Index" class="text-muted text-decoration-none me-3">首頁</a>
+                <a asp-controller="Album" asp-action="Index" class="text-muted text-decoration-none me-3">所有專輯</a>
+                <a asp-controller="Home" asp-action="Privacy" class="text-muted text-decoration-none">隱私權政策</a>
+            </p>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

@@ -19,15 +19,30 @@
   - ✅ 使用者註冊（含表單驗證）
   - ✅ 使用者登入/登出
   - ✅ ASP.NET Core Identity 整合
-  - ✅ 密碼加密儲存
+  - ✅ 密碼加密儲存（PBKDF2）
   - ✅ 存取權限控制
+  - ✅ 導航欄位顯示登入狀態
 
 - **專輯展示系統**
-  - ✅ 專輯列表瀏覽
+  - ✅ 專輯列表瀏覽（響應式卡片設計）
   - ✅ 專輯詳細資訊頁面
   - ✅ 分類篩選功能
   - ✅ 關鍵字搜尋（標題、演出者）
   - ✅ 專輯與分類關聯
+  - ✅ 庫存顯示
+
+- **首頁設計**
+  - ✅ 幻燈片輪播（3 個輪播頁面）
+  - ✅ 最新商品展示（顯示最新 2 個專輯）
+  - ✅ 商品卡片（包含封面、價格、庫存資訊）
+  - ✅ 加入購物車按鈕（連結到 CartController）
+  - ✅ 響應式版面設計
+
+- **頁面與導航**
+  - ✅ 統一的頁面配置（_Layout.cshtml）
+  - ✅ 簡潔的 Footer（含快速連結）
+  - ✅ 頁面底部間距優化（防止內容被覆蓋）
+  - ✅ 完整的隱私權政策頁面
 
 - **資料模型**
   - ✅ 使用者模型（AppUser）
@@ -35,6 +50,7 @@
   - ✅ 分類模型（Category）
   - ✅ 訂單模型（Order、OrderItem）
   - ✅ 購物車模型（CartItem）
+  - ✅ 完整的關聯設定（一對多、多對一）
 
 ### 🚧 待開發功能
 
@@ -64,7 +80,7 @@
 - **資料庫**：SQL Server
 - **ORM**：Entity Framework Core 10.0.3
 - **認證**：ASP.NET Core Identity
-- **前端**：Razor Views、Bootstrap
+- **前端**：Razor Views、Bootstrap 5
 
 ## 系統需求
 
@@ -109,14 +125,7 @@
 2. **遠端 SQL Server 連線**：
    - 確認 SQL Server 已啟用 TCP/IP 協定
    - 確認防火牆允許 1433 連接埠
-   - 在 `appsettings.json` 中設定遠端伺服器位址：
-     ```json
-     {
-       "ConnectionStrings": {
-         "DefaultConnection": "Server=<遠端IP或網域>;Database=kalbum;User Id=<帳號>;Password=<密碼>;Integrated Security=False;TrustServerCertificate=True;"
-       }
-     }
-     ```
+   - 在 `appsettings.json` 中設定遠端伺服器位址（參考下方快速開始）
 
 3. **VS Code 擴充套件**：
    - C# Dev Kit
@@ -173,7 +182,11 @@ dotnet ef database update
 ### 5. 執行應用程式
 
 ```bash
+# 一般執行
 dotnet run
+
+# 或使用開發模式（自動重新載入）
+dotnet watch run
 ```
 
 應用程式將在 `http://localhost:5281` 啟動。
@@ -183,42 +196,58 @@ dotnet run
 ```
 MusicShop/
 ├── Controllers/          # MVC 控制器
-│   ├── AccountController.cs    # 帳戶管理
-│   ├── AlbumController.cs      # 專輯瀏覽
-│   └── HomeController.cs       # 首頁
+│   ├── AccountController.cs    # 帳戶管理（註冊、登入、登出）
+│   ├── AlbumController.cs      # 專輯瀏覽與詳細頁面
+│   ├── HomeController.cs       # 首頁（幻燈片、最新商品）
+│   ├── CartController.cs       # 購物車（待實作）
+│   └── OrderController.cs      # 訂單管理（待實作）
 ├── Models/              # 資料模型
-│   ├── AppUser.cs       # 使用者模型
+│   ├── AppUser.cs       # 使用者模型（擴展 IdentityUser）
 │   ├── Album.cs         # 專輯模型
 │   ├── Category.cs      # 分類模型
 │   ├── Order.cs         # 訂單模型
 │   ├── OrderItem.cs     # 訂單項目
 │   └── CartItem.cs      # 購物車項目
 ├── ViewMdoels/          # 檢視模型
+│   ├── RegisterViewModel.cs
+│   ├── LoginViewModel.cs
+│   └── AlbumViewModel.cs
 ├── Views/               # Razor 檢視
+│   ├── Home/            # 首頁檢視（Index、Privacy）
+│   ├── Account/         # 帳戶檢視（Register、Login）
+│   ├── Album/           # 專輯檢視（Index、Detail）
+│   └── Shared/          # 共用檢視（_Layout、Footer）
 ├── Data/                # 資料庫上下文
 │   └── ApplicationDbContext.cs
 ├── Migrations/          # EF Core 遷移檔案
-└── wwwroot/            # 靜態檔案（CSS、JS、圖片）
+├── wwwroot/            # 靜態檔案
+│   ├── css/            # CSS 樣式
+│   ├── js/             # JavaScript
+│   └── lib/            # Bootstrap、jQuery
+├── appsettings.example.json   # 設定檔範例
+├── CLAUDE.md           # Claude Code 專案指引
+└── readme.md           # 本文件
 ```
 
 ## 資料庫架構
 
 ### 主要資料表
 
-- **Albums**：專輯資訊（標題、演出者、價格、庫存等）
-- **Categories**：專輯分類
-- **Orders**：訂單主檔
-- **OrderItems**：訂單明細
-- **CartItems**：購物車項目
-- **AspNetUsers**：使用者資料（Identity）
+- **Albums**：專輯資訊（標題、演出者、價格、庫存、封面圖片 URL 等）
+- **Categories**：專輯分類（搖滾、流行、古典等）
+- **Orders**：訂單主檔（訂單編號、使用者、日期、狀態、總金額）
+- **OrderItems**：訂單明細（訂單 ID、專輯 ID、數量、單價）
+- **CartItems**：購物車項目（使用者 ID、專輯 ID、數量、加入時間）
+- **AspNetUsers**：使用者資料（Identity 系統自動建立）
 
 ### 關鍵關聯
 
-- 專輯 ←→ 分類（多對一）
-- 訂單 ←→ 使用者（多對一）
-- 訂單 ←→ 訂單項目（一對多）
-- 購物車項目 ←→ 使用者（多對一）
-- 購物車項目 ←→ 專輯（多對一）
+- 專輯 ←→ 分類（多對一，限制刪除）
+- 訂單 ←→ 使用者（多對一，串聯刪除）
+- 訂單 ←→ 訂單項目（一對多，串聯刪除）
+- 訂單項目 ←→ 專輯（多對一，限制刪除）
+- 購物車項目 ←→ 使用者（多對一，串聯刪除）
+- 購物車項目 ←→ 專輯（多對一，限制刪除）
 
 ## 開發指令
 
@@ -231,7 +260,11 @@ dotnet build
 ### 執行專案
 
 ```bash
+# 一般執行
 dotnet run
+
+# 開發模式（檔案變更時自動重新載入）
+dotnet watch run
 ```
 
 ### 資料庫遷移
@@ -243,8 +276,11 @@ dotnet ef migrations add <遷移名稱>
 # 套用遷移
 dotnet ef database update
 
-# 移除最後一次遷移
+# 移除最後一次遷移（需尚未套用到資料庫）
 dotnet ef migrations remove
+
+# 刪除資料庫
+dotnet ef database drop
 ```
 
 ## 密碼規則
@@ -255,6 +291,8 @@ dotnet ef migrations remove
 - 不需要大寫字母
 - 不需要特殊符號
 
+可在 `Program.cs` 的 Identity 設定中調整密碼強度要求。
+
 ## 訂單狀態
 
 - `Pending`：待處理
@@ -262,10 +300,6 @@ dotnet ef migrations remove
 - `Shipped`：已出貨
 - `Completed`：已完成
 - `Cancelled`：已取消
-
-## 授權
-
-此專案為學習與教育用途。
 
 ## 使用者認證系統詳細說明
 
@@ -318,42 +352,30 @@ public class AppUser : IdentityUser
 - `PasswordHash`：加密後的密碼
 - `PhoneNumber`、`EmailConfirmed` 等其他欄位
 
-### 註冊流程實作（AccountController.cs）
+### 註冊流程實作
 
-#### 1. 顯示註冊表單
-```csharp
-// GET: /Account/Register
-public IActionResult Register() => View();
-```
-
-#### 2. 處理註冊請求
 ```csharp
 [HttpPost, ValidateAntiForgeryToken]
 public async Task<IActionResult> Register(RegisterViewModel model)
 {
-    // 1. 驗證表單資料
     if (!ModelState.IsValid) return View(model);
 
-    // 2. 建立新使用者物件
     var user = new AppUser
     {
-        UserName = model.Email,    // 使用 Email 作為 UserName
+        UserName = model.Email,
         Email = model.Email,
         FullName = model.FullName,
         RegisteredAt = DateTime.Now
     };
 
-    // 3. 呼叫 UserManager 建立使用者（密碼自動加密）
     var result = await _userManager.CreateAsync(user, model.Password);
 
-    // 4. 註冊成功，自動登入
     if (result.Succeeded)
     {
         await _signInManager.SignInAsync(user, isPersistent: false);
         return RedirectToAction("Index", "Home");
     }
 
-    // 5. 註冊失敗，顯示錯誤訊息
     foreach (var error in result.Errors)
         ModelState.AddModelError(string.Empty, error.Description);
 
@@ -361,102 +383,28 @@ public async Task<IActionResult> Register(RegisterViewModel model)
 }
 ```
 
-**關鍵點說明**：
-- `UserManager.CreateAsync()` 會自動處理密碼雜湊（Hash）
-- 密碼永遠不會以明文儲存在資料庫中
-- `SignInManager.SignInAsync()` 建立驗證 Cookie
-- `isPersistent: false` 表示瀏覽器關閉後 Cookie 失效
+### 登入流程實作
 
-### 登入流程實作（AccountController.cs）
-
-#### 1. 顯示登入表單
-```csharp
-// GET: /Account/Login
-public IActionResult Login() => View();
-```
-
-#### 2. 處理登入請求
 ```csharp
 [HttpPost, ValidateAntiForgeryToken]
 public async Task<IActionResult> Login(LoginViewModel model)
 {
-    // 1. 驗證表單資料
     if (!ModelState.IsValid) return View(model);
 
-    // 2. 驗證帳號密碼
     var result = await _signInManager.PasswordSignInAsync(
-        model.Email,           // 使用者名稱（Email）
-        model.Password,        // 密碼
-        model.RememberMe,      // 是否記住我
-        lockoutOnFailure: false // 登入失敗不鎖定帳號
+        model.Email,
+        model.Password,
+        model.RememberMe,
+        lockoutOnFailure: false
     );
 
-    // 3. 登入成功
     if (result.Succeeded)
         return RedirectToAction("Index", "Home");
 
-    // 4. 登入失敗
     ModelState.AddModelError(string.Empty, "帳號或密碼錯誤");
     return View(model);
 }
 ```
-
-**認證流程說明**：
-1. `PasswordSignInAsync` 會自動：
-   - 從資料庫查詢使用者
-   - 驗證密碼雜湊值
-   - 建立認證 Cookie（包含使用者識別資訊）
-2. `RememberMe` 為 true 時，Cookie 會持續較長時間（預設 14 天）
-3. Cookie 儲存在瀏覽器，後續請求會自動帶上
-
-### 登出流程實作
-
-```csharp
-[HttpPost, ValidateAntiForgeryToken]
-public async Task<IActionResult> Logout()
-{
-    await _signInManager.SignOutAsync();  // 清除認證 Cookie
-    return RedirectToAction("Index", "Home");
-}
-```
-
-### 認證中介軟體（Middleware）順序
-
-在 `Program.cs` 中的設定順序非常重要：
-
-```csharp
-app.UseRouting();
-app.UseAuthentication();  // 1. 先進行身分驗證（讀取 Cookie）
-app.UseAuthorization();   // 2. 再進行授權檢查
-```
-
-### 受保護的頁面
-
-未來實作購物車和訂單功能時，使用 `[Authorize]` 屬性保護：
-
-```csharp
-[Authorize]  // 必須登入才能存取
-public class CartController : Controller
-{
-    public IActionResult Index()
-    {
-        // 取得目前登入的使用者 ID
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        // ...
-    }
-}
-```
-
-### 資料庫儲存
-
-Identity 會在資料庫中自動建立以下資料表：
-- `AspNetUsers`：使用者資料
-- `AspNetRoles`：角色資料
-- `AspNetUserRoles`：使用者與角色的關聯
-- `AspNetUserClaims`：使用者聲明
-- `AspNetUserLogins`：外部登入提供者
-- `AspNetUserTokens`：使用者 Token
-- `AspNetRoleClaims`：角色聲明
 
 ### 密碼安全性
 
@@ -487,9 +435,12 @@ Identity 會在資料庫中自動建立以下資料表：
 
 ### 2. 專輯瀏覽與搜尋流程
 ```
-使用者 → 專輯列表 (/Album/Index)
+使用者 → 首頁 (/Home/Index)
+    → 瀏覽幻燈片與最新商品
+    → 點擊「查看所有專輯」→ 專輯列表 (/Album/Index)
     → 選擇分類或輸入關鍵字搜尋
-    → 檢視專輯詳細資訊 (/Album/Detail/{id})
+    → 點擊專輯卡片 → 檢視專輯詳細資訊 (/Album/Detail/{id})
+    → 查看價格、庫存、描述等資訊
 ```
 
 ### 3. 購物車流程（待開發）
@@ -528,20 +479,31 @@ Identity 會在資料庫中自動建立以下資料表：
 
 ## 安全性考量
 
-- ✅ 密碼使用 ASP.NET Core Identity 加密儲存
+- ✅ 密碼使用 ASP.NET Core Identity 加密儲存（PBKDF2）
 - ✅ 防止 CSRF 攻擊（ValidateAntiForgeryToken）
+- ✅ SQL 注入防護（使用 EF Core 參數化查詢）
+- ✅ XSS 防護（Razor 自動編碼）
+- ✅ 敏感資訊保護（appsettings.json 已加入 .gitignore）
 - ⏳ 購物車操作需登入驗證（[Authorize]）
 - ⏳ 訂單查看權限控制（僅能查看自己的訂單）
-- ⚠️ SQL 注入防護（使用 EF Core 參數化查詢）
-- ⚠️ XSS 防護（Razor 自動編碼）
+
+## 隱私權政策
+
+本專案包含完整的隱私權政策頁面 (`/Home/Privacy`)，涵蓋：
+- 資料收集範圍
+- 資料使用方式
+- 資料保護措施
+- Cookie 使用說明
+- 使用者權利
+- 聯絡方式
 
 ## 效能優化建議
 
-- 使用 `.Include()` 預先載入關聯資料（避免 N+1 查詢）
-- 商品列表分頁顯示（目前未實作）
-- 購物車數量快取（減少資料庫查詢）
-- 圖片使用 CDN 或優化壓縮
-- 資料庫索引優化（CategoryId、UserId 等外鍵欄位）
+- ✅ 使用 `.Include()` 預先載入關聯資料（避免 N+1 查詢）
+- ⏳ 商品列表分頁顯示（目前未實作）
+- ⏳ 購物車數量快取（減少資料庫查詢）
+- ⏳ 圖片使用 CDN 或優化壓縮
+- ⏳ 資料庫索引優化（CategoryId、UserId 等外鍵欄位）
 
 ## 測試建議
 
@@ -579,13 +541,65 @@ dotnet ef database update
 ### 無法登入
 檢查密碼是否符合規則（至少 6 個字元且包含數字）。
 
+### 頁面底部內容被 Footer 覆蓋
+已在 `_Layout.cshtml` 和 `site.css` 中調整底部間距，確保所有頁面都有足夠的留白空間。
+
 ## 作者
 
 Hou Wen Chia
 
 ## 版本歷史
 
-- v1.0.0 - 初始版本
-  - 基本使用者認證功能
-  - 專輯瀏覽與搜尋
-  - 購物車與訂單管理
+### v1.0.0 (2026-03-03)
+初始版本發布，包含以下功能：
+
+**核心功能**
+- ✅ 使用者認證系統（ASP.NET Core Identity）
+  - 使用者註冊（含表單驗證）
+  - 使用者登入/登出
+  - 密碼 PBKDF2 加密儲存
+  - Cookie 認證機制
+  - 導航欄位顯示登入狀態
+
+- ✅ 專輯展示與瀏覽
+  - 專輯列表頁面（響應式卡片設計）
+  - 專輯詳細資訊頁面
+  - 分類篩選功能
+  - 關鍵字搜尋（支援標題、演出者）
+  - 庫存數量顯示
+
+- ✅ 首頁設計
+  - 幻燈片輪播系統（3 個輪播頁面）
+  - 最新商品展示區（顯示最新 2 個專輯）
+  - 商品卡片包含封面、價格、庫存、加入購物車按鈕
+  - 響應式設計（支援桌面與行動裝置）
+
+- ✅ 頁面與版面配置
+  - 統一的頁面配置（_Layout.cshtml）
+  - 導航欄位（首頁、專輯、隱私權政策、登入/註冊）
+  - 簡潔的 Footer（含快速連結）
+  - 頁面底部間距優化（防止內容被覆蓋）
+  - 完整的隱私權政策頁面
+
+**資料庫**
+- ✅ Entity Framework Core 整合
+- ✅ 完整的資料模型設計（AppUser、Album、Category、Order、OrderItem、CartItem）
+- ✅ 資料表關聯設定（一對多、多對一、串聯刪除、限制刪除）
+- ✅ Code First Migrations
+
+**安全性**
+- ✅ 密碼 PBKDF2 雜湊加密
+- ✅ CSRF 防護（ValidateAntiForgeryToken）
+- ✅ SQL 注入防護（EF Core 參數化查詢）
+- ✅ XSS 防護（Razor 自動編碼）
+- ✅ 敏感資訊保護（appsettings.json 已加入 .gitignore）
+
+**已知限制**
+- ⏳ 購物車功能尚未實作
+- ⏳ 訂單管理功能尚未實作
+- ⏳ 後台管理功能尚未實作
+- ⏳ 分頁功能尚未實作
+
+## 授權
+
+此專案為學習與教育用途。

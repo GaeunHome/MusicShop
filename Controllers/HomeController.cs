@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MusicShop.Data;
 using MusicShop.Models;
 
@@ -13,9 +14,16 @@ public class HomeController : Controller
     {
         _ApplicationDbContext = ApplicationDbContext;
     }
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        return View();
+        // 取得最新上架的兩個專輯
+        var latestAlbums = await _ApplicationDbContext.Albums
+            .Include(a => a.Category)
+            .OrderByDescending(a => a.Id)
+            .Take(2)
+            .ToListAsync();
+
+        return View(latestAlbums);
     }
 
     public IActionResult Privacy()

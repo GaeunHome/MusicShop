@@ -1,8 +1,134 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model List<MusicShop.Models.Album>
+@{
+    ViewData["Title"] = "首頁 - MusicShop";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- 幻燈片輪播 -->
+<div id="homeCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+    </div>
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <div class="bg-primary text-white" style="height: 400px;">
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <div class="text-center">
+                        <h1 class="display-4">歡迎來到 MusicShop</h1>
+                        <p class="lead">探索最新最熱門的音樂專輯</p>
+                        <a asp-controller="Album" asp-action="Index" class="btn btn-light btn-lg mt-3">瀏覽所有專輯</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <div class="bg-success text-white" style="height: 400px;">
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <div class="text-center">
+                        <h1 class="display-4">最新專輯上架</h1>
+                        <p class="lead">搶先收藏最新發行</p>
+                        <a href="#latest-albums" class="btn btn-light btn-lg mt-3">立即查看</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <div class="bg-info text-white" style="height: 400px;">
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <div class="text-center">
+                        <h1 class="display-4">精選推薦</h1>
+                        <p class="lead">發現更多好音樂</p>
+                        <a asp-controller="Album" asp-action="Index" class="btn btn-light btn-lg mt-3">探索更多</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<!-- 最新商品區塊 -->
+<div id="latest-albums" class="mb-5">
+    <div class="text-center mb-4">
+        <h2>最新上架</h2>
+        <p class="text-muted">搶先收藏最新發行的專輯</p>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            @foreach (var album in Model)
+            {
+                <div class="col">
+                    <div class="card h-100">
+                        <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id" class="text-decoration-none">
+                            @if (!string.IsNullOrEmpty(album.CoverImageUrl))
+                            {
+                                <img src="@album.CoverImageUrl" class="card-img-top" alt="@album.Title" style="height: 300px; object-fit: cover;">
+                            }
+                            else
+                            {
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 300px;">
+                                    <span class="text-white fs-1">♪</span>
+                                </div>
+                            }
+                        </a>
+                        <div class="card-body">
+                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id" class="text-decoration-none text-dark">
+                                <h5 class="card-title">@album.Title</h5>
+                            </a>
+                            <p class="card-text text-muted">@album.Artist</p>
+                            @if (album.Category != null)
+                            {
+                                <span class="badge bg-secondary">@album.Category.Name</span>
+                            }
+                            <p class="card-text mt-2">
+                                <strong class="text-primary">NT$ @album.Price.ToString("N0")</strong>
+                            </p>
+                            @if (album.Stock > 0)
+                            {
+                                <p class="text-success small mb-2">庫存：@album.Stock</p>
+                            }
+                            else
+                            {
+                                <p class="text-danger small mb-2">目前缺貨</p>
+                            }
+                        </div>
+                        <div class="card-footer bg-white">
+                            @if (album.Stock > 0)
+                            {
+                                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid">
+                                    <input type="hidden" name="albumId" value="@album.Id" />
+                                    <input type="hidden" name="quantity" value="1" />
+                                    <button type="submit" class="btn btn-primary">加入購物車</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary w-100" disabled>目前無法購買</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">
+            <p class="mb-0">目前沒有最新商品</p>
+        </div>
+    }
+
+    <div class="text-center mt-4">
+        <a asp-controller="Album" asp-action="Index" class="btn btn-outline-primary">查看所有專輯</a>
+    </div>
 </div>
