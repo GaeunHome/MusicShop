@@ -1,0 +1,116 @@
+using MusicShop.Models;
+using MusicShop.Services.Interface;
+using MusicShop.Repositories.Interface;
+
+namespace MusicShop.Services.Implementation
+{
+    /// <summary>
+    /// 專輯商業邏輯實作
+    /// </summary>
+    public class AlbumService : IAlbumService
+    {
+        private readonly IAlbumRepository _albumRepository;
+
+        public AlbumService(IAlbumRepository albumRepository)
+        {
+            _albumRepository = albumRepository;
+        }
+
+        public async Task<IEnumerable<Album>> GetAlbumsAsync(string? searchTerm = null, int? categoryId = null)
+        {
+            return await _albumRepository.GetAlbumsAsync(searchTerm, categoryId);
+        }
+
+        public async Task<Album?> GetAlbumDetailAsync(int id)
+        {
+            return await _albumRepository.GetAlbumByIdAsync(id);
+        }
+
+        public async Task<IEnumerable<Album>> GetLatestAlbumsAsync(int count)
+        {
+            if (count <= 0)
+            {
+                throw new ArgumentException("數量必須大於 0", nameof(count));
+            }
+
+            return await _albumRepository.GetLatestAlbumsAsync(count);
+        }
+
+        public async Task<bool> IsStockAvailableAsync(int albumId, int quantity = 1)
+        {
+            if (quantity <= 0)
+            {
+                throw new ArgumentException("數量必須大於 0", nameof(quantity));
+            }
+
+            var album = await _albumRepository.GetAlbumByIdAsync(albumId);
+
+            if (album == null)
+            {
+                return false;
+            }
+
+            return album.Stock.HasValue && album.Stock.Value >= quantity;
+        }
+
+        public async Task<Album> CreateAlbumAsync(Album album)
+        {
+            // 商業邏輯驗證
+            if (string.IsNullOrWhiteSpace(album.Title))
+            {
+                throw new ArgumentException("專輯標題不能為空", nameof(album.Title));
+            }
+
+            if (string.IsNullOrWhiteSpace(album.Artist))
+            {
+                throw new ArgumentException("演出者不能為空", nameof(album.Artist));
+            }
+
+            if (album.Price <= 0)
+            {
+                throw new ArgumentException("價格必須大於 0", nameof(album.Price));
+            }
+
+            album.CreatedAt = DateTime.Now;
+            return await _albumRepository.AddAlbumAsync(album);
+        }
+
+        public async Task UpdateAlbumAsync(Album album)
+        {
+            // 商業邏輯驗證
+            if (string.IsNullOrWhiteSpace(album.Title))
+            {
+                throw new ArgumentException("專輯標題不能為空", nameof(album.Title));
+            }
+
+            if (string.IsNullOrWhiteSpace(album.Artist))
+            {
+                throw new ArgumentException("演出者不能為空", nameof(album.Artist));
+            }
+
+            if (album.Price <= 0)
+            {
+                throw new ArgumentException("價格必須大於 0", nameof(album.Price));
+            }
+
+            var exists = await _albumRepository.AlbumExistsAsync(album.Id);
+            if (!exists)
+            {
+                throw new InvalidOperationException($"找不到 ID 為 {album.Id} 的專輯");
+            }
+
+            await _albumRepository.UpdateAlbumAsync(album);
+        }
+
+        public async Task DeleteAlbumAsync(int id)
+        {
+            var exists = await _albumRepository.AlbumExistsAsync(id);
+            if (!exists)
+            {
+                throw new InvalidOperationException($"找不到 ID 為 {id} 的專輯");
+            }
+
+            await _albumRepository.DeleteAlbumAsync(id);
+        }
+    }
+}

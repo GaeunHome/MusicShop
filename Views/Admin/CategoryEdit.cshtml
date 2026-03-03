@@ -1,0 +1,28 @@
+@model MusicShop.Models.Category
+@{
+    ViewData["Title"] = "編輯分類";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header fw-bold">✏️ 編輯分類</div>
+                <div class="card-body">
+                    <form asp-action="CategoryEdit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">分類名稱</label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Categories" class="btn btn-outline-secondary">← 取消</a>
+                            <button type="submit" class="btn btn-primary">儲存變更</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

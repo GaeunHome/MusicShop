@@ -30,12 +30,21 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">隱私權政策</a>
                         </li>
                     </ul>
-                        <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav ms-auto">
                         @if (User.Identity!.IsAuthenticated)
                         {
                             <li class="nav-item">
                                 <span class="nav-link text-dark">👤 @User.Identity.Name</span>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Cart" asp-action="Index">🛒 購物車</a>
+                            </li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-danger fw-bold" asp-controller="Admin" asp-action="Index">⚙️ 後台</a>
+                                </li>
+                            }
                             <li class="nav-item">
                                 <form asp-controller="Account" asp-action="Logout" method="post">
                                     <button type="submit" class="btn btn-link nav-link text-dark">登出</button>

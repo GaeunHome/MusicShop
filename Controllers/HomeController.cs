@@ -1,27 +1,26 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MusicShop.Data;
 using MusicShop.Models;
+using MusicShop.Services.Interface;
 
 namespace MusicShop.Controllers;
 
+/// <summary>
+/// 首頁控制器 - 展示層
+/// </summary>
 public class HomeController : Controller
 {
-    private readonly ApplicationDbContext _ApplicationDbContext;
+    private readonly IAlbumService _albumService;
 
-    public HomeController(ApplicationDbContext ApplicationDbContext)
+    public HomeController(IAlbumService albumService)
     {
-        _ApplicationDbContext = ApplicationDbContext;
+        _albumService = albumService;
     }
+
     public async Task<IActionResult> Index()
     {
-        // 取得最新上架的兩個專輯
-        var latestAlbums = await _ApplicationDbContext.Albums
-            .Include(a => a.Category)
-            .OrderByDescending(a => a.Id)
-            .Take(2)
-            .ToListAsync();
+        // 從服務層取得最新上架的兩個專輯
+        var latestAlbums = await _albumService.GetLatestAlbumsAsync(2);
 
         return View(latestAlbums);
     }

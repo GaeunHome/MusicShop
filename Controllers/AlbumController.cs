@@ -1,58 +1,49 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MusicShop.Data;
+using MusicShop.Services.Interface;
 
-namespace MusicShop.Controllers
+namespace MusicShop.Controllers;
+
+/// <summary>
+/// 專輯控制器 - 展示層
+/// 負責處理使用者請求與回應
+/// </summary>
+public class AlbumController : Controller
 {
-    public class AlbumController : Controller
+    private readonly IAlbumService _albumService;
+    private readonly ICategoryService _categoryService;
+
+    public AlbumController(IAlbumService albumService, ICategoryService categoryService)
     {
-        private readonly ApplicationDbContext _context;
+        _albumService = albumService;
+        _categoryService = categoryService;
+    }
 
-        public AlbumController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+    // GET: /Album
+    public async Task<IActionResult> Index(string? search, int? categoryId)
+    {
+        // 從服務層取得專輯資料
+        var albums = await _albumService.GetAlbumsAsync(search, categoryId);
 
-        // GET: /Album
-        public async Task<IActionResult> Index(string? search, int? categoryId)
-        {
-            var query = _context.Albums
-                .Include(a => a.Category)
-                .AsQueryable();
+        // 從服務層取得分類清單
+        var categories = await _categoryService.GetAllCategoriesAsync();
 
-            // 搜尋
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(a =>
-                    a.Title.Contains(search) ||
-                    a.Artist.Contains(search));
-                ViewBag.Search = search;
-            }
+        // 傳遞資料給 View
+        ViewBag.Search = search;
+        ViewBag.CategoryId = categoryId;
+        ViewBag.Categories = categories;
 
-            // 分類篩選
-            if (categoryId.HasValue)
-            {
-                query = query.Where(a => a.CategoryId == categoryId);
-                ViewBag.CategoryId = categoryId;
-            }
+        return View(albums);
+    }
 
-            // 傳分類清單給 View 做篩選選單
-            ViewBag.Categories = await _context.Categories.ToListAsync();
+    // GET: /Album/Detail/5
+    public async Task<IActionResult> Detail(int id)
+    {
+        // 從服務層取得專輯詳細資料
+        var album = await _albumService.GetAlbumDetailAsync(id);
 
-            var albums = await query.OrderByDescending(a => a.CreatedAt).ToListAsync();
-            return View(albums);
-        }
+        if (album == null)
+            return NotFound();
 
-        // GET: /Album/Detail/5
-        public async Task<IActionResult> Detail(int id)
-        {
-            var album = await _context.Albums
-                .Include(a => a.Category)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if (album == null) return NotFound();
-
-            return View(album);
-        }
+        return View(album);
     }
 }

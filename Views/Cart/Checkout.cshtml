@@ -1,0 +1,76 @@
+@model IEnumerable<MusicShop.Models.CartItem>
+@{
+    ViewData["Title"] = "確認結帳";
+    var total = Model.Sum(c => c.Album!.Price * c.Quantity);
+}
+
+<div class="container mt-4">
+    <h3 class="mb-4">📋 確認訂單</h3>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header fw-bold">訂單明細</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>專輯</th>
+                                <th>歌手</th>
+                                <th>單價</th>
+                                <th>數量</th>
+                                <th>小計</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.Album!.Title</td>
+                                    <td class="text-muted">@item.Album.Artist</td>
+                                    <td>NT$ @item.Album.Price</td>
+                                    <td>@item.Quantity</td>
+                                    <td class="fw-bold">NT$ @(item.Album.Price * item.Quantity)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header fw-bold">訂單摘要</div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>商品總計</span>
+                        <span>NT$ @total</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>運費</span>
+                        <span class="text-success">免費</span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <span>應付金額</span>
+                        <span class="text-primary">NT$ @total</span>
+                    </div>
+
+                    <form asp-action="PlaceOrder" method="post" class="mt-4">
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg"
+                                    onclick="return confirm('確定要送出訂單嗎？')">
+                                ✅ 確認送出訂單
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="mt-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100">← 返回購物車</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

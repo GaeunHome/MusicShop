@@ -1,0 +1,66 @@
+@{
+    ViewData["Title"] = "後台管理";
+}
+
+<div class="container mt-4">
+    <h3 class="mb-4">📊 後台管理總覽</h3>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-primary">
+                <div class="card-body">
+                    <div class="fs-1">🎵</div>
+                    <h5 class="card-title mt-2">專輯數量</h5>
+                    <p class="display-6 fw-bold text-primary">@ViewBag.AlbumCount</p>
+                    <a asp-action="Albums" class="btn btn-sm btn-outline-primary">管理專輯</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-success">
+                <div class="card-body">
+                    <div class="fs-1">🏷️</div>
+                    <h5 class="card-title mt-2">分類數量</h5>
+                    <p class="display-6 fw-bold text-success">@ViewBag.CategoryCount</p>
+                    <a asp-action="Categories" class="btn btn-sm btn-outline-success">管理分類</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-warning">
+                <div class="card-body">
+                    <div class="fs-1">📦</div>
+                    <h5 class="card-title mt-2">訂單數量</h5>
+                    <p class="display-6 fw-bold text-warning">@ViewBag.OrderCount</p>
+                    <a asp-action="Orders" class="btn btn-sm btn-outline-warning">管理訂單</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-info">
+                <div class="card-body">
+                    <div class="fs-1">👥</div>
+                    <h5 class="card-title mt-2">會員數量</h5>
+                    <p class="display-6 fw-bold text-info">@ViewBag.UserCount</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <a asp-action="AlbumCreate" class="btn btn-primary w-100 py-3">➕ 新增專輯</a>
+        </div>
+        <div class="col-md-4">
+            <a asp-action="CategoryCreate" class="btn btn-success w-100 py-3">➕ 新增分類</a>
+        </div>
+        <div class="col-md-4">
+            <a asp-action="Orders" class="btn btn-warning w-100 py-3">📋 查看訂單</a>
+        </div>
+    </div>
+</div>

@@ -3,3 +3,4 @@ appsettings.json
 *.log
 bin/
 obj/
+img/
