@@ -13,74 +13,101 @@
 
 ## 功能開發狀態
 
-### ✅ 已完成功能
+### ✅ 已完成功能（v1.1）
 
-- **使用者認證系統**
-  - ✅ 使用者註冊（含表單驗證）
+- **使用者認證與個人功能**
+  - ✅ 使用者註冊（含表單驗證、角色自動分配）
   - ✅ 使用者登入/登出
   - ✅ ASP.NET Core Identity 整合
   - ✅ 密碼加密儲存（PBKDF2）
   - ✅ 存取權限控制
   - ✅ 導航欄位顯示登入狀態
+  - ✅ 個人帳號總覽（訂單統計、最近訂單）
+  - ✅ 個人資料編輯（姓名、電話、生日、性別）
+  - ✅ 個人訂單歷史查詢
 
 - **專輯展示系統**
   - ✅ 專輯列表瀏覽（響應式卡片設計）
   - ✅ 專輯詳細資訊頁面
-  - ✅ 分類篩選功能
+  - ✅ **雙分類系統篩選**（藝人分類 + 商品類型）
+  - ✅ **階層式商品類型**（父分類與子分類）
   - ✅ 關鍵字搜尋（標題、演出者）
-  - ✅ 專輯與分類關聯
-  - ✅ 庫存顯示
+  - ✅ 庫存顯示與庫存不足提示
+
+- **購物車系統**
+  - ✅ 加入購物車（含庫存驗證）
+  - ✅ 購物車 Modal 彈窗（Ajax 即時加入）
+  - ✅ 購物車數量徽章（View Component 即時更新）
+  - ✅ 檢視購物車內容與總金額
+  - ✅ 修改商品數量（含庫存檢查）
+  - ✅ 移除購物車商品
+  - ✅ 清空購物車
+
+- **訂單管理系統**
+  - ✅ 結帳流程（從購物車建立訂單）
+  - ✅ 訂單建立與確認
+  - ✅ 自動扣除庫存
+  - ✅ 訂單歷史查詢（僅能查看自己的訂單）
+  - ✅ 訂單詳細資訊檢視
+  - ✅ 訂單狀態追蹤（待處理/已付款/已出貨/已完成/已取消）
+  - ✅ 權限控制（無法查看他人訂單）
+
+- **後台管理系統**
+  - ✅ 後台儀表板（統計資料：商品數、訂單數、使用者數、總銷售額）
+  - ✅ 專輯管理（新增、編輯、刪除、列表）
+  - ✅ **雙分類管理**：
+    - ✅ 藝人分類 CRUD（BOY GROUP、GIRL GROUP、SOLO）
+    - ✅ 商品類型 CRUD（階層式架構，支援父子關係）
+    - ✅ 級聯下拉選單（選擇父分類後動態載入子分類）
+  - ✅ 訂單管理（查看所有訂單、更新訂單狀態）
+  - ✅ 使用者管理（查看所有使用者、切換管理員角色）
+  - ✅ 管理員選單元件（View Component）
 
 - **首頁設計**
   - ✅ 幻燈片輪播（3 個輪播頁面）
   - ✅ 最新商品展示（顯示最新 2 個專輯）
   - ✅ 商品卡片（包含封面、價格、庫存資訊）
-  - ✅ 加入購物車按鈕（連結到 CartController）
+  - ✅ 加入購物車按鈕與 Modal
   - ✅ 響應式版面設計
 
-- **頁面與導航**
-  - ✅ 統一的頁面配置（_Layout.cshtml）
-  - ✅ 簡潔的 Footer（含快速連結）
-  - ✅ 頁面底部間距優化（防止內容被覆蓋）
-  - ✅ 完整的隱私權政策頁面
-
-- **資料模型**
-  - ✅ 使用者模型（AppUser）
+- **架構與資料模型**
+  - ✅ **完整三層式架構**（Controller → Service → Repository）
+  - ✅ Repository 模式（介面與實作分離）
+  - ✅ Service 層（商業邏輯封裝）
+  - ✅ 使用者模型（AppUser，擴展欄位：生日、性別、電話）
   - ✅ 專輯模型（Album）
-  - ✅ 分類模型（Category）
+  - ✅ 雙分類模型（ArtistCategory + ProductType）
   - ✅ 訂單模型（Order、OrderItem）
   - ✅ 購物車模型（CartItem）
-  - ✅ 完整的關聯設定（一對多、多對一）
+  - ✅ 完整的關聯設定（一對多、多對一、串聯刪除、限制刪除）
+  - ✅ **DbInitializer**（自動初始化角色、管理員、分類、範例資料）
+
+- **效能與品質優化**
+  - ✅ 修正 N+1 查詢問題（使用 Dictionary 快取）
+  - ✅ 統一使用 UTC 時間（DateTime.UtcNow）
+  - ✅ IDbContextFactory 模式（更好的並行處理）
+  - ✅ View Components 可重複使用元件
 
 ### 🚧 待開發功能
 
-- **購物車系統**
-  - ⏳ 加入購物車（CartController）
-  - ⏳ 檢視購物車內容
-  - ⏳ 修改商品數量
-  - ⏳ 移除購物車商品
-  - ⏳ 購物車商品數量即時顯示
-
-- **訂單管理**
-  - ⏳ 結帳流程（OrderController）
-  - ⏳ 訂單建立與確認
-  - ⏳ 訂單歷史查詢
-  - ⏳ 訂單狀態追蹤（待處理/已付款/已出貨/已完成/已取消）
-  - ⏳ 訂單詳細資訊檢視
-
-- **後台管理**
-  - ⏳ 專輯管理（新增、編輯、刪除）
-  - ⏳ 分類管理
-  - ⏳ 訂單管理
-  - ⏳ 庫存管理
+- **進階功能**
+  - ⏳ 商品分頁顯示
+  - ⏳ 商品圖片上傳功能
+  - ⏳ Email 通知（訂單確認、狀態變更）
+  - ⏳ 優惠券與折扣碼
+  - ⏳ 商品評價與評論系統
+  - ⏳ 多語系支援
+  - ⏳ 深色模式
 
 ## 技術堆疊
 
 - **框架**：ASP.NET Core MVC (.NET 10.0)
+- **架構模式**：三層式架構（Presentation → Business Logic → Data Access）
 - **資料庫**：SQL Server
 - **ORM**：Entity Framework Core 10.0.3
 - **認證**：ASP.NET Core Identity
-- **前端**：Razor Views、Bootstrap 5
+- **前端**：Razor Views、Bootstrap 5、jQuery、Ajax
+- **設計模式**：Repository Pattern、Dependency Injection、Factory Pattern（IDbContextFactory）
 
 ## 系統需求
 
@@ -195,54 +222,110 @@ dotnet watch run
 
 ```
 MusicShop/
-├── Controllers/          # MVC 控制器
-│   ├── AccountController.cs    # 帳戶管理（註冊、登入、登出）
+├── Controllers/          # 展示層 - MVC 控制器
+│   ├── AccountController.cs    # 帳戶管理（註冊、登入、個人資料）
+│   ├── AdminController.cs      # 後台管理（商品、分類、訂單、使用者）
 │   ├── AlbumController.cs      # 專輯瀏覽與詳細頁面
+│   ├── CartController.cs       # 購物車（✅ 已完成）
 │   ├── HomeController.cs       # 首頁（幻燈片、最新商品）
-│   ├── CartController.cs       # 購物車（待實作）
-│   └── OrderController.cs      # 訂單管理（待實作）
+│   └── OrderController.cs      # 訂單管理（✅ 已完成）
+├── Services/            # 商業邏輯層
+│   ├── Interface/       # 服務介面
+│   │   ├── IAlbumService.cs
+│   │   ├── ICartService.cs
+│   │   ├── IOrderService.cs
+│   │   ├── IArtistCategoryService.cs
+│   │   ├── IProductTypeService.cs
+│   │   ├── IStatisticsService.cs
+│   │   └── IUserService.cs
+│   └── Implementation/  # 服務實作
+│       ├── AlbumService.cs
+│       ├── CartService.cs
+│       ├── OrderService.cs
+│       ├── ArtistCategoryService.cs
+│       ├── ProductTypeService.cs
+│       ├── StatisticsService.cs
+│       └── UserService.cs
+├── Repositories/        # 資料存取層
+│   ├── Interface/       # Repository 介面
+│   │   ├── IAlbumRepository.cs
+│   │   ├── ICartRepository.cs
+│   │   ├── IOrderRepository.cs
+│   │   ├── IArtistCategoryRepository.cs
+│   │   ├── IProductTypeRepository.cs
+│   │   └── IStatisticsRepository.cs
+│   └── Implementation/  # Repository 實作
+│       ├── AlbumRepository.cs
+│       ├── CartRepository.cs
+│       ├── OrderRepository.cs
+│       ├── ArtistCategoryRepository.cs
+│       ├── ProductTypeRepository.cs
+│       └── StatisticsRepository.cs
 ├── Models/              # 資料模型
 │   ├── AppUser.cs       # 使用者模型（擴展 IdentityUser）
 │   ├── Album.cs         # 專輯模型
-│   ├── Category.cs      # 分類模型
+│   ├── ArtistCategory.cs # 藝人分類模型
+│   ├── ProductType.cs   # 商品類型模型（階層式）
 │   ├── Order.cs         # 訂單模型
 │   ├── OrderItem.cs     # 訂單項目
 │   └── CartItem.cs      # 購物車項目
-├── ViewMdoels/          # 檢視模型
+├── ViewModels/          # 檢視模型
 │   ├── RegisterViewModel.cs
 │   ├── LoginViewModel.cs
-│   └── AlbumViewModel.cs
+│   ├── AlbumViewModel.cs
+│   ├── AccountIndexViewModel.cs
+│   ├── EditProfileViewModel.cs
+│   └── UserManagementViewModel.cs
+├── ViewComponents/      # View Components
+│   └── CartBadgeViewComponent.cs  # 購物車數量徽章
 ├── Views/               # Razor 檢視
 │   ├── Home/            # 首頁檢視（Index、Privacy）
-│   ├── Account/         # 帳戶檢視（Register、Login）
+│   ├── Account/         # 帳戶檢視（Register、Login、Index、Edit）
 │   ├── Album/           # 專輯檢視（Index、Detail）
-│   └── Shared/          # 共用檢視（_Layout、Footer）
-├── Data/                # 資料庫上下文
-│   └── ApplicationDbContext.cs
+│   ├── Cart/            # 購物車檢視（Index）
+│   ├── Order/           # 訂單檢視（Index、Detail）
+│   ├── Admin/           # 後台管理檢視
+│   ├── Shared/          # 共用檢視（_Layout、_AddToCartModal）
+│   └── Components/      # View Component 檢視
+├── Data/                # 資料庫上下文與初始化
+│   ├── ApplicationDbContext.cs
+│   └── DbInitializer.cs # 資料庫初始化（角色、管理員、範例資料）
 ├── Migrations/          # EF Core 遷移檔案
 ├── wwwroot/            # 靜態檔案
 │   ├── css/            # CSS 樣式
+│   │   └── pages/      # 頁面專屬樣式
 │   ├── js/             # JavaScript
+│   │   ├── add-to-cart-modal.js
+│   │   └── pages/      # 頁面專屬 JS
+│   ├── images/         # 圖片資源
+│   │   ├── albums/     # 專輯封面
+│   │   └── banners/    # 輪播圖片
 │   └── lib/            # Bootstrap、jQuery
 ├── appsettings.example.json   # 設定檔範例
 ├── CLAUDE.md           # Claude Code 專案指引
-└── readme.md           # 本文件
+└── README.md           # 本文件
 ```
 
 ## 資料庫架構
 
 ### 主要資料表
 
-- **Albums**：專輯資訊（標題、演出者、價格、庫存、封面圖片 URL 等）
-- **Categories**：專輯分類（搖滾、流行、古典等）
+- **Albums**：專輯資訊（標題、演出者、價格、庫存、封面圖片 URL、藝人分類 ID、商品類型 ID）
+- **ArtistCategories**：藝人分類（BOY GROUP、GIRL GROUP、SOLO）
+- **ProductTypes**：商品類型（階層式架構，包含父子關係）
+  - 父分類：K-ALBUM、K-MAGAZINE、K-MERCH、K-EVENT
+  - 子分類：ALBUM、PHOTOBOOK、DVD、寫真雜誌、官方周邊、演唱會周邊等
 - **Orders**：訂單主檔（訂單編號、使用者、日期、狀態、總金額）
 - **OrderItems**：訂單明細（訂單 ID、專輯 ID、數量、單價）
 - **CartItems**：購物車項目（使用者 ID、專輯 ID、數量、加入時間）
-- **AspNetUsers**：使用者資料（Identity 系統自動建立）
+- **AspNetUsers**：使用者資料（Identity 系統自動建立，擴展欄位：姓名、電話、生日、性別、註冊時間）
+- **AspNetRoles**：角色資料（User、Admin）
 
 ### 關鍵關聯
 
-- 專輯 ←→ 分類（多對一，限制刪除）
+- 專輯 ←→ 藝人分類（多對一，限制刪除）
+- 專輯 ←→ 商品類型（多對一，限制刪除）
+- 商品類型 ←→ 商品類型（自我關聯：父分類與子分類）
 - 訂單 ←→ 使用者（多對一，串聯刪除）
 - 訂單 ←→ 訂單項目（一對多，串聯刪除）
 - 訂單項目 ←→ 專輯（多對一，限制刪除）
@@ -549,6 +632,79 @@ dotnet ef database update
 Hou Wen Chia
 
 ## 版本歷史
+
+### v1.1.0 (2026-03-04)
+重構與功能擴充版本，完成三層式架構與核心功能：
+
+**架構改進**
+- ✅ 實作完整三層式架構（Controller → Service → Repository）
+- ✅ Repository 模式（介面與實作分離）
+- ✅ Service 層封裝所有商業邏輯
+- ✅ 使用 IDbContextFactory 模式提升並行處理能力
+- ✅ 修正 ViewMdoels → ViewModels 目錄拼寫錯誤
+
+**分類系統重構**
+- ✅ 從單一 Category 改為雙分類系統
+  - ArtistCategory（藝人分類）：BOY GROUP、GIRL GROUP、SOLO
+  - ProductType（商品類型）：階層式架構，支援父子關係
+- ✅ 4 個父分類 + 10 個子分類
+- ✅ 級聯下拉選單（選擇父分類後動態載入子分類）
+
+**購物車系統**（✅ 完整實作）
+- ✅ 加入購物車（含庫存驗證）
+- ✅ 購物車 Modal 彈窗（Ajax 即時加入）
+- ✅ 購物車數量徽章（View Component 即時更新）
+- ✅ 檢視購物車內容與總金額
+- ✅ 修改商品數量（含庫存檢查）
+- ✅ 移除購物車商品
+- ✅ 清空購物車
+
+**訂單系統**（✅ 完整實作）
+- ✅ 結帳流程（從購物車建立訂單）
+- ✅ 自動扣除庫存
+- ✅ 訂單歷史查詢（僅能查看自己的訂單）
+- ✅ 訂單詳細資訊檢視
+- ✅ 訂單狀態追蹤
+- ✅ 權限控制（無法查看他人訂單）
+
+**後台管理系統**（✅ 完整實作）
+- ✅ 後台儀表板（統計資料：商品數、訂單數、使用者數、總銷售額、待處理訂單數）
+- ✅ 專輯管理（新增、編輯、刪除、列表）
+- ✅ 雙分類管理（藝人分類 + 階層式商品類型 CRUD）
+- ✅ 訂單管理（查看所有訂單、更新訂單狀態）
+- ✅ 使用者管理（查看所有使用者、切換管理員角色、防止自我移除管理員權限）
+- ✅ 管理員選單元件（View Component）
+
+**使用者個人功能**
+- ✅ 個人帳號總覽（訂單統計、最近訂單）
+- ✅ 個人資料編輯（姓名、電話、生日、性別）
+- ✅ 個人訂單歷史查詢
+- ✅ 擴展使用者欄位（Birthday、Gender、PhoneNumber）
+
+**資料庫初始化**
+- ✅ DbInitializer 統一管理資料庫初始化
+- ✅ 自動建立系統角色（User、Admin）
+- ✅ 從 appsettings.json 讀取並建立預設管理員帳戶
+- ✅ 建立預設藝人分類與商品類型（階層式）
+- ✅ 建立範例商品資料
+
+**效能與品質優化**
+- ✅ 修正 OrderService N+1 查詢問題（使用 Dictionary 快取）
+- ✅ 統一使用 DateTime.UtcNow 避免時區問題
+- ✅ 修正 nullable 警告（Views/Album/Index.cshtml）
+- ✅ 建置成功（0 個警告、0 個錯誤）
+
+**UI/UX 改善**
+- ✅ 購物車 Modal 彈窗
+- ✅ View Components（購物車徽章、管理員選單）
+- ✅ 帳號選單與後台選單
+- ✅ 頁面專屬樣式與 JavaScript 模組化
+
+**程式碼品質**
+- ✅ 完整的繁體中文註解
+- ✅ 三層式架構清晰分離
+- ✅ 依賴注入設計
+- ✅ 安全性驗證（權限控制、庫存檢查）
 
 ### v1.0.0 (2026-03-03)
 初始版本發布，包含以下功能：

@@ -47,37 +47,88 @@ dotnet ef database drop
 
 ## 架構說明
 
+### 三層式架構（Three-Tier Architecture）
+
+本專案採用標準的三層式架構設計：
+
+**展示層（Presentation Layer）** - `Controllers/`、`Views/`
+- 負責處理使用者輸入與畫面顯示
+- 不包含商業邏輯，僅負責資料傳遞與顯示
+
+**商業邏輯層（Business Logic Layer）** - `Services/`
+- 包含所有業務規則與驗證邏輯
+- 協調資料存取層與展示層之間的互動
+- 介面與實作分離（Interface/ 與 Implementation/）
+
+**資料存取層（Data Access Layer）** - `Repositories/`、`Data/`
+- 負責資料庫 CRUD 操作
+- 使用 Repository 模式封裝資料存取
+- 介面與實作分離（Interface/ 與 Implementation/）
+
 ### 核心元件
 
-**資料層** (`Data/ApplicationDbContext.cs`)：
-- 繼承自 `IdentityDbContext<AppUser>` 以整合 ASP.NET Core Identity
-- DbSets：Albums、Categories、Orders、OrderItems、CartItems
-- 實體關聯設定於 `OnModelCreating`：
-  - Album-Category：一對多關聯，限制刪除（Restrict）
-  - Order-AppUser：一對多關聯，串聯刪除（Cascade）
-  - OrderItem-Order：一對多關聯，串聯刪除（Cascade）
-  - OrderItem-Album：一對多關聯，限制刪除（Restrict）
-  - CartItem-AppUser：一對多關聯，串聯刪除（Cascade）
-  - CartItem-Album：一對多關聯，限制刪除（Restrict）
+**資料層** (`Data/ApplicationDbContext.cs` + `Repositories/`)：
+- `ApplicationDbContext`：繼承自 `IdentityDbContext<AppUser>`，整合 ASP.NET Core Identity
+- DbSets：Albums、ArtistCategories、ProductTypes、Orders、OrderItems、CartItems
+- 使用 `IDbContextFactory<ApplicationDbContext>` 提供更好的並行處理能力
+- **Repository 介面與實作**：
+  - `IAlbumRepository` / `AlbumRepository`：專輯資料存取
+  - `ICartRepository` / `CartRepository`：購物車資料存取
+  - `IOrderRepository` / `OrderRepository`：訂單資料存取
+  - `IArtistCategoryRepository` / `ArtistCategoryRepository`：藝人分類資料存取
+  - `IProductTypeRepository` / `ProductTypeRepository`：商品類型資料存取
+  - `IStatisticsRepository` / `StatisticsRepository`：統計資料存取
+
+**實體關聯設定** (`OnModelCreating`)：
+- Album-ArtistCategory：一對多關聯，限制刪除（Restrict）
+- Album-ProductType：一對多關聯，限制刪除（Restrict）
+- ProductType 自我關聯（Parent-Children）：階層式分類結構
+- Order-AppUser：一對多關聯，串聯刪除（Cascade）
+- OrderItem-Order：一對多關聯，串聯刪除（Cascade）
+- OrderItem-Album：一對多關聯，限制刪除（Restrict）
+- CartItem-AppUser：一對多關聯，串聯刪除（Cascade）
+- CartItem-Album：一對多關聯，限制刪除（Restrict）
 
 **模型** (`Models/`)：
-- `AppUser`：擴展 `IdentityUser`，包含 FullName、RegisteredAt，以及 Orders 和 CartItems 導航屬性
-- `Album`：Title、Artist、Description、Price（decimal）、CoverImageUrl、Stock、CategoryId
-- `Category`：Name 以及 Albums 集合
+- `AppUser`：擴展 `IdentityUser`，包含 FullName、PhoneNumber、Birthday、Gender、RegisteredAt，以及 Orders 和 CartItems 導航屬性
+- `Album`：Title、Artist、Description、Price（decimal）、CoverImageUrl、Stock、ArtistCategoryId、ProductTypeId
+- `ArtistCategory`：藝人分類（BOY GROUP、GIRL GROUP、SOLO）
+- `ProductType`：商品類型（階層式架構，包含 ParentId 實現父子關係）
+  - 父分類：K-ALBUM、K-MAGAZINE、K-MERCH、K-EVENT
+  - 子分類：ALBUM、PHOTOBOOK、DVD、寫真雜誌、官方周邊等
 - `Order`：UserId、OrderDate、Status（列舉：Pending/Paid/Shipped/Completed/Cancelled）、TotalAmount、OrderItems 集合
-- `OrderItem`：連結 Order 與 Album，包含 Quantity 和 Price
+- `OrderItem`：連結 Order 與 Album，包含 Quantity 和 UnitPrice
 - `CartItem`：連結 User 與 Album，包含 Quantity 和 AddedAt 時間戳
 
-**檢視模型** (`ViewMdoels/`)：
-注意：目錄名稱在程式碼中拼寫為 "ViewMdoels"（少了一個 l）。
-- `RegisterViewModel`、`LoginViewModel`、`AlbumViewModel`
+**服務層** (`Services/`)：
+- **介面** (`Interface/`)：
+  - `IAlbumService`：專輯業務邏輯介面
+  - `ICartService`：購物車業務邏輯介面
+  - `IOrderService`：訂單業務邏輯介面
+  - `IArtistCategoryService`：藝人分類業務邏輯介面
+  - `IProductTypeService`：商品類型業務邏輯介面
+  - `IStatisticsService`：統計業務邏輯介面
+  - `IUserService`：使用者管理業務邏輯介面
+- **實作** (`Implementation/`)：對應的服務實作類別
+
+**檢視模型** (`ViewModels/`)：
+- `RegisterViewModel`：註冊表單
+- `LoginViewModel`：登入表單
+- `AlbumViewModel`：專輯列表與詳細資訊
+- `AccountIndexViewModel`：個人帳號總覽
+- `EditProfileViewModel`：個人資料編輯
+- `UserManagementViewModel`：後台使用者管理
 
 **控制器** (`Controllers/`)：
-- `AccountController`：使用 ASP.NET Core Identity 處理使用者註冊、登入、登出
-- `AlbumController`：專輯瀏覽，支援搜尋與分類篩選
-- `HomeController`：主要首頁
-- `CartController`：購物車功能（尚未實作）
-- `OrderController`：訂單管理（尚未實作）
+- `AccountController`：帳號管理（註冊、登入、登出、個人資料編輯、訂單查詢）
+- `AlbumController`：專輯瀏覽，支援搜尋與雙分類篩選
+- `HomeController`：主要首頁與輪播
+- `CartController`：購物車功能（✅ 已完成）
+- `OrderController`：訂單管理（✅ 已完成）
+- `AdminController`：後台管理（商品、分類、訂單、使用者管理）（✅ 已完成）
+
+**View Components** (`ViewComponents/`)：
+- `CartBadgeViewComponent`：購物車數量徽章元件，動態顯示購物車商品數量
 
 ### 認證與授權
 
@@ -100,52 +151,109 @@ dotnet ef database drop
 
 預設路由模式：`{controller=Home}/{action=Index}/{id?}`
 
-## 關鍵模式
+## 關鍵模式與最佳實踐
 
-1. **預先載入（Eager Loading）**：控制器使用 `.Include()` 載入關聯實體（例如：`Albums.Include(a => a.Category)`）
-2. **查詢建構**：搜尋與篩選邏輯在控制器中使用 IQueryable 模式
-3. **ViewBag 傳遞篩選資料**：分類清單與搜尋詞透過 ViewBag 傳遞
-4. **資料註解（Data Annotations）**：使用 `[Required]`、`[StringLength]` 等進行模型驗證
-5. **小數精度**：價格欄位使用 `[Column(TypeName = "decimal(10,2)")]`
+1. **三層式架構分離**：嚴格遵守 Controller → Service → Repository 的職責分離原則
+2. **依賴注入（Dependency Injection）**：所有服務透過介面注入，降低耦合度
+3. **Repository 模式**：資料存取邏輯封裝於 Repository 層，提高可測試性
+4. **IDbContextFactory 模式**：使用工廠模式建立 DbContext，避免並行問題
+5. **預先載入（Eager Loading）**：使用 `.Include()` 載入關聯實體，避免 N+1 查詢問題
+6. **Dictionary 快取**：在 OrderService 中使用字典快取已查詢的專輯，避免重複查詢資料庫
+7. **UTC 時間**：統一使用 `DateTime.UtcNow` 避免時區問題
+8. **資料註解（Data Annotations）**：使用 `[Required]`、`[StringLength]` 等進行模型驗證
+9. **小數精度**：價格欄位使用 `[Column(TypeName = "decimal(10,2)")]`
+10. **ViewBag 傳遞資料**：分類清單與搜尋詞透過 ViewBag 傳遞給檢視
+11. **View Components**：可重複使用的 UI 元件（如購物車徽章）
 
-## 待實作功能
+## 已完成功能
 
-### 購物車系統（CartController）
-- 加入商品至購物車（需驗證庫存）
-- 顯示購物車內容（查詢 CartItems 資料表）
-- 更新商品數量
+### ✅ 購物車系統（CartController）
+- 加入商品至購物車（含庫存驗證）
+- 顯示購物車內容與總金額
+- 更新商品數量（含庫存檢查）
 - 移除購物車商品
 - 清空購物車
-- 需使用 `[Authorize]` 保護，確保使用者已登入
-- 使用 `User.FindFirstValue(ClaimTypes.NameIdentifier)` 取得目前登入使用者 ID
+- 使用 `[Authorize]` 保護，確保使用者已登入
+- 購物車數量徽章（View Component）即時顯示
+- 購物車 Modal 彈窗（Ajax 加入購物車）
 
-### 訂單系統（OrderController）
+### ✅ 訂單系統（OrderController）
 - 結帳流程（從購物車建立訂單）
-- 訂單建立時需：
+- 訂單建立時：
   - 扣除專輯庫存（Album.Stock）
   - 建立 Order 記錄（訂單主檔）
   - 建立 OrderItem 記錄（訂單明細）
   - 清空使用者購物車
+  - 使用 Dictionary 快取避免 N+1 查詢問題
 - 訂單查詢（僅能查看自己的訂單）
 - 訂單詳細資訊
-- 訂單狀態更新（後台功能）
+- 權限控制（無法查看他人訂單）
 
-### 後台管理（AdminController）
-- 專輯 CRUD（新增、編輯、刪除、列表）
-- 分類管理
-- 訂單管理（查看所有訂單、更新狀態）
-- 需要角色驗證 `[Authorize(Roles = "Admin")]`
+### ✅ 後台管理（AdminController）
+- **專輯管理**：新增、編輯、刪除、列表
+- **雙分類管理**：
+  - 藝人分類（ArtistCategory）CRUD
+  - 商品類型（ProductType）CRUD（支援階層式父子關係）
+  - 級聯下拉選單（選擇父分類後動態載入子分類）
+- **訂單管理**：查看所有訂單、訂單詳細資訊、更新訂單狀態
+- **使用者管理**：查看所有使用者、切換管理員角色、防止自我移除管理員權限
+- **統計資訊**：後台儀表板顯示商品數、訂單數、使用者數、總銷售額等統計
+- 角色驗證 `[Authorize(Roles = "Admin")]`
+
+### ✅ 使用者個人功能
+- 個人帳號總覽（訂單統計、最近訂單）
+- 個人資料編輯（姓名、電話、生日、性別）
+- 訂單歷史查詢
+- 訂單詳細資訊
+
+### ✅ 資料庫初始化（DbInitializer）
+- 自動建立系統角色（User、Admin）
+- 從 `appsettings.json` 讀取並建立預設管理員帳戶
+- 建立預設藝人分類（BOY GROUP、GIRL GROUP、SOLO）
+- 建立預設商品類型（階層式：4 個父分類 + 10 個子分類）
+- 建立範例商品資料
+
+## 待實作功能
+
+### 🚧 進階功能
+- 商品分頁顯示（目前一次顯示所有商品）
+- 商品圖片上傳功能（目前使用靜態 URL）
+- Email 通知（訂單確認、訂單狀態變更）
+- 優惠券與折扣碼
+- 商品評價與評論
+- 多語系支援
+- 深色模式
 
 ## 開發注意事項
 
-- 專案目標為 .NET 10.0（預覽/早期版本）
-- HTTPS 重新導向在 `Program.cs` 中已被註解（第 43 行）
+### 架構與設計
+- 嚴格遵守三層式架構：Controller 不直接呼叫 Repository，必須透過 Service 層
+- 所有新功能都應建立對應的 Service 介面與實作
+- Repository 只負責資料存取，不包含業務邏輯
+- 使用 `IDbContextFactory<ApplicationDbContext>` 建立 DbContext 實例
+
+### 資料庫與時間
+- 統一使用 `DateTime.UtcNow` 而非 `DateTime.Now`，避免時區問題
+- 避免 N+1 查詢問題，適當使用 `.Include()` 或快取機制
+- 使用 `decimal(10,2)` 儲存價格欄位
+
+### 安全性與權限
+- 所有需要登入的功能都已加上 `[Authorize]` 屬性
+- 後台管理功能使用 `[Authorize(Roles = "Admin")]`
+- 操作購物車和訂單時，已驗證當前使用者權限（避免 A 使用者操作 B 使用者的資料）
+- 使用 `[ValidateAntiForgeryToken]` 防止 CSRF 攻擊
+
+### 專案設定
+- 專案目標為 .NET 10.0
+- HTTPS 重新導向在 `Program.cs` 中已被註解
 - 程式碼中包含繁體中文註解
 - 目前尚無測試專案
 - 靜態檔案由 `wwwroot/` 提供
-- 購物車和訂單功能需要實作 CartController 和 OrderController
-- 所有需要登入的功能都應加上 `[Authorize]` 屬性
-- 操作購物車和訂單時，務必驗證當前使用者權限（避免 A 使用者操作 B 使用者的資料）
+
+### 資料初始化
+- 首次執行 `dotnet ef database update` 後，會自動執行 `DbInitializer`
+- 預設管理員帳戶資訊從 `appsettings.json` 的 `AdminSettings` 區段讀取
+- 範例設定檔為 `appsettings.example.json`
 
 ## 安全性注意事項
 
