@@ -1,29 +1,100 @@
 @model IEnumerable<MusicShop.Models.Album>
 @{
-    ViewData["Title"] = "專輯列表";
-    var categories = ViewBag.Categories as IEnumerable<MusicShop.Models.Category>;
+    ViewData["Title"] = "商品列表";
+    var artistCategories = ViewBag.ArtistCategories as IEnumerable<MusicShop.Models.ArtistCategory>;
+    var childCategories = ViewBag.ChildCategories as IEnumerable<MusicShop.Models.ProductType>;
+
+    // 取得目前的篩選資訊
+    var currentArtistCategoryId = ViewBag.ArtistCategoryId as int?;
+    var currentProductTypeId = ViewBag.ProductTypeId as int?;
+    var currentParentProductTypeId = ViewBag.ParentProductTypeId as int?;
+    var currentSearch = ViewBag.Search as string;
+    var parentCategoryName = ViewBag.ParentCategoryName as string;
+
+    // 找出當前選擇的分類名稱
+    var currentArtistCategoryName = currentArtistCategoryId.HasValue
+        ? artistCategories?.FirstOrDefault(c => c.Id == currentArtistCategoryId.Value)?.Name
+        : null;
+    var currentProductTypeName = currentProductTypeId.HasValue
+        ? childCategories?.FirstOrDefault(c => c.Id == currentProductTypeId.Value)?.Name
+        : null;
 }
 
 <div class="container mt-4">
 
-    <form method="get" asp-action="Index" class="row g-2 mb-4">
-        <div class="col-md-5">
-            <input type="text" name="search" value="@ViewBag.Search"
-                   class="form-control" placeholder="🔍 搜尋專輯名稱或歌手..." />
-        </div>
-        <div class="col-md-4">
-            <select name="categoryId" class="form-select">
-                <option value="">所有分類</option>
-                @foreach (var cat in categories ?? Enumerable.Empty<MusicShop.Models.Category>())
+    <!-- 麵包屑導航 / 當前分類顯示 -->
+    @if (currentArtistCategoryName != null || currentProductTypeName != null || parentCategoryName != null || !string.IsNullOrEmpty(currentSearch))
+    {
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">所有商品</a></li>
+                @if (currentArtistCategoryName != null)
                 {
-                    <option value="@cat.Id"
-                        selected="@(ViewBag.CategoryId != null && (int)ViewBag.CategoryId == cat.Id ? "selected" : null)">
-                        @cat.Name
+                    <li class="breadcrumb-item active" aria-current="page">K-ARTIST › @currentArtistCategoryName</li>
+                }
+                @if (parentCategoryName != null && currentProductTypeName == null)
+                {
+                    <li class="breadcrumb-item active" aria-current="page">@parentCategoryName</li>
+                }
+                @if (currentProductTypeName != null && currentProductTypeId.HasValue)
+                {
+                    var parent = childCategories?.FirstOrDefault(c => c.Id == currentProductTypeId.Value)?.Parent;
+                    if (parent != null)
+                    {
+                        <li class="breadcrumb-item">@parent.Name</li>
+                    }
+                    <li class="breadcrumb-item active" aria-current="page">@currentProductTypeName</li>
+                }
+                @if (!string.IsNullOrEmpty(currentSearch))
+                {
+                    <li class="breadcrumb-item active" aria-current="page">搜尋: @currentSearch</li>
+                }
+            </ol>
+        </nav>
+    }
+
+    <form method="get" asp-action="Index" class="row g-2 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="search" value="@ViewBag.Search"
+                   class="form-control" placeholder="🔍 搜尋商品名稱或歌手..." />
+        </div>
+        <div class="col-md-3">
+            <select name="artistCategoryId" class="form-select">
+                <option value="">所有藝人分類</option>
+                @foreach (var ac in artistCategories ?? Enumerable.Empty<MusicShop.Models.ArtistCategory>())
+                {
+                    <option value="@ac.Id"
+                        selected="@(ViewBag.ArtistCategoryId != null && (int)ViewBag.ArtistCategoryId == ac.Id ? "selected" : null)">
+                        @ac.Name
                     </option>
                 }
             </select>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
+            <select name="productTypeId" class="form-select">
+                <option value="">所有商品類型</option>
+                @if (childCategories != null)
+                {
+                    var groupedByParent = childCategories.GroupBy(c => c.Parent);
+                    foreach (var group in groupedByParent.OrderBy(g => g.Key?.DisplayOrder ?? 0))
+                    {
+                        if (group.Key != null)
+                        {
+                            <optgroup label="@group.Key.Name">
+                                @foreach (var child in group.OrderBy(c => c.DisplayOrder))
+                                {
+                                    <option value="@child.Id"
+                                        selected="@(ViewBag.ProductTypeId != null && (int)ViewBag.ProductTypeId == child.Id ? "selected" : null)">
+                                        @child.Name
+                                    </option>
+                                }
+                            </optgroup>
+                        }
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-1">
             <button type="submit" class="btn btn-primary w-100">搜尋</button>
         </div>
         <div class="col-md-1">
@@ -33,39 +104,100 @@
 
     @if (!Model.Any())
     {
-        <div class="text-center text-muted mt-5">
-            <h5>找不到相關專輯 😢</h5>
-            <a asp-action="Index" class="btn btn-outline-primary mt-3">查看全部專輯</a>
+        <div class="text-center text-muted mt-5 py-5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" class="bi bi-inbox mb-3 opacity-50" viewBox="0 0 16 16">
+                <path d="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm9.954 5H10.45a2.5 2.5 0 0 1-4.9 0H1.066l.32 2.562a.5.5 0 0 0 .497.438h12.234a.5.5 0 0 0 .496-.438L14.933 9zM3.809 3.563A1.5 1.5 0 0 1 4.981 3h6.038a1.5 1.5 0 0 1 1.172.563l3.7 4.625a.5.5 0 0 1 .105.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374l3.7-4.625z"/>
+            </svg>
+            <h5 class="mb-3">找不到符合條件的商品</h5>
+            <p class="text-muted mb-4">試試看調整搜尋條件或瀏覽其他分類</p>
+            <a asp-action="Index" class="btn btn-primary">查看全部商品</a>
         </div>
     }
     else
     {
-        <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+        <div class="row row-cols-2 row-cols-lg-4 g-4">
             @foreach (var album in Model)
             {
                 <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        @if (!string.IsNullOrEmpty(album.CoverImageUrl))
-                        {
-                            <img src="@album.CoverImageUrl" class="card-img-top"
-                                 style="height:200px; object-fit:cover;" alt="@album.Title" />
-                        }
-                        else
-                        {
-                            <div class="bg-secondary d-flex align-items-center justify-content-center"
-                                 style="height:200px;">
-                                <span class="text-white fs-1">🎵</span>
+                    <div class="product-item">
+                        <!-- 專輯封面圖片區塊 -->
+                        <div class="product-image-wrapper">
+                            <!-- 底層連結，點擊整個圖片區域跳轉 -->
+                            <a asp-action="Detail" asp-route-id="@album.Id" class="product-image-link"></a>
+
+                            @if (!string.IsNullOrEmpty(album.CoverImageUrl))
+                            {
+                                <img src="@album.CoverImageUrl" class="product-image" alt="@album.Title">
+                            }
+                            else
+                            {
+                                <!-- 預設圖片 -->
+                                <div class="product-image d-flex align-items-center justify-content-center"
+                                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <span class="text-white" style="font-size: 60px;">♪</span>
+                                </div>
+                            }
+
+                            <!-- 庫存狀態標籤 -->
+                            @if (album.Stock <= 0)
+                            {
+                                <span class="position-absolute top-0 end-0 badge bg-danger m-2" style="z-index: 10;">已售完</span>
+                            }
+                            else if (album.Stock <= 5)
+                            {
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2" style="z-index: 10;">僅剩 @album.Stock 件</span>
+                            }
+
+                            <!-- 懸停時顯示的按鈕 -->
+                            <div class="product-overlay">
+                                <div class="overlay-buttons d-flex gap-2 mb-2">
+                                    <!-- 查看商品按鈕 -->
+                                    <a asp-action="Detail" asp-route-id="@album.Id" class="btn btn-white overlay-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                        </svg>
+                                    </a>
+
+                                    <!-- 加入購物車按鈕 -->
+                                    @if (album.Stock > 0)
+                                    {
+                                        @if (User.Identity!.IsAuthenticated)
+                                        {
+                                            <button type="button" class="btn btn-purple overlay-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#addToCartModal"
+                                                    data-album-id="@album.Id"
+                                                    data-album-title="@album.Title"
+                                                    data-album-artist="@album.Artist"
+                                                    data-album-price="@album.Price"
+                                                    data-album-stock="@album.Stock"
+                                                    data-album-image="@album.CoverImageUrl">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                                </svg>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <a asp-controller="Account" asp-action="Login" class="btn btn-purple overlay-btn">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                                </svg>
+                                            </a>
+                                        }
+                                    }
+                                </div>
                             </div>
-                        }
-                        <div class="card-body">
-                            <h6 class="card-title mb-1">@album.Title</h6>
-                            <p class="text-muted small mb-1">@album.Artist</p>
-                            <span class="badge bg-secondary">@album.Category?.Name</span>
                         </div>
-                        <div class="card-footer d-flex justify-content-between align-items-center">
-                            <span class="fw-bold text-primary">NT$ @album.Price</span>
-                            <a asp-action="Detail" asp-route-id="@album.Id"
-                               class="btn btn-sm btn-outline-primary">查看詳情</a>
+
+                        <!-- 商品資訊（照片下方） -->
+                        <div class="product-info mt-3">
+                            <a asp-action="Detail" asp-route-id="@album.Id" class="text-decoration-none text-dark">
+                                <h6 class="product-title mb-2">@album.Title</h6>
+                            </a>
+                            <p class="product-price mb-0">
+                                NT$@album.Price.ToString("N0")
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -73,3 +205,15 @@
         </div>
     }
 </div>
+
+<!-- 引用共用的加入購物車 Modal -->
+<partial name="_AddToCartModal" />
+
+@* 引用商品展示樣式 *@
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/home.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/add-to-cart-modal.js" asp-append-version="true"></script>
+}

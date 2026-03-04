@@ -10,18 +10,21 @@ namespace MusicShop.Repositories.Implementation
     /// </summary>
     public class CartRepository : ICartRepository
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
 
-        public CartRepository(ApplicationDbContext context)
+        public CartRepository(IDbContextFactory<ApplicationDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task<IEnumerable<CartItem>> GetCartItemsByUserIdAsync(string userId)
         {
-            return await _context.CartItems
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.CartItems
                 .Include(c => c.Album)
-                .ThenInclude(a => a!.Category)
+                    .ThenInclude(a => a!.ArtistCategory)
+                .Include(c => c.Album)
+                    .ThenInclude(a => a!.ProductType)
                 .Where(c => c.UserId == userId)
                 .OrderByDescending(c => c.AddedAt)
                 .ToListAsync();
@@ -29,53 +32,60 @@ namespace MusicShop.Repositories.Implementation
 
         public async Task<CartItem?> GetCartItemByIdAsync(int id)
         {
-            return await _context.CartItems
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.CartItems
                 .Include(c => c.Album)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task<CartItem?> GetCartItemByUserAndAlbumAsync(string userId, int albumId)
         {
-            return await _context.CartItems
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.CartItems
                 .FirstOrDefaultAsync(c => c.UserId == userId && c.AlbumId == albumId);
         }
 
         public async Task<CartItem> AddToCartAsync(CartItem cartItem)
         {
-            _context.CartItems.Add(cartItem);
-            await _context.SaveChangesAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            context.CartItems.Add(cartItem);
+            await context.SaveChangesAsync();
             return cartItem;
         }
 
         public async Task UpdateCartItemAsync(CartItem cartItem)
         {
-            _context.CartItems.Update(cartItem);
-            await _context.SaveChangesAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            context.CartItems.Update(cartItem);
+            await context.SaveChangesAsync();
         }
 
         public async Task RemoveCartItemAsync(int id)
         {
-            var cartItem = await _context.CartItems.FindAsync(id);
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var cartItem = await context.CartItems.FindAsync(id);
             if (cartItem != null)
             {
-                _context.CartItems.Remove(cartItem);
-                await _context.SaveChangesAsync();
+                context.CartItems.Remove(cartItem);
+                await context.SaveChangesAsync();
             }
         }
 
         public async Task ClearCartAsync(string userId)
         {
-            var cartItems = await _context.CartItems
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var cartItems = await context.CartItems
                 .Where(c => c.UserId == userId)
                 .ToListAsync();
 
-            _context.CartItems.RemoveRange(cartItems);
-            await _context.SaveChangesAsync();
+            context.CartItems.RemoveRange(cartItems);
+            await context.SaveChangesAsync();
         }
 
         public async Task<bool> CartItemExistsAsync(int id)
         {
-            return await _context.CartItems.AnyAsync(c => c.Id == id);
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.CartItems.AnyAsync(c => c.Id == id);
         }
     }
 }

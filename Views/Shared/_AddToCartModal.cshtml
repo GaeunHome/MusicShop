@@ -1,0 +1,89 @@
+@* 加入購物車 Modal - 共用元件 *@
+<div class="modal fade" id="addToCartModal" tabindex="-1" aria-labelledby="addToCartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row">
+                    <!-- 商品圖片 -->
+                    <div class="col-md-5">
+                        <img id="modalAlbumImage" src="" class="img-fluid rounded" alt="商品圖片">
+                    </div>
+
+                    <!-- 商品資訊 -->
+                    <div class="col-md-7">
+                        <h4 id="modalAlbumTitle" class="mb-3"></h4>
+
+                        <!-- 縮圖 -->
+                        <div class="mb-3">
+                            <img id="modalAlbumThumbnail" src="" style="width: 60px; height: 60px; object-fit: cover; border: 2px solid #ddd; border-radius: 8px;" alt="縮圖">
+                        </div>
+
+                        <!-- 價格 -->
+                        <div class="mb-3">
+                            <span class="fs-4 fw-bold text-primary">NT$<span id="modalAlbumPrice"></span></span>
+                        </div>
+
+                        <!-- 數量選擇器 -->
+                        <div class="mb-4">
+                            <div class="input-group" style="max-width: 200px;">
+                                <button class="btn btn-outline-secondary" type="button" id="decreaseQty">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/>
+                                    </svg>
+                                </button>
+                                <input type="number" class="form-control text-center" id="modalQuantity" value="1" min="1" readonly>
+                                <button class="btn btn-outline-secondary" type="button" id="increaseQty">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <small class="text-muted">庫存：<span id="modalAlbumStock"></span> 件</small>
+                        </div>
+
+                        <!-- 加入購物車按鈕 -->
+                        <form asp-controller="Cart" asp-action="Add" method="post" id="addToCartForm">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="albumId" id="modalAlbumId">
+                            <input type="hidden" name="quantity" id="modalQuantityInput" value="1">
+                            <button type="submit" class="btn btn-purple btn-lg w-100 mb-3">
+                                加入購物車
+                            </button>
+                        </form>
+
+                        <!-- 必讀事項 -->
+                        <div class="alert alert-warning mt-3" style="font-size: 0.9rem;">
+                            <h6 class="fw-bold mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill me-1" viewBox="0 0 16 16">
+                                    <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                </svg>
+                                必讀事項
+                            </h6>
+                            <ul class="mb-0 ps-3" style="line-height: 1.8;">
+                                <li>購買前必須閱讀並同意相關條款</li>
+                                <li>上圖為輔助理解，根據顯示器解析度和測量方法，可能與實際影像有所不同</li>
+                                <li>尺寸和成分可以以根據生產情況而交換</li>
+                                <li>由於運送過程中不可避免地出現小小損壞、凹痕或裂縫，紙製品無法換貨或退款</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-purple {
+        background-color: #8b5a9a;
+        color: white;
+        border: none;
+    }
+    .btn-purple:hover {
+        background-color: #704a7f;
+        color: white;
+    }
+</style>

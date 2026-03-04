@@ -8,7 +8,8 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
     public DbSet<Album> Albums { get; set; }
-    public DbSet<Category> Categories { get; set; }
+    public DbSet<ArtistCategory> ArtistCategories { get; set; }
+    public DbSet<ProductType> ProductTypes { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
@@ -17,11 +18,25 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
     {
         base.OnModelCreating(builder);
 
-        // Album 與 Category 關聯
+        // Album 與 ArtistCategory 關聯
         builder.Entity<Album>()
-            .HasOne(a => a.Category)
-            .WithMany(c => c.Albums)
-            .HasForeignKey(a => a.CategoryId)
+            .HasOne(a => a.ArtistCategory)
+            .WithMany(ac => ac.Albums)
+            .HasForeignKey(a => a.ArtistCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Album 與 ProductType 關聯
+        builder.Entity<Album>()
+            .HasOne(a => a.ProductType)
+            .WithMany(pt => pt.Albums)
+            .HasForeignKey(a => a.ProductTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // ProductType 階層式自我參照關聯
+        builder.Entity<ProductType>()
+            .HasOne(pt => pt.Parent)
+            .WithMany(pt => pt.Children)
+            .HasForeignKey(pt => pt.ParentId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Order 與 AppUser 關聯

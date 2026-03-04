@@ -1,5 +1,6 @@
 html {
   font-size: 14px;
+  height: 100%;
 }
 
 @media (min-width: 768px) {
@@ -12,13 +13,25 @@ html {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
 }
 
-body {
-  margin-bottom: 150px;
+body > header,
+body > .container {
+  flex-shrink: 0;
+}
+
+body > .container {
+  flex: 1 0 auto;
+}
+
+.footer-custom {
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -28,4 +41,430 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+/* ==================== 導覽列樣式 ==================== */
+
+/* 頂部紫色資訊列 */
+.top-info-bar {
+  background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Logo 區域 */
+.logo-bar {
+  background: white;
+}
+
+.logo-text {
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: #b19cd9;
+  letter-spacing: 1px;
+}
+
+.logo-link {
+  text-decoration: none;
+}
+
+.logo-link:hover .logo-text {
+  color: #9d7ec2;
+}
+
+/* 導覽圖示 */
+.nav-icon {
+  color: #555;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.nav-icon:hover {
+  color: #b19cd9;
+}
+
+/* 購物車徽章 */
+.cart-icon {
+  position: relative;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  background-color: #b19cd9;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* 用戶下拉選單 */
+.user-dropdown-container {
+  position: relative;
+}
+
+.user-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  min-width: 280px;
+  padding: 1.5rem;
+  z-index: 1000;
+}
+
+.user-dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-button {
+  display: block;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 0.75rem;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+  color: white;
+}
+
+.primary-button:hover {
+  background: linear-gradient(135deg, #9d7ec2 0%, #8f6fb5 100%);
+  color: white;
+}
+
+.secondary-button {
+  background: white;
+  color: #333;
+  border: 2px solid #e0e0e0;
+}
+
+.secondary-button:hover {
+  border-color: #b19cd9;
+  color: #b19cd9;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 1rem 0;
+}
+
+.dropdown-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dropdown-link {
+  padding: 0.75rem 1rem;
+  color: #333;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background-color 0.3s ease;
+  border-radius: 4px;
+}
+
+.dropdown-link:hover {
+  background-color: #f5f5f5;
+  color: #b19cd9;
+}
+
+/* 搜尋彈出框 */
+.search-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 100px;
+}
+
+.search-overlay.show {
+  display: flex;
+}
+
+.search-container {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 600px;
+  position: relative;
+}
+
+.search-form {
+  display: flex;
+  gap: 1rem;
+}
+
+.search-input {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #b19cd9;
+}
+
+.search-submit-btn {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.search-submit-btn:hover {
+  background: linear-gradient(135deg, #9d7ec2 0%, #8f6fb5 100%);
+}
+
+.search-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #999;
+}
+
+.search-close-btn:hover {
+  color: #333;
+}
+
+/* 主選單 */
+.main-nav {
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.nav-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-menu-item {
+  position: relative;
+}
+
+.nav-menu-item > a {
+  display: block;
+  padding: 1rem 1.5rem;
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.nav-menu-item > a:hover {
+  color: #b19cd9;
+}
+
+/* 下拉選單 */
+.nav-menu-item.dropdown {
+  position: relative;
+}
+
+.nav-menu-item .dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  min-width: 200px;
+  list-style: none;
+  padding: 0.5rem 0;
+  margin: 0;
+  z-index: 1000;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.nav-menu-item.dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.nav-menu-item .dropdown-menu li {
+  margin: 0;
+}
+
+.nav-menu-item .dropdown-menu a {
+  display: block;
+  padding: 0.75rem 1.5rem;
+  color: #333;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.nav-menu-item .dropdown-menu a:hover {
+  background-color: #f5f5f5;
+  color: #b19cd9;
+}
+
+/* Footer 樣式 */
+
+.footer-main {
+  background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+  color: white;
+}
+
+.footer-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+  color: white;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.footer-links a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.footer-info {
+  color: white;
+  font-size: 0.95rem;
+  line-height: 1.8;
+}
+
+.footer-company-id {
+  color: white;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+.footer-social {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.social-icon {
+  width: 40px;
+  height: 40px;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b19cd9;
+  transition: opacity 0.3s ease;
+}
+
+.social-icon:hover {
+  opacity: 0.8;
+}
+
+.footer-bottom {
+  background: linear-gradient(135deg, #9d7ec2 0%, #8b6db0 100%);
+  color: white;
+  font-size: 0.9rem;
+}
+
+.footer-bottom p {
+  color: white;
+}
+
+.footer-bottom strong {
+  color: #ffd700;
+}
+
+/* 回到頂端按鈕 */
+.back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  background-color: white;
+  border: 2px solid #b19cd9;
+  border-radius: 50%;
+  color: #b19cd9;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.back-to-top:hover {
+  background-color: #b19cd9;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.back-to-top.show {
+  display: flex;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .footer-social {
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+
+  .footer-main .col-md-3,
+  .footer-main .col-md-6 {
+    text-align: center;
+  }
 }

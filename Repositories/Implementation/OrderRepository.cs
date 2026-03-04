@@ -10,16 +10,17 @@ namespace MusicShop.Repositories.Implementation
     /// </summary>
     public class OrderRepository : IOrderRepository
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
 
-        public OrderRepository(ApplicationDbContext context)
+        public OrderRepository(IDbContextFactory<ApplicationDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(string userId)
         {
-            return await _context.Orders
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Orders
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Album)
                 .Where(o => o.UserId == userId)
@@ -29,17 +30,22 @@ namespace MusicShop.Repositories.Implementation
 
         public async Task<Order?> GetOrderByIdAsync(int id)
         {
-            return await _context.Orders
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Orders
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Album)
-                .ThenInclude(a => a!.Category)
+                    .ThenInclude(oi => oi.Album)
+                        .ThenInclude(a => a!.ArtistCategory)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Album)
+                        .ThenInclude(a => a!.ProductType)
                 .Include(o => o.User)
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
         public async Task<IEnumerable<Order>> GetAllOrdersAsync()
         {
-            return await _context.Orders
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Album)
@@ -49,35 +55,40 @@ namespace MusicShop.Repositories.Implementation
 
         public async Task<Order> CreateOrderAsync(Order order)
         {
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            context.Orders.Add(order);
+            await context.SaveChangesAsync();
             return order;
         }
 
         public async Task UpdateOrderAsync(Order order)
         {
-            _context.Orders.Update(order);
-            await _context.SaveChangesAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            context.Orders.Update(order);
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteOrderAsync(int id)
         {
-            var order = await _context.Orders.FindAsync(id);
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var order = await context.Orders.FindAsync(id);
             if (order != null)
             {
-                _context.Orders.Remove(order);
-                await _context.SaveChangesAsync();
+                context.Orders.Remove(order);
+                await context.SaveChangesAsync();
             }
         }
 
         public async Task<bool> OrderExistsAsync(int id)
         {
-            return await _context.Orders.AnyAsync(o => o.Id == id);
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Orders.AnyAsync(o => o.Id == id);
         }
 
         public async Task<bool> IsOrderOwnedByUserAsync(int orderId, string userId)
         {
-            return await _context.Orders
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Orders
                 .AnyAsync(o => o.Id == orderId && o.UserId == userId);
         }
     }

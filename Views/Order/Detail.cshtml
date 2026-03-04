@@ -1,0 +1,171 @@
+@model MusicShop.Models.Order
+@{
+    ViewData["Title"] = $"訂單詳情 - #{Model.Id}";
+}
+
+<div id="order-detail-page" class="container my-5">
+    <!-- 麵包屑 -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Home" asp-action="Index">首頁</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Account" asp-action="Index">我的帳戶</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Order" asp-action="Index">訂單查詢</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">訂單詳情 #@Model.Id</li>
+        </ol>
+    </nav>
+
+    <h1 class="page-title mb-4">訂單詳情</h1>
+
+    <!-- 訊息提示 -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- 訂單資訊 -->
+        <div class="col-lg-8 mb-4">
+            <div class="card mb-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">訂單資訊</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-4">
+                            <strong>訂單編號：</strong>
+                        </div>
+                        <div class="col-8">
+                            #@Model.Id
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4">
+                            <strong>訂單日期：</strong>
+                        </div>
+                        <div class="col-8">
+                            @Model.OrderDate.ToString("yyyy-MM-dd HH:mm:ss")
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4">
+                            <strong>訂單狀態：</strong>
+                        </div>
+                        <div class="col-8">
+                            @switch (Model.Status)
+                            {
+                                case MusicShop.Models.OrderStatus.Pending:
+                                    <span class="badge bg-warning text-dark">待處理</span>
+                                    break;
+                                case MusicShop.Models.OrderStatus.Paid:
+                                    <span class="badge bg-success">已付款</span>
+                                    break;
+                                case MusicShop.Models.OrderStatus.Shipped:
+                                    <span class="badge bg-info">已出貨</span>
+                                    break;
+                                case MusicShop.Models.OrderStatus.Completed:
+                                    <span class="badge bg-primary">已完成</span>
+                                    break;
+                                case MusicShop.Models.OrderStatus.Cancelled:
+                                    <span class="badge bg-secondary">已取消</span>
+                                    break;
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 訂單商品 -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">訂單商品</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>商品名稱</th>
+                                    <th class="text-center">單價</th>
+                                    <th class="text-center">數量</th>
+                                    <th class="text-end">小計</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OrderItems)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@item.AlbumId" class="text-decoration-none">
+                                                @item.Album?.Title
+                                            </a>
+                                        </td>
+                                        <td class="text-center">NT$@item.UnitPrice.ToString("N0")</td>
+                                        <td class="text-center">@item.Quantity</td>
+                                        <td class="text-end text-primary">
+                                            <strong>NT$@((item.UnitPrice * item.Quantity).ToString("N0"))</strong>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 訂單摘要 -->
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">訂單摘要</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>商品數量：</span>
+                        <span>@Model.OrderItems.Sum(i => i.Quantity) 件</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>商品小計：</span>
+                        <span>NT$@Model.TotalAmount.ToString("N0")</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong class="fs-5">訂單總額：</strong>
+                        <strong class="fs-5 text-primary">NT$@Model.TotalAmount.ToString("N0")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按鈕 -->
+            <div class="d-grid gap-2">
+                @if (Model.Status == MusicShop.Models.OrderStatus.Pending || Model.Status == MusicShop.Models.OrderStatus.Paid)
+                {
+                    <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('確定要取消此訂單嗎？');">
+                        <button type="submit" class="btn btn-danger w-100">取消訂單</button>
+                    </form>
+                }
+                <a asp-action="Index" class="btn btn-outline-secondary">返回訂單列表</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" />
+}

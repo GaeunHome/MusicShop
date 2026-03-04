@@ -68,7 +68,7 @@ namespace MusicShop.Services.Implementation
                     UserId = userId,
                     AlbumId = albumId,
                     Quantity = quantity,
-                    AddedAt = DateTime.Now
+                    AddedAt = DateTime.UtcNow
                 };
 
                 return await _cartRepository.AddToCartAsync(cartItem);

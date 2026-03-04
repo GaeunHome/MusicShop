@@ -6,20 +6,26 @@ using MusicShop.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+// 使用 DbContextFactory 以支援更好的並行性和資源管理
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 註冊 Repository（資料存取層）
 builder.Services.AddScoped<MusicShop.Repositories.Interface.IAlbumRepository, MusicShop.Repositories.Implementation.AlbumRepository>();
-builder.Services.AddScoped<MusicShop.Repositories.Interface.ICategoryRepository, MusicShop.Repositories.Implementation.CategoryRepository>();
+builder.Services.AddScoped<MusicShop.Repositories.Interface.IArtistCategoryRepository, MusicShop.Repositories.Implementation.ArtistCategoryRepository>();
+builder.Services.AddScoped<MusicShop.Repositories.Interface.IProductTypeRepository, MusicShop.Repositories.Implementation.ProductTypeRepository>();
 builder.Services.AddScoped<MusicShop.Repositories.Interface.ICartRepository, MusicShop.Repositories.Implementation.CartRepository>();
 builder.Services.AddScoped<MusicShop.Repositories.Interface.IOrderRepository, MusicShop.Repositories.Implementation.OrderRepository>();
+builder.Services.AddScoped<MusicShop.Repositories.Interface.IStatisticsRepository, MusicShop.Repositories.Implementation.StatisticsRepository>();
 
 // 註冊 Service（商業邏輯層）
 builder.Services.AddScoped<MusicShop.Services.Interface.IAlbumService, MusicShop.Services.Implementation.AlbumService>();
-builder.Services.AddScoped<MusicShop.Services.Interface.ICategoryService, MusicShop.Services.Implementation.CategoryService>();
+builder.Services.AddScoped<MusicShop.Services.Interface.IArtistCategoryService, MusicShop.Services.Implementation.ArtistCategoryService>();
+builder.Services.AddScoped<MusicShop.Services.Interface.IProductTypeService, MusicShop.Services.Implementation.ProductTypeService>();
 builder.Services.AddScoped<MusicShop.Services.Interface.ICartService, MusicShop.Services.Implementation.CartService>();
 builder.Services.AddScoped<MusicShop.Services.Interface.IOrderService, MusicShop.Services.Implementation.OrderService>();
+builder.Services.AddScoped<MusicShop.Services.Interface.IStatisticsService, MusicShop.Services.Implementation.StatisticsService>();
+builder.Services.AddScoped<MusicShop.Services.Interface.IUserService, MusicShop.Services.Implementation.UserService>();
 
 // 加入 Identity
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
@@ -65,25 +71,26 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-// 待修改
-// Cookie 驗證
-// JWT
+// 初始化資料庫角色、管理員帳戶和預設分類
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    var services = scope.ServiceProvider;
 
-    if (!await roleManager.RoleExistsAsync("Admin"))
-        await roleManager.CreateAsync(new IdentityRole("Admin"));
-
-    // 從設定檔讀取，不寫死在程式碼裡
-    var adminEmail = config["AdminSettings:Email"];
-    if (!string.IsNullOrEmpty(adminEmail))
+    try
     {
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
-        if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, "Admin"))
-            await userManager.AddToRoleAsync(adminUser, "Admin");
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = services.GetRequiredService<UserManager<AppUser>>();
+        var configuration = services.GetRequiredService<IConfiguration>();
+        var contextFactory = services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>();
+        var context = await contextFactory.CreateDbContextAsync();
+
+        // 執行資料庫初始化
+        await MusicShop.Data.DbInitializer.InitializeAsync(roleManager, userManager, configuration, context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "資料庫初始化時發生錯誤");
     }
 }
 

@@ -30,7 +30,16 @@
 
             <h2 class="mb-1">@Model.Title</h2>
             <p class="text-muted fs-5">@Model.Artist</p>
-            <span class="badge bg-secondary mb-3">@Model.Category?.Name</span>
+            <div class="mb-3">
+                @if (Model.ArtistCategory != null)
+                {
+                    <span class="badge bg-primary me-1">@Model.ArtistCategory.Name</span>
+                }
+                @if (Model.ProductType != null)
+                {
+                    <span class="badge bg-secondary">@Model.ProductType.Name</span>
+                }
+            </div>
 
             <p>@Model.Description</p>
 

@@ -16,9 +16,13 @@ namespace MusicShop.Services.Implementation
             _albumRepository = albumRepository;
         }
 
-        public async Task<IEnumerable<Album>> GetAlbumsAsync(string? searchTerm = null, int? categoryId = null)
+        public async Task<IEnumerable<Album>> GetAlbumsAsync(
+            string? searchTerm = null,
+            int? artistCategoryId = null,
+            int? productTypeId = null,
+            int? parentProductTypeId = null)
         {
-            return await _albumRepository.GetAlbumsAsync(searchTerm, categoryId);
+            return await _albumRepository.GetAlbumsAsync(searchTerm, artistCategoryId, productTypeId, parentProductTypeId);
         }
 
         public async Task<Album?> GetAlbumDetailAsync(int id)
@@ -71,7 +75,7 @@ namespace MusicShop.Services.Implementation
                 throw new ArgumentException("價格必須大於 0", nameof(album.Price));
             }
 
-            album.CreatedAt = DateTime.Now;
+            album.CreatedAt = DateTime.UtcNow;
             return await _albumRepository.AddAlbumAsync(album);
         }
 

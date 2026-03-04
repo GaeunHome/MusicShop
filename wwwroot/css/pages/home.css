@@ -1,0 +1,308 @@
+/* 首頁專用樣式 */
+
+/* ==================== 輪播圖樣式 ==================== */
+#homeCarousel {
+    margin: 0 0 60px 0;
+    padding: 0;
+    width: 100%;
+    position: relative;
+}
+
+#homeCarousel .carousel-inner,
+#homeCarousel .carousel-item {
+    width: 100%;
+}
+
+/* 確保圖片完整顯示 */
+#homeCarousel .carousel-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* 輪播控制按鈕優化 */
+#homeCarousel .carousel-control-prev,
+#homeCarousel .carousel-control-next {
+    width: 60px;
+    height: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+#homeCarousel .carousel-control-prev {
+    left: 20px;
+}
+
+#homeCarousel .carousel-control-next {
+    right: 20px;
+}
+
+#homeCarousel .carousel-control-prev:hover,
+#homeCarousel .carousel-control-next:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    width: 24px;
+    height: 24px;
+    background-size: 24px 24px;
+}
+
+/* 改善指示點樣式 */
+#homeCarousel .carousel-indicators {
+    margin-bottom: 20px;
+}
+
+#homeCarousel .carousel-indicators button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: none;
+    margin: 0 6px;
+    transition: all 0.3s ease;
+}
+
+#homeCarousel .carousel-indicators button.active {
+    background-color: rgba(255, 255, 255, 1);
+    width: 12px;
+}
+
+#homeCarousel .carousel-indicators button:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* 手機版隱藏左右按鈕 */
+@media (max-width: 768px) {
+    #homeCarousel .carousel-control-prev,
+    #homeCarousel .carousel-control-next {
+        display: none;
+    }
+
+    #homeCarousel .carousel-indicators {
+        margin-bottom: 10px;
+    }
+
+    #homeCarousel .carousel-indicators button {
+        width: 8px;
+        height: 8px;
+        margin: 0 4px;
+    }
+}
+
+/* ==================== 區塊標題樣式 ==================== */
+.section-heading {
+    position: relative;
+    border: none;
+    padding: 0;
+    margin-bottom: 2rem;
+}
+
+.section-heading-anchor {
+    color: inherit;
+}
+
+.section-heading-anchor:hover .section-title {
+    color: #a855f7;
+}
+
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #000;
+    margin: 0;
+    position: relative;
+    display: inline-block;
+    transition: color 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .section-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* ==================== 商品展示樣式 ==================== */
+
+/* 商品項目容器 */
+.product-item {
+    margin-bottom: 20px;
+}
+
+/* 商品圖片容器 - 使用 padding-top 技巧維持 1:1 比例 */
+.product-image-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 100%; /* 1:1 比例 */
+    overflow: hidden;
+    border-radius: 12px;
+    background-color: #f5f5f5;
+}
+
+/* 底層連結，點擊整個圖片區域跳轉 */
+.product-image-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    cursor: pointer;
+}
+
+/* 商品圖片 - 絕對定位填滿容器 */
+.product-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+    pointer-events: none; /* 圖片不攔截點擊，讓底層連結接收點擊 */
+}
+
+/* 懸停遮罩層 */
+.product-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 5;
+    pointer-events: none; /* 不攔截點擊事件，讓底層連結可以接收點擊 */
+}
+
+/* 當滑鼠移到圖片區域時 */
+.product-image-wrapper:hover .product-overlay {
+    opacity: 1;
+}
+
+/* 懸停按鈕容器 */
+.overlay-buttons {
+    display: flex;
+    gap: 8px;
+    position: relative;
+    z-index: 10;
+    pointer-events: none; /* 容器本身不攔截點擊 */
+}
+
+/* 按鈕容器內的 form 可以點擊 */
+.overlay-buttons form {
+    pointer-events: auto;
+}
+
+/* 懸停按鈕基本樣式 */
+.overlay-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    transition: all 0.2s ease;
+    pointer-events: auto; /* 按鈕本身可以點擊 */
+}
+
+/* 白色按鈕（查看商品） */
+.btn-white {
+    background-color: white;
+    color: #333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-white:hover {
+    background-color: #f8f9fa;
+    color: #333;
+    transform: scale(1.05);
+}
+
+/* 紫色按鈕（加入購物車） */
+.btn-purple {
+    background-color: #a855f7;
+    color: white;
+    box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+}
+
+.btn-purple:hover {
+    background-color: #9333ea;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* ==================== 商品資訊樣式 ==================== */
+
+/* 商品資訊（照片下方） */
+.product-info {
+    text-align: center;
+}
+
+.product-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.5;
+    height: 3em;
+    margin-bottom: 6px;
+}
+
+.product-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #a855f7;
+}
+
+/* ==================== 查看所有連結樣式 ==================== */
+
+/* 查看所有專輯連結 */
+.view-all-link {
+    color: #333;
+    text-decoration: none;
+}
+
+/* ==================== 響應式設計 ==================== */
+
+@media (max-width: 768px) {
+    /* 圖片比例由 padding-top: 100% 控制，不需要設定高度 */
+
+    .overlay-btn {
+        width: 48px;
+        height: 48px;
+    }
+
+    .overlay-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .product-title {
+        font-size: 13px;
+    }
+
+    .product-price {
+        font-size: 14px;
+    }
+}

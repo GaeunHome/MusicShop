@@ -1,120 +1,161 @@
-﻿@model List<MusicShop.Models.Album>
+@model List<MusicShop.Models.Album>
 @{
     ViewData["Title"] = "首頁 - MusicShop";
 }
 
-<!-- 幻燈片輪播 -->
-<div id="homeCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+<!--
+    圖片尺寸說明：
+    - 輪播橫幅圖片：建議尺寸 1920x600 或 1600x500 (寬x高)
+    - 請將輪播圖片放在 wwwroot/images/banners/ 資料夾
+    - 檔案命名範例：banner1.jpg, banner2.jpg, banner3.jpg
+-->
+
+@section Banner {
+<!-- 首頁輪播橫幅 -->
+<div id="homeCarousel" class="carousel slide" data-bs-ride="carousel">
+    <!-- 輪播指示點 -->
     <div class="carousel-indicators">
         <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
         <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
         <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
     </div>
+
+    <!-- 輪播內容 -->
     <div class="carousel-inner">
         <div class="carousel-item active">
-            <div class="bg-primary text-white" style="height: 400px;">
-                <div class="d-flex align-items-center justify-content-center h-100">
-                    <div class="text-center">
-                        <h1 class="display-4">歡迎來到 MusicShop</h1>
-                        <p class="lead">探索最新最熱門的音樂專輯</p>
-                        <a asp-controller="Album" asp-action="Index" class="btn btn-light btn-lg mt-3">瀏覽所有專輯</a>
-                    </div>
-                </div>
-            </div>
+            <img src="~/images/banners/banner1.jpg" class="d-block w-100" alt="橫幅 1">
         </div>
         <div class="carousel-item">
-            <div class="bg-success text-white" style="height: 400px;">
-                <div class="d-flex align-items-center justify-content-center h-100">
-                    <div class="text-center">
-                        <h1 class="display-4">最新專輯上架</h1>
-                        <p class="lead">搶先收藏最新發行</p>
-                        <a href="#latest-albums" class="btn btn-light btn-lg mt-3">立即查看</a>
-                    </div>
-                </div>
-            </div>
+            <img src="~/images/banners/banner2.jpg" class="d-block w-100" alt="橫幅 2">
         </div>
         <div class="carousel-item">
-            <div class="bg-info text-white" style="height: 400px;">
-                <div class="d-flex align-items-center justify-content-center h-100">
-                    <div class="text-center">
-                        <h1 class="display-4">精選推薦</h1>
-                        <p class="lead">發現更多好音樂</p>
-                        <a asp-controller="Album" asp-action="Index" class="btn btn-light btn-lg mt-3">探索更多</a>
-                    </div>
-                </div>
-            </div>
+            <img src="~/images/banners/banner3.jpg" class="d-block w-100" alt="橫幅 3">
         </div>
     </div>
+
+    <!-- 左右切換按鈕 -->
     <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Previous</span>
+        <span class="visually-hidden">上一張</span>
     </button>
     <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Next</span>
+        <span class="visually-hidden">下一張</span>
     </button>
 </div>
+}
 
-<!-- 最新商品區塊 -->
+<!--
+    圖片尺寸說明：
+    - 專輯封面圖片：建議尺寸 500x500 或 800x800 (正方形)
+    - 請將專輯封面放在 wwwroot/images/albums/ 資料夾
+    - 在資料庫的 CoverImageUrl 欄位只需儲存檔案名稱，例如：album1.jpg
+    - 完整路徑會自動組合成：~/images/albums/album1.jpg
+-->
+
+<!-- 最新上架專輯區塊 -->
 <div id="latest-albums" class="mb-5">
-    <div class="text-center mb-4">
-        <h2>最新上架</h2>
-        <p class="text-muted">搶先收藏最新發行的專輯</p>
+    <div class="section-heading text-center mb-4">
+        <a asp-controller="Album" asp-action="Index" class="section-heading-anchor text-decoration-none">
+            <h2 class="section-title">新品上市</h2>
+        </a>
     </div>
 
     @if (Model != null && Model.Any())
     {
-        <div class="row row-cols-1 row-cols-md-2 g-4">
+        <!--
+            響應式排版說明：
+            - 電腦版（lg以上，寬度 >= 992px）：4欄排版 (參考 K-MONSTAR)
+            - 平板和手機版（寬度 < 992px）：2欄排版
+        -->
+        <div class="row row-cols-2 row-cols-lg-4 g-4">
             @foreach (var album in Model)
             {
                 <div class="col">
-                    <div class="card h-100">
-                        <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id" class="text-decoration-none">
+                    <div class="product-item">
+                        <!-- 專輯封面圖片區塊 -->
+                        <div class="product-image-wrapper">
+                            <!-- 底層連結，點擊整個圖片區域跳轉 -->
+                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id" class="product-image-link"></a>
+
                             @if (!string.IsNullOrEmpty(album.CoverImageUrl))
                             {
-                                <img src="@album.CoverImageUrl" class="card-img-top" alt="@album.Title" style="height: 300px; object-fit: cover;">
+                                <!--
+                                    如果資料庫存的是完整 URL（http://...），直接使用
+                                    如果只存檔案名稱（album1.jpg），請改成：~/images/albums/@album.CoverImageUrl
+                                -->
+                                <img src="@album.CoverImageUrl" class="product-image" alt="@album.Title">
                             }
                             else
                             {
-                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 300px;">
-                                    <span class="text-white fs-1">♪</span>
+                                <!-- 預設圖片（當沒有封面時顯示） -->
+                                <div class="product-image d-flex align-items-center justify-content-center"
+                                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <span class="text-white" style="font-size: 60px;">♪</span>
                                 </div>
                             }
-                        </a>
-                        <div class="card-body">
-                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id" class="text-decoration-none text-dark">
-                                <h5 class="card-title">@album.Title</h5>
-                            </a>
-                            <p class="card-text text-muted">@album.Artist</p>
-                            @if (album.Category != null)
+
+                            <!-- 庫存狀態標籤 -->
+                            @if (album.Stock <= 0)
                             {
-                                <span class="badge bg-secondary">@album.Category.Name</span>
+                                <span class="position-absolute top-0 end-0 badge bg-danger m-2" style="z-index: 10;">已售完</span>
                             }
-                            <p class="card-text mt-2">
-                                <strong class="text-primary">NT$ @album.Price.ToString("N0")</strong>
-                            </p>
-                            @if (album.Stock > 0)
+                            else if (album.Stock <= 5)
                             {
-                                <p class="text-success small mb-2">庫存：@album.Stock</p>
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2" style="z-index: 10;">僅剩 @album.Stock 件</span>
                             }
-                            else
-                            {
-                                <p class="text-danger small mb-2">目前缺貨</p>
-                            }
+
+                            <!-- 懸停時顯示的按鈕 -->
+                            <div class="product-overlay">
+                                <div class="overlay-buttons d-flex gap-2 mb-2">
+                                    <!-- 查看商品按鈕（白色背景 + 放大鏡圖示） -->
+                                    <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id"
+                                       class="btn btn-white overlay-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                        </svg>
+                                    </a>
+
+                                    <!-- 加入購物車按鈕（紫色背景 + 購物車圖示） -->
+                                    @if (album.Stock > 0)
+                                    {
+                                        @if (User.Identity!.IsAuthenticated)
+                                        {
+                                            <button type="button" class="btn btn-purple overlay-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#addToCartModal"
+                                                    data-album-id="@album.Id"
+                                                    data-album-title="@album.Title"
+                                                    data-album-artist="@album.Artist"
+                                                    data-album-price="@album.Price"
+                                                    data-album-stock="@album.Stock"
+                                                    data-album-image="@album.CoverImageUrl">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                                </svg>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <a asp-controller="Account" asp-action="Login" class="btn btn-purple overlay-btn">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                                </svg>
+                                            </a>
+                                        }
+                                    }
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-footer bg-white">
-                            @if (album.Stock > 0)
-                            {
-                                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-grid">
-                                    <input type="hidden" name="albumId" value="@album.Id" />
-                                    <input type="hidden" name="quantity" value="1" />
-                                    <button type="submit" class="btn btn-primary">加入購物車</button>
-                                </form>
-                            }
-                            else
-                            {
-                                <button class="btn btn-secondary w-100" disabled>目前無法購買</button>
-                            }
+
+                        <!-- 商品資訊（照片下方） -->
+                        <div class="product-info mt-3">
+                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id" class="text-decoration-none text-dark">
+                                <h6 class="product-title mb-2">@album.Title</h6>
+                            </a>
+                            <p class="product-price mb-0">
+                                NT$@album.Price.ToString("N0")
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -123,12 +164,29 @@
     }
     else
     {
-        <div class="alert alert-info text-center">
-            <p class="mb-0">目前沒有最新商品</p>
+        <!-- 無商品時顯示 -->
+        <div class="alert alert-info text-center py-5">
+            <i class="bi bi-info-circle fs-1"></i>
+            <p class="mb-0 mt-3 fs-5">目前沒有最新商品</p>
         </div>
     }
 
-    <div class="text-center mt-4">
-        <a asp-controller="Album" asp-action="Index" class="btn btn-outline-primary">查看所有專輯</a>
+    <!-- 查看更多連結 -->
+    <div class="text-center mt-5">
+        <a asp-controller="Album" asp-action="Index" class="view-all-link">查看所有專輯 →</a>
     </div>
 </div>
+
+<!-- 引用共用的加入購物車 Modal -->
+<partial name="_AddToCartModal" />
+
+<!-- 引用外部 CSS -->
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/home.css" asp-append-version="true" />
+}
+
+<!-- 引用外部 JavaScript -->
+@section Scripts {
+    <script src="~/js/pages/home.js" asp-append-version="true"></script>
+    <script src="~/js/add-to-cart-modal.js" asp-append-version="true"></script>
+}

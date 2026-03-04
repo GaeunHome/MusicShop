@@ -23,6 +23,11 @@ namespace MusicShop.Services.Interface
         Task<Order?> GetOrderDetailAsync(int orderId, string userId);
 
         /// <summary>
+        /// 取得訂單詳細資訊（管理員用，不驗證使用者）
+        /// </summary>
+        Task<Order?> GetOrderByIdAsync(int orderId);
+
+        /// <summary>
         /// 取得所有訂單（管理員用）
         /// </summary>
         Task<IEnumerable<Order>> GetAllOrdersAsync();

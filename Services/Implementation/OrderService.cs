@@ -38,6 +38,7 @@ namespace MusicShop.Services.Implementation
             // 驗證庫存並計算總金額
             decimal totalAmount = 0;
             var orderItems = new List<OrderItem>();
+            var albumCache = new Dictionary<int, Album>(); // 快取已查詢的專輯，避免重複查詢
 
             foreach (var cartItem in cartItemsList)
             {
@@ -60,13 +61,16 @@ namespace MusicShop.Services.Implementation
 
                 orderItems.Add(orderItem);
                 totalAmount += album.Price * cartItem.Quantity;
+
+                // 快取專輯物件，供後續扣除庫存使用
+                albumCache[album.Id] = album;
             }
 
             // 建立訂單
             var order = new Order
             {
                 UserId = userId,
-                OrderDate = DateTime.Now,
+                OrderDate = DateTime.UtcNow, // 使用 UTC 時間避免時區問題
                 Status = OrderStatus.Pending,
                 TotalAmount = totalAmount,
                 OrderItems = orderItems
@@ -75,11 +79,10 @@ namespace MusicShop.Services.Implementation
             // 儲存訂單
             var createdOrder = await _orderRepository.CreateOrderAsync(order);
 
-            // 扣除庫存
+            // 扣除庫存（使用快取的專輯物件，避免重複查詢資料庫）
             foreach (var orderItem in orderItems)
             {
-                var album = await _albumRepository.GetAlbumByIdAsync(orderItem.AlbumId);
-                if (album != null)
+                if (albumCache.TryGetValue(orderItem.AlbumId, out var album))
                 {
                     album.Stock -= orderItem.Quantity;
                     await _albumRepository.UpdateAlbumAsync(album);
@@ -115,6 +118,11 @@ namespace MusicShop.Services.Implementation
                 throw new UnauthorizedAccessException("無權限查看此訂單");
 
             return order;
+        }
+
+        public async Task<Order?> GetOrderByIdAsync(int orderId)
+        {
+            return await _orderRepository.GetOrderByIdAsync(orderId);
         }
 
         public async Task<IEnumerable<Order>> GetAllOrdersAsync()

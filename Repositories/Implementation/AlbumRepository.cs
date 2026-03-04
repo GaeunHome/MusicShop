@@ -10,25 +10,33 @@ namespace MusicShop.Repositories.Implementation
     /// </summary>
     public class AlbumRepository : IAlbumRepository
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
 
-        public AlbumRepository(ApplicationDbContext context)
+        public AlbumRepository(IDbContextFactory<ApplicationDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task<IEnumerable<Album>> GetAllAlbumsAsync()
         {
-            return await _context.Albums
-                .Include(a => a.Category)
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Albums
+                .Include(a => a.ArtistCategory)
+                .Include(a => a.ProductType)
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Album>> GetAlbumsAsync(string? searchTerm = null, int? categoryId = null)
+        public async Task<IEnumerable<Album>> GetAlbumsAsync(
+            string? searchTerm = null,
+            int? artistCategoryId = null,
+            int? productTypeId = null,
+            int? parentProductTypeId = null)
         {
-            var query = _context.Albums
-                .Include(a => a.Category)
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var query = context.Albums
+                .Include(a => a.ArtistCategory)
+                .Include(a => a.ProductType)
                 .AsQueryable();
 
             // 搜尋關鍵字
@@ -39,10 +47,30 @@ namespace MusicShop.Repositories.Implementation
                     a.Artist.Contains(searchTerm));
             }
 
-            // 分類篩選
-            if (categoryId.HasValue)
+            // 藝人分類篩選
+            if (artistCategoryId.HasValue)
             {
-                query = query.Where(a => a.CategoryId == categoryId);
+                query = query.Where(a => a.ArtistCategoryId == artistCategoryId);
+            }
+
+            // 商品類型篩選（子分類）
+            if (productTypeId.HasValue)
+            {
+                query = query.Where(a => a.ProductTypeId == productTypeId);
+            }
+            // 商品父分類篩選（顯示該父分類下所有子分類的商品）
+            else if (parentProductTypeId.HasValue)
+            {
+                // 查詢該父分類下所有子分類的 ID
+                var childCategoryIds = await context.ProductTypes
+                    .Where(pt => pt.ParentId == parentProductTypeId)
+                    .Select(pt => pt.Id)
+                    .ToListAsync();
+
+                if (childCategoryIds.Any())
+                {
+                    query = query.Where(a => a.ProductTypeId.HasValue && childCategoryIds.Contains(a.ProductTypeId.Value));
+                }
             }
 
             return await query
@@ -52,15 +80,19 @@ namespace MusicShop.Repositories.Implementation
 
         public async Task<Album?> GetAlbumByIdAsync(int id)
         {
-            return await _context.Albums
-                .Include(a => a.Category)
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Albums
+                .Include(a => a.ArtistCategory)
+                .Include(a => a.ProductType)
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
         public async Task<IEnumerable<Album>> GetLatestAlbumsAsync(int count)
         {
-            return await _context.Albums
-                .Include(a => a.Category)
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Albums
+                .Include(a => a.ArtistCategory)
+                .Include(a => a.ProductType)
                 .OrderByDescending(a => a.Id)
                 .Take(count)
                 .ToListAsync();
@@ -68,30 +100,34 @@ namespace MusicShop.Repositories.Implementation
 
         public async Task<Album> AddAlbumAsync(Album album)
         {
-            _context.Albums.Add(album);
-            await _context.SaveChangesAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            context.Albums.Add(album);
+            await context.SaveChangesAsync();
             return album;
         }
 
         public async Task UpdateAlbumAsync(Album album)
         {
-            _context.Albums.Update(album);
-            await _context.SaveChangesAsync();
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            context.Albums.Update(album);
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteAlbumAsync(int id)
         {
-            var album = await _context.Albums.FindAsync(id);
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var album = await context.Albums.FindAsync(id);
             if (album != null)
             {
-                _context.Albums.Remove(album);
-                await _context.SaveChangesAsync();
+                context.Albums.Remove(album);
+                await context.SaveChangesAsync();
             }
         }
 
         public async Task<bool> AlbumExistsAsync(int id)
         {
-            return await _context.Albums.AnyAsync(a => a.Id == id);
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Albums.AnyAsync(a => a.Id == id);
         }
     }
 }

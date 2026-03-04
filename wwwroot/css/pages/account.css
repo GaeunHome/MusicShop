@@ -1,0 +1,217 @@
+/* 會員中心頁面樣式 */
+
+/* ==================== 頁面標題 ==================== */
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 2rem;
+}
+
+/* ==================== 側邊選單樣式 ==================== */
+.account-menu {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.account-menu .menu-item {
+    display: block;
+    padding: 1rem 1.5rem;
+    color: #333;
+    text-decoration: none;
+    border-bottom: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.account-menu .menu-item:last-child {
+    border-bottom: none;
+}
+
+.account-menu .menu-item:hover {
+    background-color: #f8f9fa;
+    color: #a855f7;
+    padding-left: 2rem;
+}
+
+.account-menu .menu-item.active {
+    background-color: #a855f7;
+    color: white;
+    font-weight: 600;
+}
+
+/* ==================== 會員資訊卡片 ==================== */
+.account-info-card {
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.account-info-card .user-info {
+    padding: 1rem 0;
+}
+
+.account-info-card .user-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #000;
+}
+
+.account-info-card .shopping-stats {
+    padding: 1rem 0;
+}
+
+.account-info-card .stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.account-info-card .stat-label {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.account-info-card .stat-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* ==================== 訂單卡片樣式 ==================== */
+.order-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.order-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.order-card .card-header {
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 1.25rem;
+}
+
+.order-card .order-item {
+    padding: 0.5rem 0;
+}
+
+/* ==================== 手機版選單 ==================== */
+.mobile-menu .dropdown-toggle {
+    text-align: left;
+    position: relative;
+}
+
+.mobile-menu .dropdown-toggle::after {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* ==================== 響應式設計 ==================== */
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .account-info-card .border-end {
+        border-right: none !important;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .order-card .card-header .row > div,
+    .order-card .card-body .row > div {
+        margin-bottom: 0.5rem;
+    }
+
+    .order-card .card-body .row > div:last-child {
+        margin-bottom: 0;
+    }
+
+    .stat-item {
+        margin-bottom: 1rem;
+    }
+}
+
+/* ==================== 表單樣式 ==================== */
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.form-control:focus {
+    border-color: #a855f7;
+    box-shadow: 0 0 0 0.2rem rgba(168, 85, 247, 0.25);
+}
+
+/* ==================== 按鈕樣式 ==================== */
+.btn-primary {
+    background-color: #a855f7;
+    border-color: #a855f7;
+}
+
+.btn-primary:hover {
+    background-color: #9333ea;
+    border-color: #9333ea;
+}
+
+.btn-outline-primary {
+    color: #a855f7;
+    border-color: #a855f7;
+}
+
+.btn-outline-primary:hover {
+    background-color: #a855f7;
+    border-color: #a855f7;
+    color: white;
+}
+
+/* ==================== 麵包屑樣式 ==================== */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.breadcrumb-item a {
+    color: #666;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    color: #a855f7;
+}
+
+.breadcrumb-item.active {
+    color: #333;
+}
+
+/* ==================== 訂單詳情頁面 ==================== */
+#order-detail-page .table {
+    margin-bottom: 0;
+}
+
+#order-detail-page .table td,
+#order-detail-page .table th {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+#order-detail-page .table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* ==================== 警告訊息樣式 ==================== */
+.alert {
+    border-radius: 8px;
+}
+
+.alert i {
+    margin-right: 0.5rem;
+}

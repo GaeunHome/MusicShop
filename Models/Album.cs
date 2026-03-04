@@ -23,11 +23,20 @@ namespace MusicShop.Models
 
         public int? Stock { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // 關聯
-        public int CategoryId { get; set; }
-        public Category? Category { get; set; }
+        // 雙分類系統
+        /// <summary>
+        /// 藝人分類 ID（男子團體、女子團體等）
+        /// </summary>
+        public int? ArtistCategoryId { get; set; }
+        public ArtistCategory? ArtistCategory { get; set; }
+
+        /// <summary>
+        /// 商品類型 ID（專輯、手燈、周邊等）
+        /// </summary>
+        public int? ProductTypeId { get; set; }
+        public ProductType? ProductType { get; set; }
 
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }

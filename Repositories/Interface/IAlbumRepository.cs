@@ -16,8 +16,14 @@ namespace MusicShop.Repositories.Interface
         /// 根據條件查詢專輯
         /// </summary>
         /// <param name="searchTerm">搜尋關鍵字（標題或演出者）</param>
-        /// <param name="categoryId">分類 ID</param>
-        Task<IEnumerable<Album>> GetAlbumsAsync(string? searchTerm = null, int? categoryId = null);
+        /// <param name="artistCategoryId">藝人分類 ID</param>
+        /// <param name="productTypeId">商品類型 ID（子分類）</param>
+        /// <param name="parentProductTypeId">商品父分類 ID</param>
+        Task<IEnumerable<Album>> GetAlbumsAsync(
+            string? searchTerm = null,
+            int? artistCategoryId = null,
+            int? productTypeId = null,
+            int? parentProductTypeId = null);
 
         /// <summary>
         /// 根據 ID 取得單一專輯（含分類資訊）

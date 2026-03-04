@@ -20,7 +20,7 @@ namespace MusicShop.Models
         public string UserId { get; set; } = string.Empty;
         public AppUser? User { get; set; }
 
-        public DateTime OrderDate { get; set; } = DateTime.Now;
+        public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
 

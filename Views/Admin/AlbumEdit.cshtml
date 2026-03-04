@@ -1,13 +1,13 @@
 @model MusicShop.Models.Album
 @{
-    ViewData["Title"] = "編輯專輯";
+    ViewData["Title"] = "編輯商品";
 }
 
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-7">
             <div class="card shadow-sm">
-                <div class="card-header fw-bold">✏️ 編輯專輯</div>
+                <div class="card-header fw-bold">✏️ 編輯商品</div>
                 <div class="card-body">
                     <form asp-action="AlbumEdit" method="post">
                         <input type="hidden" asp-for="Id" />
@@ -15,18 +15,35 @@
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                         <div class="mb-3">
-                            <label asp-for="Title" class="form-label">專輯名稱</label>
+                            <label asp-for="Title" class="form-label">商品名稱</label>
                             <input asp-for="Title" class="form-control" />
                             <span asp-validation-for="Title" class="text-danger small"></span>
                         </div>
                         <div class="mb-3">
-                            <label asp-for="Artist" class="form-label">歌手</label>
+                            <label asp-for="Artist" class="form-label">藝人/歌手</label>
                             <input asp-for="Artist" class="form-control" />
                             <span asp-validation-for="Artist" class="text-danger small"></span>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ArtistCategoryId" class="form-label">藝人分類</label>
+                                <select asp-for="ArtistCategoryId" asp-items="ViewBag.ArtistCategories" class="form-select">
+                                    <option value="">請選擇藝人分類</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="ParentCategorySelect" class="form-label">商品大分類</label>
+                                <select id="ParentCategorySelect" asp-items="ViewBag.ParentCategories" class="form-select">
+                                    <option value="">請先選擇大分類</option>
+                                </select>
+                                <small class="text-muted">選擇後會顯示對應的子分類</small>
+                            </div>
+                        </div>
                         <div class="mb-3">
-                            <label asp-for="CategoryId" class="form-label">分類</label>
-                            <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-select"></select>
+                            <label asp-for="ProductTypeId" class="form-label">商品類型（子分類）</label>
+                            <select asp-for="ProductTypeId" id="ProductTypeSelect" class="form-select">
+                                <option value="">請先選擇大分類</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label asp-for="Description" class="form-label">描述</label>
@@ -61,4 +78,61 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        var selectedProductTypeId = @Html.Raw(ViewBag.SelectedProductTypeId ?? "null");
+
+        $(document).ready(function() {
+            // 載入子分類的函數
+            function loadChildCategories(parentId, selectedId) {
+                var productTypeSelect = $('#ProductTypeSelect');
+
+                productTypeSelect.html('<option value="">載入中...</option>');
+                productTypeSelect.prop('disabled', true);
+
+                if (parentId) {
+                    $.ajax({
+                        url: '@Url.Action("GetChildCategories", "Admin")',
+                        type: 'GET',
+                        data: { parentId: parentId },
+                        success: function(data) {
+                            productTypeSelect.html('<option value="">請選擇商品類型</option>');
+
+                            if (data && data.length > 0) {
+                                $.each(data, function(i, item) {
+                                    var option = $('<option></option>').val(item.id).text(item.name);
+                                    if (selectedId && item.id == selectedId) {
+                                        option.prop('selected', true);
+                                    }
+                                    productTypeSelect.append(option);
+                                });
+                                productTypeSelect.prop('disabled', false);
+                            } else {
+                                productTypeSelect.html('<option value="">此分類下沒有子分類</option>');
+                            }
+                        },
+                        error: function() {
+                            productTypeSelect.html('<option value="">載入失敗</option>');
+                            alert('載入子分類失敗，請重試');
+                        }
+                    });
+                } else {
+                    productTypeSelect.html('<option value="">請先選擇大分類</option>');
+                    productTypeSelect.prop('disabled', true);
+                }
+            }
+
+            // 當父分類變更時，載入對應的子分類
+            $('#ParentCategorySelect').change(function() {
+                var parentId = $(this).val();
+                loadChildCategories(parentId, null);
+            });
+
+            // 頁面載入時，如果有選擇的父分類，自動載入子分類
+            var initialParentId = $('#ParentCategorySelect').val();
+            if (initialParentId) {
+                loadChildCategories(initialParentId, selectedProductTypeId);
+            }
+        });
+    </script>
 }
