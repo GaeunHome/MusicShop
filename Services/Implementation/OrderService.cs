@@ -1,6 +1,7 @@
 using MusicShop.Models;
 using MusicShop.Repositories.Interface;
 using MusicShop.Services.Interface;
+using MusicShop.Helpers;
 
 namespace MusicShop.Services.Implementation
 {
@@ -25,15 +26,13 @@ namespace MusicShop.Services.Implementation
 
         public async Task<Order> CreateOrderFromCartAsync(string userId)
         {
-            if (string.IsNullOrEmpty(userId))
-                throw new ArgumentException("使用者 ID 不能為空", nameof(userId));
+            ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
 
             // 取得購物車項目
             var cartItems = await _cartRepository.GetCartItemsByUserIdAsync(userId);
             var cartItemsList = cartItems.ToList();
 
-            if (!cartItemsList.Any())
-                throw new InvalidOperationException("購物車是空的，無法建立訂單");
+            ValidationHelper.ValidateCollectionNotEmpty(cartItemsList, "購物車");
 
             // 驗證庫存並計算總金額
             decimal totalAmount = 0;
@@ -43,13 +42,13 @@ namespace MusicShop.Services.Implementation
             foreach (var cartItem in cartItemsList)
             {
                 var album = await _albumRepository.GetAlbumByIdAsync(cartItem.AlbumId);
-
-                if (album == null)
-                    throw new InvalidOperationException($"找不到專輯 ID: {cartItem.AlbumId}");
+                ValidationHelper.ValidateEntityExists(album, "專輯", cartItem.AlbumId);
 
                 // 檢查庫存
-                if (album.Stock < cartItem.Quantity)
-                    throw new InvalidOperationException($"專輯「{album.Title}」庫存不足，目前庫存: {album.Stock}");
+                ValidationHelper.ValidateCondition(
+                    album!.Stock >= cartItem.Quantity,
+                    $"專輯「{album.Title}」庫存不足，目前庫存: {album.Stock}"
+                );
 
                 // 建立訂單項目
                 var orderItem = new OrderItem

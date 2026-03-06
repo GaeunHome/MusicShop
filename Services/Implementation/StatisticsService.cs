@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using MusicShop.Repositories.Interface;
 using MusicShop.Services.Interface;
 
@@ -9,40 +10,116 @@ namespace MusicShop.Services.Implementation
     public class StatisticsService : IStatisticsService
     {
         private readonly IStatisticsRepository _statisticsRepository;
+        private readonly ILogger<StatisticsService> _logger;
 
-        public StatisticsService(IStatisticsRepository statisticsRepository)
+        public StatisticsService(
+            IStatisticsRepository statisticsRepository,
+            ILogger<StatisticsService> logger)
         {
             _statisticsRepository = statisticsRepository;
+            _logger = logger;
         }
 
         public async Task<int> GetAlbumCountAsync()
         {
-            return await _statisticsRepository.GetAlbumCountAsync();
+            var count = await _statisticsRepository.GetAlbumCountAsync();
+
+            // 商業邏輯：如果數量為 0，記錄警告
+            if (count == 0)
+            {
+                _logger.LogWarning("系統中沒有任何專輯資料");
+            }
+            else
+            {
+                _logger.LogInformation("系統中共有 {AlbumCount} 個專輯", count);
+            }
+
+            return count;
         }
 
         public async Task<int> GetCategoryCountAsync()
         {
-            return await _statisticsRepository.GetCategoryCountAsync();
+            var count = await _statisticsRepository.GetCategoryCountAsync();
+
+            // 商業邏輯：如果分類數量為 0，記錄警告
+            if (count == 0)
+            {
+                _logger.LogWarning("系統中沒有任何分類資料");
+            }
+            else
+            {
+                _logger.LogInformation("系統中共有 {CategoryCount} 個分類", count);
+            }
+
+            return count;
         }
 
         public async Task<int> GetOrderCountAsync()
         {
-            return await _statisticsRepository.GetOrderCountAsync();
+            var count = await _statisticsRepository.GetOrderCountAsync();
+
+            // 商業邏輯：記錄訂單總數資訊
+            if (count == 0)
+            {
+                _logger.LogInformation("系統中尚無訂單");
+            }
+            else
+            {
+                _logger.LogInformation("系統中共有 {OrderCount} 筆訂單", count);
+            }
+
+            return count;
         }
 
         public async Task<int> GetUserCountAsync()
         {
-            return await _statisticsRepository.GetUserCountAsync();
+            var count = await _statisticsRepository.GetUserCountAsync();
+
+            // 商業邏輯：記錄使用者數量，少於 5 人時提示
+            if (count < 5)
+            {
+                _logger.LogInformation("系統中有 {UserCount} 位使用者（使用者數量較少）", count);
+            }
+            else
+            {
+                _logger.LogInformation("系統中共有 {UserCount} 位使用者", count);
+            }
+
+            return count;
         }
 
         public async Task<decimal> GetTotalSalesAsync()
         {
-            return await _statisticsRepository.GetTotalSalesAsync();
+            var totalSales = await _statisticsRepository.GetTotalSalesAsync();
+
+            // 商業邏輯：記錄總銷售額，如果為 0 記錄警告
+            if (totalSales == 0)
+            {
+                _logger.LogWarning("系統總銷售額為 0，尚未產生任何收益");
+            }
+            else
+            {
+                _logger.LogInformation("系統總銷售額：NT$ {TotalSales:N2}", totalSales);
+            }
+
+            return totalSales;
         }
 
         public async Task<int> GetPendingOrderCountAsync()
         {
-            return await _statisticsRepository.GetPendingOrderCountAsync();
+            var count = await _statisticsRepository.GetPendingOrderCountAsync();
+
+            // 商業邏輯：如果待處理訂單過多（超過 10 筆），記錄警告
+            if (count > 10)
+            {
+                _logger.LogWarning("待處理訂單數量過多：{PendingOrderCount} 筆，請盡快處理", count);
+            }
+            else if (count > 0)
+            {
+                _logger.LogInformation("目前有 {PendingOrderCount} 筆待處理訂單", count);
+            }
+
+            return count;
         }
     }
 }

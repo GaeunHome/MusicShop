@@ -17,6 +17,7 @@ namespace MusicShop.Controllers
     {
         private readonly IAlbumService _albumService;
         private readonly IArtistCategoryService _artistCategoryService;
+        private readonly IArtistService _artistService;
         private readonly IProductTypeService _productTypeService;
         private readonly IOrderService _orderService;
         private readonly IStatisticsService _statisticsService;
@@ -26,6 +27,7 @@ namespace MusicShop.Controllers
         public AdminController(
             IAlbumService albumService,
             IArtistCategoryService artistCategoryService,
+            IArtistService artistService,
             IProductTypeService productTypeService,
             IOrderService orderService,
             IStatisticsService statisticsService,
@@ -34,6 +36,7 @@ namespace MusicShop.Controllers
         {
             _albumService = albumService;
             _artistCategoryService = artistCategoryService;
+            _artistService = artistService;
             _productTypeService = productTypeService;
             _orderService = orderService;
             _statisticsService = statisticsService;
@@ -63,10 +66,12 @@ namespace MusicShop.Controllers
         public async Task<IActionResult> AlbumCreate()
         {
             var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
+            var artists = await _artistService.GetAllArtistsAsync();
             var parentCategories = await _productTypeService.GetParentCategoriesAsync();
             var childCategories = await _productTypeService.GetAllChildCategoriesAsync();
 
             ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name");
+            ViewBag.Artists = new SelectList(artists, "Id", "Name");
             ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
             ViewBag.ChildCategories = childCategories;
             return View();
@@ -78,10 +83,12 @@ namespace MusicShop.Controllers
             if (!ModelState.IsValid)
             {
                 var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
+                var artists = await _artistService.GetAllArtistsAsync();
                 var parentCategories = await _productTypeService.GetParentCategoriesAsync();
                 var childCategories = await _productTypeService.GetAllChildCategoriesAsync();
 
                 ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name");
+                ViewBag.Artists = new SelectList(artists, "Id", "Name");
                 ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
                 ViewBag.ChildCategories = childCategories;
                 return View(album);
@@ -98,9 +105,14 @@ namespace MusicShop.Controllers
             {
                 TempData["Error"] = ex.Message;
                 var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
-                var productTypes = await _productTypeService.GetAllProductTypesAsync();
+                var artists = await _artistService.GetAllArtistsAsync();
+                var parentCategories = await _productTypeService.GetParentCategoriesAsync();
+                var childCategories = await _productTypeService.GetAllChildCategoriesAsync();
+
                 ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name");
-                ViewBag.ProductTypes = new SelectList(productTypes, "Id", "Name");
+                ViewBag.Artists = new SelectList(artists, "Id", "Name");
+                ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+                ViewBag.ChildCategories = childCategories;
                 return View(album);
             }
         }
@@ -111,6 +123,7 @@ namespace MusicShop.Controllers
             if (album == null) return NotFound();
 
             var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
+            var artists = await _artistService.GetAllArtistsAsync();
             var parentCategories = await _productTypeService.GetParentCategoriesAsync();
             var childCategories = await _productTypeService.GetAllChildCategoriesAsync();
 
@@ -122,6 +135,7 @@ namespace MusicShop.Controllers
             }
 
             ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name", album.ArtistCategoryId);
+            ViewBag.Artists = new SelectList(artists, "Id", "Name", album.ArtistId);
             ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name", selectedParentId);
             ViewBag.ChildCategories = childCategories;
             ViewBag.SelectedProductTypeId = album.ProductTypeId;
@@ -134,10 +148,12 @@ namespace MusicShop.Controllers
             if (!ModelState.IsValid)
             {
                 var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
+                var artists = await _artistService.GetAllArtistsAsync();
                 var parentCategories = await _productTypeService.GetParentCategoriesAsync();
                 var childCategories = await _productTypeService.GetAllChildCategoriesAsync();
 
                 ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name", album.ArtistCategoryId);
+                ViewBag.Artists = new SelectList(artists, "Id", "Name", album.ArtistId);
                 ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
                 ViewBag.ChildCategories = childCategories;
                 return View(album);
@@ -153,9 +169,14 @@ namespace MusicShop.Controllers
             {
                 TempData["Error"] = ex.Message;
                 var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
-                var productTypes = await _productTypeService.GetAllProductTypesAsync();
+                var artists = await _artistService.GetAllArtistsAsync();
+                var parentCategories = await _productTypeService.GetParentCategoriesAsync();
+                var childCategories = await _productTypeService.GetAllChildCategoriesAsync();
+
                 ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name", album.ArtistCategoryId);
-                ViewBag.ProductTypes = new SelectList(productTypes, "Id", "Name", album.ProductTypeId);
+                ViewBag.Artists = new SelectList(artists, "Id", "Name", album.ArtistId);
+                ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+                ViewBag.ChildCategories = childCategories;
                 return View(album);
             }
         }

@@ -34,4 +34,9 @@ public class ArtistCategory
     /// 此藝人分類下的所有商品
     /// </summary>
     public ICollection<Album> Albums { get; set; } = new List<Album>();
+
+    /// <summary>
+    /// 此藝人分類下的所有藝人/團體（如：BOY GROUP 分類下的 2PM、BTS、ASTRO 等）
+    /// </summary>
+    public ICollection<Artist> Artists { get; set; } = new List<Artist>();
 }

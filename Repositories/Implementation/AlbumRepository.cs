@@ -21,6 +21,7 @@ namespace MusicShop.Repositories.Implementation
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
             return await context.Albums
+                .Include(a => a.Artist)
                 .Include(a => a.ArtistCategory)
                 .Include(a => a.ProductType)
                 .OrderByDescending(a => a.CreatedAt)
@@ -30,11 +31,14 @@ namespace MusicShop.Repositories.Implementation
         public async Task<IEnumerable<Album>> GetAlbumsAsync(
             string? searchTerm = null,
             int? artistCategoryId = null,
+            int? artistId = null,
             int? productTypeId = null,
-            int? parentProductTypeId = null)
+            int? parentProductTypeId = null,
+            string? sortBy = null)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
             var query = context.Albums
+                .Include(a => a.Artist)
                 .Include(a => a.ArtistCategory)
                 .Include(a => a.ProductType)
                 .AsQueryable();
@@ -44,13 +48,19 @@ namespace MusicShop.Repositories.Implementation
             {
                 query = query.Where(a =>
                     a.Title.Contains(searchTerm) ||
-                    a.Artist.Contains(searchTerm));
+                    (a.Artist != null && a.Artist.Name.Contains(searchTerm)));
             }
 
             // 藝人分類篩選
             if (artistCategoryId.HasValue)
             {
                 query = query.Where(a => a.ArtistCategoryId == artistCategoryId);
+            }
+
+            // 藝人/團體篩選
+            if (artistId.HasValue)
+            {
+                query = query.Where(a => a.ArtistId == artistId);
             }
 
             // 商品類型篩選（子分類）
@@ -73,15 +83,25 @@ namespace MusicShop.Repositories.Implementation
                 }
             }
 
-            return await query
-                .OrderByDescending(a => a.CreatedAt)
-                .ToListAsync();
+            // 排序邏輯
+            query = sortBy switch
+            {
+                "price-high-low" => query.OrderByDescending(a => a.Price),
+                "price-low-high" => query.OrderBy(a => a.Price),
+                "date-old-new" => query.OrderBy(a => a.CreatedAt),
+                "date-new-old" => query.OrderByDescending(a => a.CreatedAt),
+                "weekly-hot" => query.OrderByDescending(a => a.Id), // 暫時使用 Id，未來可改為銷售量
+                _ => query.OrderByDescending(a => a.CreatedAt) // 預設：最新上架
+            };
+
+            return await query.ToListAsync();
         }
 
         public async Task<Album?> GetAlbumByIdAsync(int id)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
             return await context.Albums
+                .Include(a => a.Artist)
                 .Include(a => a.ArtistCategory)
                 .Include(a => a.ProductType)
                 .FirstOrDefaultAsync(a => a.Id == id);
@@ -91,6 +111,7 @@ namespace MusicShop.Repositories.Implementation
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
             return await context.Albums
+                .Include(a => a.Artist)
                 .Include(a => a.ArtistCategory)
                 .Include(a => a.ProductType)
                 .OrderByDescending(a => a.Id)

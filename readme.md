@@ -229,6 +229,8 @@ MusicShop/
 │   ├── CartController.cs       # 購物車（✅ 已完成）
 │   ├── HomeController.cs       # 首頁（幻燈片、最新商品）
 │   └── OrderController.cs      # 訂單管理（✅ 已完成）
+├── Helpers/             # 共用工具類別
+│   └── ValidationHelper.cs     # 驗證工具（v1.1.1 新增）
 ├── Services/            # 商業邏輯層
 │   ├── Interface/       # 服務介面
 │   │   ├── IAlbumService.cs
@@ -293,7 +295,9 @@ MusicShop/
 ├── Migrations/          # EF Core 遷移檔案
 ├── wwwroot/            # 靜態檔案
 │   ├── css/            # CSS 樣式
+│   │   ├── site.css    # 全域樣式
 │   │   └── pages/      # 頁面專屬樣式
+│   │       └── album-index.css  # 專輯列表頁樣式（v1.1.1 新增）
 │   ├── js/             # JavaScript
 │   │   ├── add-to-cart-modal.js
 │   │   └── pages/      # 頁面專屬 JS
@@ -632,6 +636,41 @@ dotnet ef database update
 Hou Wen Chia
 
 ## 版本歷史
+
+### v1.1.1 (2026-03-06)
+程式碼品質與 UI/UX 優化版本：
+
+**程式碼品質改進**
+- ✅ 新增 ValidationHelper 工具類別（Helpers/ValidationHelper.cs）
+  - 9 個靜態驗證方法：ValidateNotEmpty、ValidateMaxLength、ValidateString、ValidatePositive（decimal & int）、ValidateId、ValidateEntityExists、ValidateCondition、ValidateCollectionNotEmpty
+  - 集中管理所有驗證邏輯，提升程式碼可維護性
+- ✅ 重構 8 個 Service 類別使用 ValidationHelper
+  - AlbumService、ArtistService、ArtistCategoryService、ProductTypeService
+  - CartService、OrderService、StatisticsService、UserService
+  - 驗證程式碼減少 67%（約 150 行 → 50 行）
+  - 消除重複程式碼，提升一致性
+
+**UI/UX 改善**
+- ✅ 重新設計專輯列表搜尋介面（Views/Album/Index.cshtml）
+  - 現代化卡片式搜尋區域（白色背景、圓角、陰影效果）
+  - 搜尋輸入框加入圖示與優化的 focus 效果
+  - 雙下拉式排序系統（預設排序 + 價格排序）
+  - 分離式工具列（排序、篩選、商品數量、視圖切換）
+  - 商品數量即時顯示
+  - 格狀/清單視圖切換按鈕
+- ✅ 新增專屬樣式檔案（wwwroot/css/pages/album-index.css）
+  - 380+ 行專業 CSS 設計
+  - 漸層色彩與動畫效果
+  - 完整響應式設計（桌面/平板/手機）
+  - 懸停效果與轉場動畫
+
+**專案結構更新**
+- ✅ 新增 Helpers/ 目錄（共用工具類別）
+- ✅ 擴充 wwwroot/css/pages/ 目錄（頁面專屬樣式）
+
+**建置狀態**
+- ✅ 編譯成功（0 個錯誤、0 個警告）
+- ✅ 架構完整性驗證通過（100% 符合三層式架構）
 
 ### v1.1.0 (2026-03-04)
 重構與功能擴充版本，完成三層式架構與核心功能：

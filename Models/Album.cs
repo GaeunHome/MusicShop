@@ -10,11 +10,14 @@ namespace MusicShop.Models
         [Required, StringLength(200)]
         public string Title { get; set; } = string.Empty;
 
-        [Required, StringLength(100)]
-        public string Artist { get; set; } = string.Empty;
 
         [StringLength(500)]
         public string? Description { get; set; }
+
+        /// <summary>
+        /// 商品介紹圖片 URL（用於顯示詳細的商品介紹圖，如組成內容、尺寸等）
+        /// </summary>
+        public string? DescriptionImageUrl { get; set; }
 
         [Column(TypeName = "decimal(10,2)")]
         public decimal Price { get; set; }
@@ -37,6 +40,16 @@ namespace MusicShop.Models
         /// </summary>
         public int? ProductTypeId { get; set; }
         public ProductType? ProductType { get; set; }
+
+        /// <summary>
+        /// 藝人/團體 ID（關聯到具體的藝人團體，如：2PM、BTS 等）
+        /// </summary>
+        public int? ArtistId { get; set; }
+
+        /// <summary>
+        /// 導航屬性：隸屬的藝人/團體
+        /// </summary>
+        public Artist? Artist { get; set; }
 
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }

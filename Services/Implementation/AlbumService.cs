@@ -1,6 +1,7 @@
 using MusicShop.Models;
 using MusicShop.Services.Interface;
 using MusicShop.Repositories.Interface;
+using MusicShop.Helpers;
 
 namespace MusicShop.Services.Implementation
 {
@@ -19,10 +20,12 @@ namespace MusicShop.Services.Implementation
         public async Task<IEnumerable<Album>> GetAlbumsAsync(
             string? searchTerm = null,
             int? artistCategoryId = null,
+            int? artistId = null,
             int? productTypeId = null,
-            int? parentProductTypeId = null)
+            int? parentProductTypeId = null,
+            string? sortBy = null)
         {
-            return await _albumRepository.GetAlbumsAsync(searchTerm, artistCategoryId, productTypeId, parentProductTypeId);
+            return await _albumRepository.GetAlbumsAsync(searchTerm, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy);
         }
 
         public async Task<Album?> GetAlbumDetailAsync(int id)
@@ -32,20 +35,14 @@ namespace MusicShop.Services.Implementation
 
         public async Task<IEnumerable<Album>> GetLatestAlbumsAsync(int count)
         {
-            if (count <= 0)
-            {
-                throw new ArgumentException("數量必須大於 0", nameof(count));
-            }
+            ValidationHelper.ValidatePositive(count, "數量", nameof(count));
 
             return await _albumRepository.GetLatestAlbumsAsync(count);
         }
 
         public async Task<bool> IsStockAvailableAsync(int albumId, int quantity = 1)
         {
-            if (quantity <= 0)
-            {
-                throw new ArgumentException("數量必須大於 0", nameof(quantity));
-            }
+            ValidationHelper.ValidatePositive(quantity, "數量", nameof(quantity));
 
             var album = await _albumRepository.GetAlbumByIdAsync(albumId);
 
@@ -60,20 +57,8 @@ namespace MusicShop.Services.Implementation
         public async Task<Album> CreateAlbumAsync(Album album)
         {
             // 商業邏輯驗證
-            if (string.IsNullOrWhiteSpace(album.Title))
-            {
-                throw new ArgumentException("專輯標題不能為空", nameof(album.Title));
-            }
-
-            if (string.IsNullOrWhiteSpace(album.Artist))
-            {
-                throw new ArgumentException("演出者不能為空", nameof(album.Artist));
-            }
-
-            if (album.Price <= 0)
-            {
-                throw new ArgumentException("價格必須大於 0", nameof(album.Price));
-            }
+            ValidationHelper.ValidateNotEmpty(album.Title, "專輯標題", nameof(album.Title));
+            ValidationHelper.ValidatePositive(album.Price, "價格", nameof(album.Price));
 
             album.CreatedAt = DateTime.UtcNow;
             return await _albumRepository.AddAlbumAsync(album);
@@ -82,26 +67,11 @@ namespace MusicShop.Services.Implementation
         public async Task UpdateAlbumAsync(Album album)
         {
             // 商業邏輯驗證
-            if (string.IsNullOrWhiteSpace(album.Title))
-            {
-                throw new ArgumentException("專輯標題不能為空", nameof(album.Title));
-            }
-
-            if (string.IsNullOrWhiteSpace(album.Artist))
-            {
-                throw new ArgumentException("演出者不能為空", nameof(album.Artist));
-            }
-
-            if (album.Price <= 0)
-            {
-                throw new ArgumentException("價格必須大於 0", nameof(album.Price));
-            }
+            ValidationHelper.ValidateNotEmpty(album.Title, "專輯標題", nameof(album.Title));
+            ValidationHelper.ValidatePositive(album.Price, "價格", nameof(album.Price));
 
             var exists = await _albumRepository.AlbumExistsAsync(album.Id);
-            if (!exists)
-            {
-                throw new InvalidOperationException($"找不到 ID 為 {album.Id} 的專輯");
-            }
+            ValidationHelper.ValidateCondition(exists, $"找不到 ID 為 {album.Id} 的專輯");
 
             await _albumRepository.UpdateAlbumAsync(album);
         }
@@ -109,10 +79,7 @@ namespace MusicShop.Services.Implementation
         public async Task DeleteAlbumAsync(int id)
         {
             var exists = await _albumRepository.AlbumExistsAsync(id);
-            if (!exists)
-            {
-                throw new InvalidOperationException($"找不到 ID 為 {id} 的專輯");
-            }
+            ValidationHelper.ValidateCondition(exists, $"找不到 ID 為 {id} 的專輯");
 
             await _albumRepository.DeleteAlbumAsync(id);
         }

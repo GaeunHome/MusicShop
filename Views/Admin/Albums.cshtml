@@ -37,7 +37,7 @@
                     <tr>
                         <td>@album.Id</td>
                         <td class="fw-bold">@album.Title</td>
-                        <td>@album.Artist</td>
+                        <td>@(album.Artist?.Name ?? "未設定")</td>
                         <td>
                             @if (album.ArtistCategory != null)
                             {

@@ -8,13 +8,15 @@ namespace MusicShop.Services.Interface
     public interface IAlbumService
     {
         /// <summary>
-        /// 取得專輯列表（支援搜尋與雙分類篩選）
+        /// 取得專輯列表（支援搜尋與多重篩選）
         /// </summary>
         Task<IEnumerable<Album>> GetAlbumsAsync(
             string? searchTerm = null,
             int? artistCategoryId = null,
+            int? artistId = null,
             int? productTypeId = null,
-            int? parentProductTypeId = null);
+            int? parentProductTypeId = null,
+            string? sortBy = null);
 
         /// <summary>
         /// 取得專輯詳細資訊

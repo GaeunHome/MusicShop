@@ -1,6 +1,7 @@
 using MusicShop.Models;
 using MusicShop.Repositories.Interface;
 using MusicShop.Services.Interface;
+using MusicShop.Helpers;
 
 namespace MusicShop.Services.Implementation;
 
@@ -33,15 +34,7 @@ public class ProductTypeService : IProductTypeService
     public async Task<ProductType> CreateProductTypeAsync(ProductType productType)
     {
         // 商業邏輯驗證
-        if (string.IsNullOrWhiteSpace(productType.Name))
-        {
-            throw new ArgumentException("商品類型名稱不能為空", nameof(productType.Name));
-        }
-
-        if (productType.Name.Length > 50)
-        {
-            throw new ArgumentException("商品類型名稱不能超過 50 個字元", nameof(productType.Name));
-        }
+        ValidationHelper.ValidateString(productType.Name, "商品類型名稱", 50, nameof(productType.Name));
 
         return await _productTypeRepository.CreateAsync(productType);
     }
@@ -49,21 +42,10 @@ public class ProductTypeService : IProductTypeService
     public async Task UpdateProductTypeAsync(ProductType productType)
     {
         // 商業邏輯驗證
-        if (string.IsNullOrWhiteSpace(productType.Name))
-        {
-            throw new ArgumentException("商品類型名稱不能為空", nameof(productType.Name));
-        }
-
-        if (productType.Name.Length > 50)
-        {
-            throw new ArgumentException("商品類型名稱不能超過 50 個字元", nameof(productType.Name));
-        }
+        ValidationHelper.ValidateString(productType.Name, "商品類型名稱", 50, nameof(productType.Name));
 
         var exists = await _productTypeRepository.GetByIdAsync(productType.Id);
-        if (exists == null)
-        {
-            throw new InvalidOperationException($"找不到 ID 為 {productType.Id} 的商品類型");
-        }
+        ValidationHelper.ValidateEntityExists(exists, "商品類型", productType.Id);
 
         await _productTypeRepository.UpdateAsync(productType);
     }
@@ -71,23 +53,20 @@ public class ProductTypeService : IProductTypeService
     public async Task DeleteProductTypeAsync(int id)
     {
         var exists = await _productTypeRepository.GetByIdWithChildrenAsync(id);
-        if (exists == null)
-        {
-            throw new InvalidOperationException($"找不到 ID 為 {id} 的商品類型");
-        }
+        ValidationHelper.ValidateEntityExists(exists, "商品類型", id);
 
         // 檢查是否有子分類
-        if (exists.Children.Any())
-        {
-            throw new InvalidOperationException($"無法刪除「{exists.Name}」，因為還有 {exists.Children.Count} 個子分類");
-        }
+        ValidationHelper.ValidateCondition(
+            !exists!.Children.Any(),
+            $"無法刪除「{exists.Name}」，因為還有 {exists.Children.Count} 個子分類"
+        );
 
         // 檢查是否有商品使用此類型
-        var albums = await _albumRepository.GetAlbumsAsync(null, null, id);
-        if (albums.Any())
-        {
-            throw new InvalidOperationException($"無法刪除「{exists.Name}」，因為還有 {albums.Count()} 個商品使用此類型");
-        }
+        var albums = await _albumRepository.GetAlbumsAsync(null, null, null, id);
+        ValidationHelper.ValidateCondition(
+            !albums.Any(),
+            $"無法刪除「{exists.Name}」，因為還有 {albums.Count()} 個商品使用此類型"
+        );
 
         await _productTypeRepository.DeleteAsync(id);
     }

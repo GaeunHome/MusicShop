@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Models;
 using MusicShop.Services.Interface;
+using MusicShop.ViewModels;
 
 namespace MusicShop.Controllers;
 
@@ -22,7 +23,12 @@ public class HomeController : Controller
         // 從服務層取得最新上架的 8 個專輯（首頁展示用）
         var latestAlbums = await _albumService.GetLatestAlbumsAsync(8);
 
-        return View(latestAlbums);
+        // 轉換為 AlbumCardViewModel
+        var viewModel = latestAlbums
+            .Select(album => new AlbumCardViewModel { Album = album })
+            .ToList();
+
+        return View(viewModel);
     }
 
     public IActionResult Privacy()

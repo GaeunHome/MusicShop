@@ -6,10 +6,13 @@
 
     // 取得目前的篩選資訊
     var currentArtistCategoryId = ViewBag.ArtistCategoryId as int?;
+    var currentArtistId = ViewBag.ArtistId as int?;
     var currentProductTypeId = ViewBag.ProductTypeId as int?;
     var currentParentProductTypeId = ViewBag.ParentProductTypeId as int?;
     var currentSearch = ViewBag.Search as string;
+    var currentSortBy = ViewBag.SortBy as string;
     var parentCategoryName = ViewBag.ParentCategoryName as string;
+    var selectedArtist = ViewBag.SelectedArtist as MusicShop.Models.Artist;
 
     // 找出當前選擇的分類名稱
     var currentArtistCategoryName = currentArtistCategoryId.HasValue
@@ -53,54 +56,81 @@
         </nav>
     }
 
-    <form method="get" asp-action="Index" class="row g-2 mb-4">
-        <div class="col-md-4">
-            <input type="text" name="search" value="@ViewBag.Search"
-                   class="form-control" placeholder="🔍 搜尋商品名稱或歌手..." />
-        </div>
-        <div class="col-md-3">
-            <select name="artistCategoryId" class="form-select">
-                <option value="">所有藝人分類</option>
-                @foreach (var ac in artistCategories ?? Enumerable.Empty<MusicShop.Models.ArtistCategory>())
-                {
-                    <option value="@ac.Id"
-                        selected="@(ViewBag.ArtistCategoryId != null && (int)ViewBag.ArtistCategoryId == ac.Id ? "selected" : null)">
-                        @ac.Name
-                    </option>
-                }
-            </select>
-        </div>
-        <div class="col-md-3">
-            <select name="productTypeId" class="form-select">
-                <option value="">所有商品類型</option>
-                @if (childCategories != null)
-                {
-                    var groupedByParent = childCategories.GroupBy(c => c.Parent);
-                    foreach (var group in groupedByParent.OrderBy(g => g.Key?.DisplayOrder ?? 0))
-                    {
-                        if (group.Key != null)
+    <!-- 搜尋條件區域 -->
+    <div class="search-filter-section mb-4">
+        <form method="get" asp-action="Index" id="searchForm">
+            <div class="row g-3 align-items-center">
+                <!-- 搜尋框 -->
+                <div class="col-lg-5 col-md-6">
+                    <div class="search-input-wrapper">
+                        <i class="bi bi-search search-icon"></i>
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control search-input"
+                               placeholder="搜尋商品名稱或歌手..." />
+                    </div>
+                </div>
+
+                <!-- 藝人分類選擇器 -->
+                <div class="col-lg-3 col-md-3">
+                    <select name="artistCategoryId" class="form-select filter-select">
+                        <option value="">所有藝人分類</option>
+                        @foreach (var ac in artistCategories ?? Enumerable.Empty<MusicShop.Models.ArtistCategory>())
                         {
-                            <optgroup label="@group.Key.Name">
-                                @foreach (var child in group.OrderBy(c => c.DisplayOrder))
-                                {
-                                    <option value="@child.Id"
-                                        selected="@(ViewBag.ProductTypeId != null && (int)ViewBag.ProductTypeId == child.Id ? "selected" : null)">
-                                        @child.Name
-                                    </option>
-                                }
-                            </optgroup>
+                            <option value="@ac.Id"
+                                selected="@(ViewBag.ArtistCategoryId != null && (int)ViewBag.ArtistCategoryId == ac.Id ? "selected" : null)">
+                                @ac.Name
+                            </option>
                         }
-                    }
-                }
-            </select>
-        </div>
-        <div class="col-md-1">
-            <button type="submit" class="btn btn-primary w-100">搜尋</button>
-        </div>
-        <div class="col-md-1">
-            <a asp-action="Index" class="btn btn-outline-secondary w-100">清除</a>
-        </div>
-    </form>
+                    </select>
+                </div>
+
+                <!-- 商品類型選擇器 -->
+                <div class="col-lg-3 col-md-3">
+                    <select name="productTypeId" class="form-select filter-select">
+                        <option value="">所有商品類型</option>
+                        @if (childCategories != null)
+                        {
+                            var groupedByParent = childCategories.GroupBy(c => c.Parent);
+                            foreach (var group in groupedByParent.OrderBy(g => g.Key?.DisplayOrder ?? 0))
+                            {
+                                if (group.Key != null)
+                                {
+                                    <optgroup label="@group.Key.Name">
+                                        @foreach (var child in group.OrderBy(c => c.DisplayOrder))
+                                        {
+                                            <option value="@child.Id"
+                                                selected="@(ViewBag.ProductTypeId != null && (int)ViewBag.ProductTypeId == child.Id ? "selected" : null)">
+                                                @child.Name
+                                            </option>
+                                        }
+                                    </optgroup>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+
+                <!-- 按鈕組 -->
+                <div class="col-lg-1 col-md-12">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="bi bi-search"></i> 搜尋
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary flex-fill" title="清除篩選">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @{
+        // 按藝人分組商品（用於有商品時顯示）
+        var albumsByArtist = Model.GroupBy(a => a.Artist).OrderBy(g => g.Key?.DisplayOrder ?? 999);
+    }
 
     @if (!Model.Any())
     {
@@ -115,8 +145,118 @@
     }
     else
     {
-        <div class="row row-cols-2 row-cols-lg-4 g-4">
-            @foreach (var album in Model)
+        <!-- 排序與顯示控制區域 -->
+        <div class="toolbar-section mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <!-- 左側：排序按鈕組 -->
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <!-- 排序下拉選單 -->
+                    <div class="dropdown">
+                        <button class="btn btn-sort dropdown-toggle @(string.IsNullOrEmpty(currentSortBy) ? "active" : "")"
+                                type="button"
+                                id="sortDropdown"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            預設排序
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                            <li><a class="dropdown-item @(string.IsNullOrEmpty(currentSortBy) ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "" })">
+                                <i class="bi bi-arrow-down-up me-2"></i>預設排序
+                            </a></li>
+                            <li><a class="dropdown-item @(currentSortBy == "date-new-old" ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "date-new-old" })">
+                                <i class="bi bi-calendar-event me-2"></i>最新上架
+                            </a></li>
+                            <li><a class="dropdown-item @(currentSortBy == "date-old-new" ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "date-old-new" })">
+                                <i class="bi bi-calendar me-2"></i>最舊上架
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item @(currentSortBy == "weekly-hot" ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "weekly-hot" })">
+                                <i class="bi bi-fire me-2"></i>本週熱賣
+                            </a></li>
+                        </ul>
+                    </div>
+
+                    <!-- 價格排序下拉選單 -->
+                    <div class="dropdown">
+                        <button class="btn btn-sort dropdown-toggle @(currentSortBy?.Contains("price") == true ? "active" : "")"
+                                type="button"
+                                id="priceDropdown"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            價格
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="priceDropdown">
+                            <li><a class="dropdown-item @(currentSortBy == "price-low-high" ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "price-low-high" })">
+                                <i class="bi bi-sort-numeric-down me-2"></i>價格由低到高
+                            </a></li>
+                            <li><a class="dropdown-item @(currentSortBy == "price-high-low" ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "price-high-low" })">
+                                <i class="bi bi-sort-numeric-down-alt me-2"></i>價格由高到低
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 右側：商品數量與視圖切換 -->
+                <div class="d-flex align-items-center gap-3">
+                    <!-- 商品類型快速篩選（移到右側） -->
+                    <select name="productTypeId"
+                            class="form-select filter-select-small"
+                            onchange="window.location.href='@Url.Action("Index")?search=@currentSearch&artistCategoryId=@currentArtistCategoryId&artistId=@currentArtistId&productTypeId=' + this.value + '&sortBy=@currentSortBy'">
+                        <option value="">所有商品類型</option>
+                        @if (childCategories != null)
+                        {
+                            var groupedByParent = childCategories.GroupBy(c => c.Parent);
+                            foreach (var group in groupedByParent.OrderBy(g => g.Key?.DisplayOrder ?? 0))
+                            {
+                                if (group.Key != null)
+                                {
+                                    <optgroup label="@group.Key.Name">
+                                        @foreach (var child in group.OrderBy(c => c.DisplayOrder))
+                                        {
+                                            <option value="@child.Id"
+                                                selected="@(ViewBag.ProductTypeId != null && (int)ViewBag.ProductTypeId == child.Id ? "selected" : null)">
+                                                @child.Name
+                                            </option>
+                                        }
+                                    </optgroup>
+                                }
+                            }
+                        }
+                    </select>
+
+                    <!-- 商品數量 -->
+                    <span class="text-muted product-count">共 @Model.Count() 件商品</span>
+
+                    <!-- 視圖切換按鈕 -->
+                    <div class="btn-group view-toggle" role="group" aria-label="視圖切換">
+                        <button type="button" class="btn btn-sm btn-outline-secondary active" title="網格檢視">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" title="列表檢視">
+                            <i class="bi bi-list-ul"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 按藝人分組顯示商品 -->
+        @foreach (var artistGroup in albumsByArtist)
+        {
+            <!-- 藝人標題 -->
+            <div class="mb-4 mt-5">
+                <h2 class="artist-page-title">| @(artistGroup.Key?.Name ?? "未設定藝人")</h2>
+            </div>
+
+            <!-- 該藝人的商品網格 -->
+            <div class="row row-cols-2 row-cols-lg-4 g-4 mb-5">
+                @foreach (var album in artistGroup)
             {
                 <div class="col">
                     <div class="product-item">
@@ -168,7 +308,7 @@
                                                     data-bs-target="#addToCartModal"
                                                     data-album-id="@album.Id"
                                                     data-album-title="@album.Title"
-                                                    data-album-artist="@album.Artist"
+                                                    data-album-artist="@(album.Artist?.Name ?? "未設定藝人")"
                                                     data-album-price="@album.Price"
                                                     data-album-stock="@album.Stock"
                                                     data-album-image="@album.CoverImageUrl">
@@ -202,15 +342,17 @@
                     </div>
                 </div>
             }
-        </div>
+            </div>
+        }
     }
 </div>
 
 <!-- 引用共用的加入購物車 Modal -->
 <partial name="_AddToCartModal" />
 
-@* 引用商品展示樣式 *@
+@* 引用專輯列表頁樣式 *@
 @section Styles {
+    <link rel="stylesheet" href="~/css/pages/album-index.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/pages/home.css" asp-append-version="true" />
 }
 

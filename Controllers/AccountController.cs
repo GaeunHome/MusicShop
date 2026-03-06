@@ -135,6 +135,9 @@ public class AccountController : Controller
         {
             FullName = user.FullName ?? "",
             Email = user.Email ?? "",
+            PhoneNumber = user.PhoneNumber ?? "",
+            Birthday = user.Birthday,
+            Gender = user.Gender,
             RegisteredAt = user.RegisteredAt
         };
 
@@ -158,6 +161,9 @@ public class AccountController : Controller
         user.FullName = model.FullName;
         user.Email = model.Email;
         user.UserName = model.Email;
+        user.PhoneNumber = model.PhoneNumber;
+        user.Birthday = model.Birthday;
+        user.Gender = model.Gender;
 
         var result = await _userManager.UpdateAsync(user);
 

@@ -25,6 +25,9 @@ public static class DbInitializer
 
         // 建立預設的藝人分類和商品類型
         await CreateDefaultCategoriesAsync(context);
+
+        // 建立預設的藝人/團體資料
+        await CreateDefaultArtistsAsync(context);
     }
 
     /// <summary>
@@ -197,57 +200,82 @@ public static class DbInitializer
             Console.WriteLine($"已建立 {childCategories.Count} 個子分類");
         }
 
-        // 建立範例商品
-        if (!context.Albums.Any())
+        // 注意：範例商品建立已移至資料庫遷移後，使用新的 Artist 外鍵關聯
+        // 如需建立範例商品，請在執行資料庫遷移後，使用後台管理介面手動建立
+    }
+
+    /// <summary>
+    /// 建立預設的藝人/團體資料（三層架構：K-ARTIST → BOY GROUP/GIRL GROUP/SOLO → 具體團體）
+    /// </summary>
+    private static async Task CreateDefaultArtistsAsync(ApplicationDbContext context)
+    {
+        if (!context.Artists.Any())
         {
-            // 取得分類資料
-            var boyGroup = context.ArtistCategories.First(c => c.Name == "BOY GROUP");
-            var solo = context.ArtistCategories.First(c => c.Name == "SOLO");
-            var albumType = context.ProductTypes.First(c => c.Name == "ALBUM");
-            var currentEventType = context.ProductTypes.First(c => c.Name == "CURRENT EVENT");
+            var artistCategories = context.ArtistCategories.ToList();
+            var boyGroup = artistCategories.First(c => c.Name == "BOY GROUP");
+            var girlGroup = artistCategories.First(c => c.Name == "GIRL GROUP");
+            var solo = artistCategories.First(c => c.Name == "SOLO");
 
-            var sampleAlbums = new List<Album>
+            var artists = new List<Artist>
             {
-                new Album
-                {
-                    Title = "SPIN OFF (5TH MINI ALBUM) 迷你五輯",
-                    Artist = "ONF",
-                    ArtistCategoryId = boyGroup.Id,
-                    ProductTypeId = albumType.Id,
-                    Description = @"商品內容：
-外盒包裝：145mm x 123mm x 5mm
-寫真書：104頁 (142mm x 123mm x 10mm)
-CD：1張
-迷你海報：1張 (折疊式)
-小卡：隨機1張 (7種)
-貼紙：1張",
-                    Price = 690,
-                    Stock = 10,
-                    CoverImageUrl = "/images/albums/album2.jpg",
-                    CreatedAt = DateTime.UtcNow
-                },
-                new Album
-                {
-                    Title = "[應募] 260315 Solar [Your Own Star] 專輯發行紀念簽名會 in TAIPEI",
-                    Artist = "Solar",
-                    ArtistCategoryId = solo.Id,
-                    ProductTypeId = currentEventType.Id,
-                    Description = @"‼️ 下單後請務必在應募期間內填寫Google應募表單 ‼️
-⭐如有任何購買商品相關問題，請於應募期間來信至客服網系統或客服信箱
+                // BOY GROUP
+                new Artist { Name = "2PM", ArtistCategoryId = boyGroup.Id, DisplayOrder = 1 },
+                new Artist { Name = "ASTRO", ArtistCategoryId = boyGroup.Id, DisplayOrder = 2 },
+                new Artist { Name = "ATEEZ", ArtistCategoryId = boyGroup.Id, DisplayOrder = 3 },
+                new Artist { Name = "BIGBANG", ArtistCategoryId = boyGroup.Id, DisplayOrder = 4 },
+                new Artist { Name = "BTOB", ArtistCategoryId = boyGroup.Id, DisplayOrder = 5 },
+                new Artist { Name = "BTS", ArtistCategoryId = boyGroup.Id, DisplayOrder = 6 },
+                new Artist { Name = "CRAVITY", ArtistCategoryId = boyGroup.Id, DisplayOrder = 7 },
+                new Artist { Name = "DAY6", ArtistCategoryId = boyGroup.Id, DisplayOrder = 8 },
+                new Artist { Name = "DKZ", ArtistCategoryId = boyGroup.Id, DisplayOrder = 9 },
+                new Artist { Name = "ENHYPEN", ArtistCategoryId = boyGroup.Id, DisplayOrder = 10 },
+                new Artist { Name = "EXO", ArtistCategoryId = boyGroup.Id, DisplayOrder = 11 },
+                new Artist { Name = "GOT7", ArtistCategoryId = boyGroup.Id, DisplayOrder = 12 },
+                new Artist { Name = "MONSTA X", ArtistCategoryId = boyGroup.Id, DisplayOrder = 13 },
+                new Artist { Name = "NCT", ArtistCategoryId = boyGroup.Id, DisplayOrder = 14 },
+                new Artist { Name = "NU'EST", ArtistCategoryId = boyGroup.Id, DisplayOrder = 15 },
+                new Artist { Name = "ONF", ArtistCategoryId = boyGroup.Id, DisplayOrder = 16 },
+                new Artist { Name = "ONEUS", ArtistCategoryId = boyGroup.Id, DisplayOrder = 17 },
+                new Artist { Name = "PENTAGON", ArtistCategoryId = boyGroup.Id, DisplayOrder = 18 },
+                new Artist { Name = "SEVENTEEN", ArtistCategoryId = boyGroup.Id, DisplayOrder = 19 },
+                new Artist { Name = "SHINee", ArtistCategoryId = boyGroup.Id, DisplayOrder = 20 },
+                new Artist { Name = "Stray Kids", ArtistCategoryId = boyGroup.Id, DisplayOrder = 21 },
+                new Artist { Name = "SUPER JUNIOR", ArtistCategoryId = boyGroup.Id, DisplayOrder = 22 },
+                new Artist { Name = "TREASURE", ArtistCategoryId = boyGroup.Id, DisplayOrder = 23 },
+                new Artist { Name = "TXT", ArtistCategoryId = boyGroup.Id, DisplayOrder = 24 },
+                new Artist { Name = "VICTON", ArtistCategoryId = boyGroup.Id, DisplayOrder = 25 },
+                new Artist { Name = "WINNER", ArtistCategoryId = boyGroup.Id, DisplayOrder = 26 },
 
-活動日期：2026年3月15日
-活動地點：台北
-活動內容：Solar專輯發行紀念簽名會",
-                    Price = 630,
-                    Stock = 1000,
-                    CoverImageUrl = "/images/albums/album1.jpg",
-                    CreatedAt = DateTime.UtcNow
-                }
+                // GIRL GROUP
+                new Artist { Name = "BLACKPINK", ArtistCategoryId = girlGroup.Id, DisplayOrder = 1 },
+                new Artist { Name = "TWICE", ArtistCategoryId = girlGroup.Id, DisplayOrder = 2 },
+                new Artist { Name = "RED VELVET", ArtistCategoryId = girlGroup.Id, DisplayOrder = 3 },
+                new Artist { Name = "MAMAMOO", ArtistCategoryId = girlGroup.Id, DisplayOrder = 4 },
+                new Artist { Name = "ITZY", ArtistCategoryId = girlGroup.Id, DisplayOrder = 5 },
+                new Artist { Name = "aespa", ArtistCategoryId = girlGroup.Id, DisplayOrder = 6 },
+                new Artist { Name = "(G)I-DLE", ArtistCategoryId = girlGroup.Id, DisplayOrder = 7 },
+                new Artist { Name = "fromis_9", ArtistCategoryId = girlGroup.Id, DisplayOrder = 8 },
+                new Artist { Name = "VIVIZ", ArtistCategoryId = girlGroup.Id, DisplayOrder = 9 },
+                new Artist { Name = "IVE", ArtistCategoryId = girlGroup.Id, DisplayOrder = 10 },
+                new Artist { Name = "LE SSERAFIM", ArtistCategoryId = girlGroup.Id, DisplayOrder = 11 },
+                new Artist { Name = "NewJeans", ArtistCategoryId = girlGroup.Id, DisplayOrder = 12 },
+                new Artist { Name = "NMIXX", ArtistCategoryId = girlGroup.Id, DisplayOrder = 13 },
+                new Artist { Name = "Oh My Girl", ArtistCategoryId = girlGroup.Id, DisplayOrder = 14 },
+                new Artist { Name = "STAYC", ArtistCategoryId = girlGroup.Id, DisplayOrder = 15 },
+                new Artist { Name = "Kep1er", ArtistCategoryId = girlGroup.Id, DisplayOrder = 16 },
+
+                // SOLO
+                new Artist { Name = "IU", ArtistCategoryId = solo.Id, DisplayOrder = 1 },
+                new Artist { Name = "Solar", ArtistCategoryId = solo.Id, DisplayOrder = 2 },
+                new Artist { Name = "Taeyeon", ArtistCategoryId = solo.Id, DisplayOrder = 3 },
+                new Artist { Name = "Hwasa", ArtistCategoryId = solo.Id, DisplayOrder = 4 },
+                new Artist { Name = "Sunmi", ArtistCategoryId = solo.Id, DisplayOrder = 5 },
+                new Artist { Name = "Chungha", ArtistCategoryId = solo.Id, DisplayOrder = 6 }
             };
 
-            context.Albums.AddRange(sampleAlbums);
+            context.Artists.AddRange(artists);
             await context.SaveChangesAsync();
-            Console.WriteLine("已建立 2 件範例商品");
+            Console.WriteLine($"已建立 {artists.Count} 位藝人資料");
         }
     }
 }

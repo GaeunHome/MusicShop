@@ -1,6 +1,7 @@
 using MusicShop.Models;
 using MusicShop.Repositories.Interface;
 using MusicShop.Services.Interface;
+using MusicShop.Helpers;
 
 namespace MusicShop.Services.Implementation;
 
@@ -33,15 +34,7 @@ public class ArtistCategoryService : IArtistCategoryService
     public async Task<ArtistCategory> CreateArtistCategoryAsync(ArtistCategory artistCategory)
     {
         // 商業邏輯驗證
-        if (string.IsNullOrWhiteSpace(artistCategory.Name))
-        {
-            throw new ArgumentException("藝人分類名稱不能為空", nameof(artistCategory.Name));
-        }
-
-        if (artistCategory.Name.Length > 50)
-        {
-            throw new ArgumentException("藝人分類名稱不能超過 50 個字元", nameof(artistCategory.Name));
-        }
+        ValidationHelper.ValidateString(artistCategory.Name, "藝人分類名稱", 50, nameof(artistCategory.Name));
 
         return await _artistCategoryRepository.CreateAsync(artistCategory);
     }
@@ -49,21 +42,10 @@ public class ArtistCategoryService : IArtistCategoryService
     public async Task UpdateArtistCategoryAsync(ArtistCategory artistCategory)
     {
         // 商業邏輯驗證
-        if (string.IsNullOrWhiteSpace(artistCategory.Name))
-        {
-            throw new ArgumentException("藝人分類名稱不能為空", nameof(artistCategory.Name));
-        }
-
-        if (artistCategory.Name.Length > 50)
-        {
-            throw new ArgumentException("藝人分類名稱不能超過 50 個字元", nameof(artistCategory.Name));
-        }
+        ValidationHelper.ValidateString(artistCategory.Name, "藝人分類名稱", 50, nameof(artistCategory.Name));
 
         var exists = await _artistCategoryRepository.GetByIdAsync(artistCategory.Id);
-        if (exists == null)
-        {
-            throw new InvalidOperationException($"找不到 ID 為 {artistCategory.Id} 的藝人分類");
-        }
+        ValidationHelper.ValidateEntityExists(exists, "藝人分類", artistCategory.Id);
 
         await _artistCategoryRepository.UpdateAsync(artistCategory);
     }
@@ -71,17 +53,14 @@ public class ArtistCategoryService : IArtistCategoryService
     public async Task DeleteArtistCategoryAsync(int id)
     {
         var exists = await _artistCategoryRepository.GetByIdAsync(id);
-        if (exists == null)
-        {
-            throw new InvalidOperationException($"找不到 ID 為 {id} 的藝人分類");
-        }
+        ValidationHelper.ValidateEntityExists(exists, "藝人分類", id);
 
         // 檢查是否有商品使用此分類
         var albums = await _albumRepository.GetAlbumsAsync(null, id, null);
-        if (albums.Any())
-        {
-            throw new InvalidOperationException($"無法刪除「{exists.Name}」，因為還有 {albums.Count()} 個商品使用此分類");
-        }
+        ValidationHelper.ValidateCondition(
+            !albums.Any(),
+            $"無法刪除「{exists!.Name}」，因為還有 {albums.Count()} 個商品使用此分類"
+        );
 
         await _artistCategoryRepository.DeleteAsync(id);
     }

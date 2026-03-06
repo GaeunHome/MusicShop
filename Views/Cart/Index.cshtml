@@ -47,7 +47,7 @@
                                     <span class="fw-bold">@item.Album!.Title</span>
                                 </div>
                             </td>
-                            <td class="text-muted">@item.Album.Artist</td>
+                            <td class="text-muted">@(item.Album.Artist?.Name ?? "未設定藝人")</td>
                             <td>NT$ @item.Album.Price</td>
                             <td>
                                 <form asp-action="UpdateQuantity" method="post" class="d-flex align-items-center gap-1">

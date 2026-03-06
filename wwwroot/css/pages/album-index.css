@@ -1,0 +1,314 @@
+/* ==========================================
+   專輯列表頁樣式（Album Index）
+   ========================================== */
+
+/* 搜尋條件區域 */
+.search-filter-section {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
+}
+
+/* 搜尋輸入框容器 */
+.search-input-wrapper {
+    position: relative;
+}
+
+.search-input-wrapper .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.search-input {
+    padding-left: 2.75rem !important;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.search-input:focus {
+    border-color: #b19cd9;
+    box-shadow: 0 0 0 0.2rem rgba(177, 156, 217, 0.15);
+}
+
+.search-input::placeholder {
+    color: #adb5bd;
+}
+
+/* 篩選選擇器 */
+.filter-select {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background-color: #fff;
+}
+
+.filter-select:focus {
+    border-color: #b19cd9;
+    box-shadow: 0 0 0 0.2rem rgba(177, 156, 217, 0.15);
+}
+
+/* 工具列區域 */
+.toolbar-section {
+    background: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+/* 排序按鈕 */
+.btn-sort {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: #fff;
+    color: #495057;
+    transition: all 0.3s ease;
+}
+
+.btn-sort:hover {
+    border-color: #b19cd9;
+    color: #b19cd9;
+    background: #f5f3f9;
+}
+
+.btn-sort.active {
+    border-color: #b19cd9;
+    background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+    color: #fff;
+}
+
+.btn-sort.dropdown-toggle::after {
+    margin-left: 0.5rem;
+    font-size: 0.7rem;
+}
+
+/* 下拉選單美化 */
+.dropdown-menu {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    min-width: 200px;
+}
+
+.dropdown-item {
+    padding: 0.625rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    color: #495057;
+}
+
+.dropdown-item:hover {
+    background-color: #f5f3f9;
+    color: #b19cd9;
+}
+
+.dropdown-item.active {
+    background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+    color: #fff;
+}
+
+.dropdown-item i {
+    width: 1.25rem;
+    font-size: 0.875rem;
+}
+
+.dropdown-divider {
+    margin: 0.5rem 0;
+    border-top: 1px solid #e9ecef;
+}
+
+/* 右側小型篩選選擇器 */
+.filter-select-small {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    min-width: 150px;
+    transition: all 0.3s ease;
+}
+
+.filter-select-small:focus {
+    border-color: #b19cd9;
+    box-shadow: 0 0 0 0.15rem rgba(177, 156, 217, 0.15);
+}
+
+/* 商品數量顯示 */
+.product-count {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+/* 視圖切換按鈕 */
+.view-toggle .btn {
+    border-color: #dee2e6;
+    color: #6c757d;
+    padding: 0.375rem 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.view-toggle .btn:hover {
+    border-color: #b19cd9;
+    color: #b19cd9;
+    background-color: #f5f3f9;
+}
+
+.view-toggle .btn.active {
+    border-color: #b19cd9;
+    background-color: #b19cd9;
+    color: #fff;
+}
+
+.view-toggle .btn i {
+    font-size: 1rem;
+}
+
+/* 藝人標題樣式 */
+.artist-page-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 3px solid #b19cd9;
+    display: inline-block;
+}
+
+/* 響應式設計 */
+@media (max-width: 991px) {
+    .search-filter-section {
+        padding: 1rem;
+    }
+
+    .toolbar-section {
+        padding: 0.875rem 1rem;
+    }
+
+    .btn-sort {
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .filter-select-small {
+        min-width: 120px;
+        font-size: 0.8rem;
+    }
+
+    .product-count {
+        font-size: 0.85rem;
+    }
+
+    .artist-page-title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .search-filter-section {
+        padding: 0.875rem;
+    }
+
+    .toolbar-section {
+        padding: 0.75rem;
+    }
+
+    .toolbar-section .d-flex {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .toolbar-section .d-flex > * {
+        width: 100%;
+    }
+
+    .filter-select-small {
+        width: 100%;
+        max-width: none;
+    }
+
+    .view-toggle {
+        width: 100%;
+    }
+
+    .view-toggle .btn {
+        flex: 1;
+    }
+
+    .product-count {
+        text-align: center;
+        padding: 0.5rem 0;
+    }
+
+    .artist-page-title {
+        font-size: 1.25rem;
+    }
+}
+
+/* 麵包屑導航美化 */
+.breadcrumb {
+    background: transparent;
+    padding: 0.75rem 0;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    color: #b19cd9;
+    font-weight: 600;
+    padding: 0 0.5rem;
+}
+
+.breadcrumb-item a {
+    color: #6c757d;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: #b19cd9;
+}
+
+.breadcrumb-item.active {
+    color: #495057;
+    font-weight: 500;
+}
+
+/* 空狀態美化 */
+.text-center.text-muted {
+    padding: 4rem 2rem;
+}
+
+.text-center.text-muted svg {
+    opacity: 0.4;
+}
+
+.text-center.text-muted h5 {
+    font-weight: 600;
+    color: #6c757d;
+}
+
+/* 按鈕動畫 */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}

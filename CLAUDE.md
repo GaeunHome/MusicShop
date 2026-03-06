@@ -130,6 +130,18 @@ dotnet ef database drop
 **View Components** (`ViewComponents/`)：
 - `CartBadgeViewComponent`：購物車數量徽章元件，動態顯示購物車商品數量
 
+**工具類別** (`Helpers/`)：
+- `ValidationHelper`（v1.1.1 新增）：集中管理所有驗證邏輯的靜態工具類別
+  - `ValidateNotEmpty(string?, string, string)`：驗證字串不為空
+  - `ValidateMaxLength(string, string, int, string)`：驗證字串長度
+  - `ValidateString(string?, string, int, string)`：綜合字串驗證（不為空 + 長度檢查）
+  - `ValidatePositive(decimal, string, string)`：驗證 decimal 值大於 0
+  - `ValidatePositive(int, string, string)`：驗證 int 值大於 0
+  - `ValidateId(int, string, string)`：驗證 ID 有效性（大於 0）
+  - `ValidateEntityExists<T>(T?, string, int)`：驗證實體存在
+  - `ValidateCondition(bool, string)`：驗證條件為真
+  - `ValidateCollectionNotEmpty<T>(IEnumerable<T>?, string)`：驗證集合不為空
+
 ### 認證與授權
 
 設定於 `Program.cs`：
@@ -164,6 +176,7 @@ dotnet ef database drop
 9. **小數精度**：價格欄位使用 `[Column(TypeName = "decimal(10,2)")]`
 10. **ViewBag 傳遞資料**：分類清單與搜尋詞透過 ViewBag 傳遞給檢視
 11. **View Components**：可重複使用的 UI 元件（如購物車徽章）
+12. **ValidationHelper 模式**（v1.1.1 新增）：集中管理所有驗證邏輯，避免重複程式碼
 
 ## 已完成功能
 
@@ -213,6 +226,22 @@ dotnet ef database drop
 - 建立預設商品類型（階層式：4 個父分類 + 10 個子分類）
 - 建立範例商品資料
 
+### ✅ UI/UX 優化（v1.1.1）
+- 專輯列表頁面重新設計
+  - 現代化卡片式搜尋區域（白色背景、圓角、陰影效果）
+  - 搜尋輸入框加入圖示（Bootstrap Icons）
+  - 優化的 focus 效果（紫色邊框與陰影）
+  - 雙下拉式排序系統（預設排序、最新上架、價格由低到高、價格由高到低）
+  - 分離式工具列設計（灰色背景區塊）
+  - 商品數量即時顯示
+  - 格狀/清單視圖切換按鈕
+- 專屬樣式檔案（wwwroot/css/pages/album-index.css）
+  - 380+ 行專業 CSS 設計
+  - 漸層色彩效果（#b19cd9 主題色）
+  - 完整響應式設計（@media 查詢：桌面、平板、手機）
+  - 懸停效果與平滑轉場動畫
+  - 下拉選單美化（圓角、陰影、hover 效果）
+
 ## 待實作功能
 
 ### 🚧 進階功能
@@ -231,6 +260,10 @@ dotnet ef database drop
 - 所有新功能都應建立對應的 Service 介面與實作
 - Repository 只負責資料存取，不包含業務邏輯
 - 使用 `IDbContextFactory<ApplicationDbContext>` 建立 DbContext 實例
+- **使用 ValidationHelper 進行驗證**（v1.1.1 新增）：
+  - 在 Service 層的方法開頭使用 ValidationHelper 進行參數驗證
+  - 避免重複撰寫驗證邏輯，提升程式碼可維護性
+  - 範例：`ValidationHelper.ValidateString(album.Title, "專輯標題", 200, nameof(album.Title));`
 
 ### 資料庫與時間
 - 統一使用 `DateTime.UtcNow` 而非 `DateTime.Now`，避免時區問題

@@ -12,6 +12,7 @@ builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
 
 // 註冊 Repository（資料存取層）
 builder.Services.AddScoped<MusicShop.Repositories.Interface.IAlbumRepository, MusicShop.Repositories.Implementation.AlbumRepository>();
+builder.Services.AddScoped<MusicShop.Repositories.Interface.IArtistRepository, MusicShop.Repositories.Implementation.ArtistRepository>();
 builder.Services.AddScoped<MusicShop.Repositories.Interface.IArtistCategoryRepository, MusicShop.Repositories.Implementation.ArtistCategoryRepository>();
 builder.Services.AddScoped<MusicShop.Repositories.Interface.IProductTypeRepository, MusicShop.Repositories.Implementation.ProductTypeRepository>();
 builder.Services.AddScoped<MusicShop.Repositories.Interface.ICartRepository, MusicShop.Repositories.Implementation.CartRepository>();
@@ -20,6 +21,7 @@ builder.Services.AddScoped<MusicShop.Repositories.Interface.IStatisticsRepositor
 
 // 註冊 Service（商業邏輯層）
 builder.Services.AddScoped<MusicShop.Services.Interface.IAlbumService, MusicShop.Services.Implementation.AlbumService>();
+builder.Services.AddScoped<MusicShop.Services.Interface.IArtistService, MusicShop.Services.Implementation.ArtistService>();
 builder.Services.AddScoped<MusicShop.Services.Interface.IArtistCategoryService, MusicShop.Services.Implementation.ArtistCategoryService>();
 builder.Services.AddScoped<MusicShop.Services.Interface.IProductTypeService, MusicShop.Services.Implementation.ProductTypeService>();
 builder.Services.AddScoped<MusicShop.Services.Interface.ICartService, MusicShop.Services.Implementation.CartService>();
@@ -86,6 +88,9 @@ using (var scope = app.Services.CreateScope())
 
         // 執行資料庫初始化
         await MusicShop.Data.DbInitializer.InitializeAsync(roleManager, userManager, configuration, context);
+
+        // 插入藝人資料（如果資料庫中沒有的話）
+        await MusicShop.SeedArtists.SeedAsync(contextFactory);
     }
     catch (Exception ex)
     {

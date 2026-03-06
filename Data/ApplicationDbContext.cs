@@ -8,6 +8,7 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
     public DbSet<Album> Albums { get; set; }
+    public DbSet<Artist> Artists { get; set; }
     public DbSet<ArtistCategory> ArtistCategories { get; set; }
     public DbSet<ProductType> ProductTypes { get; set; }
     public DbSet<Order> Orders { get; set; }
@@ -30,6 +31,20 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .HasOne(a => a.ProductType)
             .WithMany(pt => pt.Albums)
             .HasForeignKey(a => a.ProductTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Artist 與 ArtistCategory 關聯（一對多）
+        builder.Entity<Artist>()
+            .HasOne(a => a.ArtistCategory)
+            .WithMany(ac => ac.Artists)
+            .HasForeignKey(a => a.ArtistCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Album 與 Artist 關聯（一對多）
+        builder.Entity<Album>()
+            .HasOne(a => a.Artist)
+            .WithMany(ar => ar.Albums)
+            .HasForeignKey(a => a.ArtistId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // ProductType 階層式自我參照關聯

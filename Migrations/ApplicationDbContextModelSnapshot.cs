@@ -163,12 +163,10 @@ namespace MusicShop.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Artist")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<int?>("ArtistCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ArtistId")
                         .HasColumnType("int");
 
                     b.Property<string>("CoverImageUrl")
@@ -180,6 +178,9 @@ namespace MusicShop.Migrations
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DescriptionImageUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
@@ -198,6 +199,8 @@ namespace MusicShop.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ArtistCategoryId");
+
+                    b.HasIndex("ArtistId");
 
                     b.HasIndex("ProductTypeId");
 
@@ -279,6 +282,39 @@ namespace MusicShop.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("MusicShop.Models.Artist", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArtistCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ProfileImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArtistCategoryId");
+
+                    b.ToTable("Artists");
                 });
 
             modelBuilder.Entity("MusicShop.Models.ArtistCategory", b =>
@@ -481,14 +517,32 @@ namespace MusicShop.Migrations
                         .HasForeignKey("ArtistCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("MusicShop.Models.Artist", "Artist")
+                        .WithMany("Albums")
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("MusicShop.Models.ProductType", "ProductType")
                         .WithMany("Albums")
                         .HasForeignKey("ProductTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.Navigation("Artist");
+
                     b.Navigation("ArtistCategory");
 
                     b.Navigation("ProductType");
+                });
+
+            modelBuilder.Entity("MusicShop.Models.Artist", b =>
+                {
+                    b.HasOne("MusicShop.Models.ArtistCategory", "ArtistCategory")
+                        .WithMany("Artists")
+                        .HasForeignKey("ArtistCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ArtistCategory");
                 });
 
             modelBuilder.Entity("MusicShop.Models.CartItem", b =>
@@ -562,9 +616,16 @@ namespace MusicShop.Migrations
                     b.Navigation("Orders");
                 });
 
+            modelBuilder.Entity("MusicShop.Models.Artist", b =>
+                {
+                    b.Navigation("Albums");
+                });
+
             modelBuilder.Entity("MusicShop.Models.ArtistCategory", b =>
                 {
                     b.Navigation("Albums");
+
+                    b.Navigation("Artists");
                 });
 
             modelBuilder.Entity("MusicShop.Models.Order", b =>
