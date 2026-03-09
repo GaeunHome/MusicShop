@@ -1,4 +1,5 @@
 using MusicShop.Models;
+using MusicShop.ViewModels;
 
 namespace MusicShop.Services.Interface
 {
@@ -21,6 +22,15 @@ namespace MusicShop.Services.Interface
         /// 更新購物車項目數量
         /// </summary>
         Task UpdateCartItemQuantityAsync(int cartItemId, string userId, int quantity);
+
+        /// <summary>
+        /// 更新購物車項目數量（AJAX 版本，返回更新結果）
+        /// </summary>
+        /// <param name="cartItemId">購物車項目 ID</param>
+        /// <param name="userId">使用者 ID</param>
+        /// <param name="quantity">新數量</param>
+        /// <returns>包含更新後資訊的結果</returns>
+        Task<CartUpdateResult> UpdateCartItemQuantityAjaxAsync(int cartItemId, string userId, int quantity);
 
         /// <summary>
         /// 移除購物車項目

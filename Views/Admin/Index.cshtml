@@ -1,14 +1,13 @@
 @{
     ViewData["Title"] = "後台管理";
+    ViewData["PageId"] = "admin-index";
 }
+
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
 
 <div class="container mt-4">
     <h3 class="mb-4">📊 後台管理總覽</h3>
-
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
 
     <div class="row g-4 mb-5">
         <div class="col-md-3">

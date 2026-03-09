@@ -1,0 +1,19 @@
+@* 共用的 TempData 訊息通知元件 *@
+@* 使用隱藏的 div 標籤傳遞訊息給 JavaScript，由 notifications.js 自動處理 *@
+
+@if (TempData["Success"] != null)
+{
+    <div data-tempdata-success="@TempData["Success"]" style="display:none;"></div>
+}
+@if (TempData["Error"] != null)
+{
+    <div data-tempdata-error="@TempData["Error"]" style="display:none;"></div>
+}
+@if (TempData["Warning"] != null)
+{
+    <div data-tempdata-warning="@TempData["Warning"]" style="display:none;"></div>
+}
+@if (TempData["Info"] != null)
+{
+    <div data-tempdata-info="@TempData["Info"]" style="display:none;"></div>
+}

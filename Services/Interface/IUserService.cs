@@ -21,4 +21,13 @@ public interface IUserService
     /// <param name="currentAdminId">當前管理員 ID（防止移除自己的權限）</param>
     /// <returns>操作結果訊息</returns>
     Task<(bool Success, string Message)> ToggleAdminRoleAsync(string userId, string currentAdminId);
+
+    /// <summary>
+    /// 更新使用者密碼
+    /// </summary>
+    /// <param name="userId">使用者 ID</param>
+    /// <param name="currentPassword">目前密碼</param>
+    /// <param name="newPassword">新密碼</param>
+    /// <returns>操作結果訊息</returns>
+    Task<(bool Success, string Message)> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
 }

@@ -114,4 +114,56 @@ public class UserService : IUserService
             }
         }
     }
+
+    /// <summary>
+    /// 更新使用者密碼
+    /// </summary>
+    public async Task<(bool Success, string Message)> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+    {
+        // 參數驗證
+        if (string.IsNullOrEmpty(userId))
+        {
+            return (false, "無效的使用者 ID");
+        }
+
+        if (string.IsNullOrEmpty(currentPassword))
+        {
+            return (false, "請輸入目前密碼");
+        }
+
+        if (string.IsNullOrEmpty(newPassword))
+        {
+            return (false, "請輸入新密碼");
+        }
+
+        // 找到使用者
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return (false, "找不到指定的使用者");
+        }
+
+        // 使用 UserManager 更改密碼（會自動驗證目前密碼）
+        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+
+        if (result.Succeeded)
+        {
+            _logger.LogInformation($"使用者 {user.Email} 已成功更新密碼");
+            return (true, "密碼更新成功");
+        }
+        else
+        {
+            // 取得錯誤訊息
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            _logger.LogWarning($"使用者 {user.Email} 更新密碼失敗：{errors}");
+
+            // 檢查是否為目前密碼錯誤
+            if (result.Errors.Any(e => e.Code == "PasswordMismatch"))
+            {
+                return (false, "目前密碼不正確");
+            }
+
+            return (false, $"密碼更新失敗：{errors}");
+        }
+    }
 }

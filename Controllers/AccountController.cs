@@ -16,15 +16,18 @@ public class AccountController : Controller
     private readonly UserManager<AppUser> _userManager;
     private readonly SignInManager<AppUser> _signInManager;
     private readonly IOrderService _orderService;
+    private readonly IUserService _userService;
 
     public AccountController(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
-        IOrderService orderService)
+        IOrderService orderService,
+        IUserService userService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _orderService = orderService;
+        _userService = userService;
     }
 
     // GET: /Account/Register
@@ -55,6 +58,7 @@ public class AccountController : Controller
 
             // 登入使用者
             await _signInManager.SignInAsync(user, isPersistent: false);
+            TempData["Success"] = $"歡迎加入 MusicShop！註冊成功，{user.FullName}。";
             return RedirectToAction("Index", "Home");
         }
 
@@ -77,7 +81,11 @@ public class AccountController : Controller
             model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
 
         if (result.Succeeded)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            TempData["Success"] = $"歡迎回來，{user?.FullName ?? ""}！登入成功。";
             return RedirectToAction("Index", "Home");
+        }
 
         ModelState.AddModelError(string.Empty, "帳號或密碼錯誤");
         return View(model);
@@ -88,6 +96,7 @@ public class AccountController : Controller
     public async Task<IActionResult> Logout()
     {
         await _signInManager.SignOutAsync();
+        TempData["Success"] = "您已成功登出。";
         return RedirectToAction("Index", "Home");
     }
 
@@ -176,6 +185,44 @@ public class AccountController : Controller
         foreach (var error in result.Errors)
             ModelState.AddModelError(string.Empty, error.Description);
 
+        return View(model);
+    }
+
+    // GET: /Account/ChangePassword
+    // 更新密碼頁面
+    [Authorize]
+    public IActionResult ChangePassword()
+    {
+        return View();
+    }
+
+    // POST: /Account/ChangePassword
+    // 處理密碼更新
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return RedirectToAction("Login");
+
+        // 透過 Service 層處理密碼更新
+        var (success, message) = await _userService.ChangePasswordAsync(
+            user.Id,
+            model.CurrentPassword,
+            model.NewPassword);
+
+        if (success)
+        {
+            TempData["Success"] = message;
+            return RedirectToAction("Index");
+        }
+
+        ModelState.AddModelError(string.Empty, message);
         return View(model);
     }
 }

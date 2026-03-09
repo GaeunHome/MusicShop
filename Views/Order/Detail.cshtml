@@ -1,7 +1,11 @@
 @model MusicShop.Models.Order
 @{
     ViewData["Title"] = $"訂單詳情 - #{Model.Id}";
+    ViewData["PageId"] = "order-detail";
 }
+
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
 
 <div id="order-detail-page" class="container my-5">
     <!-- 麵包屑 -->
@@ -21,22 +25,6 @@
     </nav>
 
     <h1 class="page-title mb-4">訂單詳情</h1>
-
-    <!-- 訊息提示 -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
 
     <div class="row">
         <!-- 訂單資訊 -->
@@ -156,8 +144,8 @@
             <div class="d-grid gap-2">
                 @if (Model.Status == MusicShop.Models.OrderStatus.Pending || Model.Status == MusicShop.Models.OrderStatus.Paid)
                 {
-                    <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('確定要取消此訂單嗎？');">
-                        <button type="submit" class="btn btn-danger w-100">取消訂單</button>
+                    <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" id="cancelOrderFormDetail">
+                        <button type="button" class="btn btn-danger w-100" data-order-cancel-detail>取消訂單</button>
                     </form>
                 }
                 <a asp-action="Index" class="btn btn-outline-secondary">返回訂單列表</a>

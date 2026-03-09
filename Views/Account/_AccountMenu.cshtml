@@ -1,10 +1,13 @@
 @* 會員中心側邊欄選單 *@
 <div id="account-menu" class="account-menu">
-    <a asp-controller="Account" asp-action="Index" class="menu-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+    <a asp-controller="Account" asp-action="Index" class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
         我的帳戶
     </a>
-    <a asp-controller="Account" asp-action="Edit" class="menu-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Edit" ? "active" : "")">
+    <a asp-controller="Account" asp-action="Edit" class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["Action"]?.ToString() == "Edit" ? "active" : "")">
         更新個人資訊
+    </a>
+    <a asp-controller="Account" asp-action="ChangePassword" class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["Action"]?.ToString() == "ChangePassword" ? "active" : "")">
+        更新密碼
     </a>
     <a asp-controller="Order" asp-action="Index" class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")">
         訂單查詢

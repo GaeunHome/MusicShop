@@ -2,6 +2,7 @@ using MusicShop.Models;
 using MusicShop.Repositories.Interface;
 using MusicShop.Services.Interface;
 using MusicShop.Helpers;
+using MusicShop.ViewModels;
 
 namespace MusicShop.Services.Implementation
 {
@@ -13,63 +14,37 @@ namespace MusicShop.Services.Implementation
         private readonly IOrderRepository _orderRepository;
         private readonly ICartRepository _cartRepository;
         private readonly IAlbumRepository _albumRepository;
+        private readonly IOrderValidationService _orderValidationService;
 
         public OrderService(
             IOrderRepository orderRepository,
             ICartRepository cartRepository,
-            IAlbumRepository albumRepository)
+            IAlbumRepository albumRepository,
+            IOrderValidationService orderValidationService)
         {
             _orderRepository = orderRepository;
             _cartRepository = cartRepository;
             _albumRepository = albumRepository;
+            _orderValidationService = orderValidationService;
         }
 
+        [Obsolete("請使用 CreateOrderWithFullInfoAsync 方法")]
         public async Task<Order> CreateOrderFromCartAsync(string userId)
         {
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
 
             // 取得購物車項目
             var cartItems = await _cartRepository.GetCartItemsByUserIdAsync(userId);
-            var cartItemsList = cartItems.ToList();
 
-            ValidationHelper.ValidateCollectionNotEmpty(cartItemsList, "購物車");
-
-            // 驗證庫存並計算總金額
-            decimal totalAmount = 0;
-            var orderItems = new List<OrderItem>();
-            var albumCache = new Dictionary<int, Album>(); // 快取已查詢的專輯，避免重複查詢
-
-            foreach (var cartItem in cartItemsList)
-            {
-                var album = await _albumRepository.GetAlbumByIdAsync(cartItem.AlbumId);
-                ValidationHelper.ValidateEntityExists(album, "專輯", cartItem.AlbumId);
-
-                // 檢查庫存
-                ValidationHelper.ValidateCondition(
-                    album!.Stock >= cartItem.Quantity,
-                    $"專輯「{album.Title}」庫存不足，目前庫存: {album.Stock}"
-                );
-
-                // 建立訂單項目
-                var orderItem = new OrderItem
-                {
-                    AlbumId = cartItem.AlbumId,
-                    Quantity = cartItem.Quantity,
-                    UnitPrice = album.Price
-                };
-
-                orderItems.Add(orderItem);
-                totalAmount += album.Price * cartItem.Quantity;
-
-                // 快取專輯物件，供後續扣除庫存使用
-                albumCache[album.Id] = album;
-            }
+            // 使用驗證服務準備訂單項目（避免重複程式碼）
+            var (orderItems, totalAmount, albumCache) = await _orderValidationService
+                .ValidateAndPrepareOrderItemsAsync(cartItems);
 
             // 建立訂單
             var order = new Order
             {
                 UserId = userId,
-                OrderDate = DateTime.UtcNow, // 使用 UTC 時間避免時區問題
+                OrderDate = DateTime.UtcNow,
                 Status = OrderStatus.Pending,
                 TotalAmount = totalAmount,
                 OrderItems = orderItems
@@ -78,18 +53,92 @@ namespace MusicShop.Services.Implementation
             // 儲存訂單
             var createdOrder = await _orderRepository.CreateOrderAsync(order);
 
-            // 扣除庫存（使用快取的專輯物件，避免重複查詢資料庫）
-            foreach (var orderItem in orderItems)
-            {
-                if (albumCache.TryGetValue(orderItem.AlbumId, out var album))
-                {
-                    album.Stock -= orderItem.Quantity;
-                    await _albumRepository.UpdateAlbumAsync(album);
-                }
-            }
+            // 扣除庫存（使用驗證服務統一處理）
+            await _orderValidationService.DeductStockAsync(orderItems, albumCache);
 
             // 清空購物車
             await _cartRepository.ClearCartAsync(userId);
+
+            return createdOrder;
+        }
+
+        public async Task<Order> CreateOrderWithFullInfoAsync(string userId, CheckoutViewModel checkoutInfo)
+        {
+            // ==================== 參數驗證 ====================
+            ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
+
+            // 使用驗證服務驗證結帳資訊（避免重複程式碼）
+            _orderValidationService.ValidateCheckoutInfo(checkoutInfo);
+
+            // ==================== 取得購物車項目 ====================
+            var cartItems = await _cartRepository.GetCartItemsByUserIdAsync(userId);
+
+            // ==================== 驗證庫存並計算總金額 ====================
+            // 使用驗證服務準備訂單項目（避免重複程式碼）
+            var (orderItems, totalAmount, albumCache) = await _orderValidationService
+                .ValidateAndPrepareOrderItemsAsync(cartItems);
+
+            // ==================== 根據配送方式選擇門市資料 ====================
+            string? storeCode = null;
+            string? storeName = null;
+            string? storeAddress = null;
+
+            if (checkoutInfo.DeliveryMethod == DeliveryMethod.SevenEleven)
+            {
+                storeCode = checkoutInfo.SevenElevenStoreCode;
+                storeName = checkoutInfo.SevenElevenStoreName;
+                storeAddress = checkoutInfo.SevenElevenStoreAddress;
+            }
+            else if (checkoutInfo.DeliveryMethod == DeliveryMethod.FamilyMart)
+            {
+                storeCode = checkoutInfo.FamilyMartStoreCode;
+                storeName = checkoutInfo.FamilyMartStoreName;
+                storeAddress = checkoutInfo.FamilyMartStoreAddress;
+            }
+
+            // ==================== 建立訂單（包含完整資訊）====================
+            var order = new Order
+            {
+                // 基本資訊
+                UserId = userId,
+                OrderDate = DateTime.UtcNow,
+                Status = OrderStatus.Pending,
+                TotalAmount = totalAmount,
+                OrderItems = orderItems,
+
+                // 收件人資訊
+                ReceiverName = checkoutInfo.ReceiverName,
+                ReceiverPhone = checkoutInfo.ReceiverPhone,
+
+                // 收件地址
+                City = checkoutInfo.City,
+                District = checkoutInfo.District,
+                PostalCode = checkoutInfo.PostalCode,
+                Address = checkoutInfo.Address,
+
+                // 配送資訊
+                DeliveryMethod = checkoutInfo.DeliveryMethod,
+                StoreCode = storeCode,
+                StoreName = storeName,
+                StoreAddress = storeAddress,
+
+                // 付款資訊
+                PaymentMethod = checkoutInfo.PaymentMethod,
+
+                // 發票資訊
+                InvoiceType = checkoutInfo.InvoiceType,
+                CompanyTaxId = checkoutInfo.CompanyTaxId,
+                CompanyName = checkoutInfo.CompanyName,
+                InvoiceCarrier = checkoutInfo.InvoiceCarrier,
+
+                // 其他資訊
+                OrderNote = checkoutInfo.OrderNote
+            };
+
+            // ==================== 建立訂單（使用交易確保原子性）====================
+            // 在單一交易中完成：建立訂單、扣除庫存、清空購物車
+            // 確保資料一致性，避免並發問題導致超賣或資料不一致
+            var createdOrder = await _orderRepository.CreateOrderWithTransactionAsync(order, userId);
 
             return createdOrder;
         }

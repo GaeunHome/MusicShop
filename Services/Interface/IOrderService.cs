@@ -1,4 +1,5 @@
 using MusicShop.Models;
+using MusicShop.ViewModels;
 
 namespace MusicShop.Services.Interface
 {
@@ -8,9 +9,18 @@ namespace MusicShop.Services.Interface
     public interface IOrderService
     {
         /// <summary>
-        /// 從購物車建立訂單
+        /// 從購物車建立訂單（舊版，不含完整資訊）
         /// </summary>
+        [Obsolete("請使用 CreateOrderWithFullInfoAsync 方法")]
         Task<Order> CreateOrderFromCartAsync(string userId);
+
+        /// <summary>
+        /// 從購物車建立訂單（包含完整收件人、配送、付款、發票資訊）
+        /// </summary>
+        /// <param name="userId">使用者 ID</param>
+        /// <param name="checkoutInfo">結帳資訊</param>
+        /// <returns>建立的訂單</returns>
+        Task<Order> CreateOrderWithFullInfoAsync(string userId, CheckoutViewModel checkoutInfo);
 
         /// <summary>
         /// 取得使用者的訂單列表

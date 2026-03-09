@@ -3,6 +3,16 @@
     ViewData["Title"] = "訂單完成";
 }
 
+<!-- TempData 訊息（隱藏，用於 JavaScript 讀取） -->
+@if (TempData["Success"] != null)
+{
+    <div data-tempdata-success="@TempData["Success"]" style="display:none;"></div>
+}
+@if (TempData["Error"] != null)
+{
+    <div data-tempdata-error="@TempData["Error"]" style="display:none;"></div>
+}
+
 <div class="container mt-5">
     <div class="text-center mb-5">
         <div class="display-1">🎉</div>

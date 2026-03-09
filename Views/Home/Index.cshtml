@@ -1,7 +1,11 @@
 @model List<MusicShop.ViewModels.AlbumCardViewModel>
 @{
     ViewData["Title"] = "首頁 - MusicShop";
+    ViewData["PageId"] = "home-index";
 }
+
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
 
 <!--
     圖片尺寸說明：

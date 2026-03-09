@@ -61,6 +61,55 @@ namespace MusicShop.Repositories.Implementation
             return order;
         }
 
+        public async Task<Order> CreateOrderWithTransactionAsync(Order order, string userId)
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            await using var transaction = await context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // 1. 建立訂單
+                context.Orders.Add(order);
+                await context.SaveChangesAsync();
+
+                // 2. 扣除庫存（在同一個交易中）
+                foreach (var orderItem in order.OrderItems)
+                {
+                    var album = await context.Albums.FindAsync(orderItem.AlbumId);
+                    if (album == null)
+                    {
+                        throw new InvalidOperationException($"專輯不存在，ID: {orderItem.AlbumId}");
+                    }
+
+                    if (album.Stock < orderItem.Quantity)
+                    {
+                        throw new InvalidOperationException($"專輯「{album.Title}」庫存不足");
+                    }
+
+                    album.Stock -= orderItem.Quantity;
+                }
+                await context.SaveChangesAsync();
+
+                // 3. 清空購物車（在同一個交易中）
+                var cartItems = await context.CartItems
+                    .Where(c => c.UserId == userId)
+                    .ToListAsync();
+                context.CartItems.RemoveRange(cartItems);
+                await context.SaveChangesAsync();
+
+                // 4. 提交交易
+                await transaction.CommitAsync();
+
+                return order;
+            }
+            catch
+            {
+                // 發生錯誤時回滾交易
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task UpdateOrderAsync(Order order)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();

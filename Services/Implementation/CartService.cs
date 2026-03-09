@@ -2,6 +2,7 @@ using MusicShop.Models;
 using MusicShop.Repositories.Interface;
 using MusicShop.Services.Interface;
 using MusicShop.Helpers;
+using MusicShop.ViewModels;
 
 namespace MusicShop.Services.Implementation
 {
@@ -78,9 +79,22 @@ namespace MusicShop.Services.Implementation
 
         public async Task UpdateCartItemQuantityAsync(int cartItemId, string userId, int quantity)
         {
+            // 使用私有方法統一驗證和更新邏輯，避免重複
+            await ValidateAndUpdateCartItemAsync(cartItemId, userId, quantity);
+        }
+
+        /// <summary>
+        /// 私有方法：驗證並更新購物車項目
+        /// 此方法統一了 UpdateCartItemQuantityAsync 和 UpdateCartItemQuantityAjaxAsync 的共用邏輯
+        /// </summary>
+        private async Task<(CartItem CartItem, Album Album)> ValidateAndUpdateCartItemAsync(
+            int cartItemId, string userId, int quantity)
+        {
+            // 參數驗證
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
             ValidationHelper.ValidatePositive(quantity, "數量", nameof(quantity));
 
+            // 取得購物車項目
             var cartItem = await _cartRepository.GetCartItemByIdAsync(cartItemId);
             ValidationHelper.ValidateEntityExists(cartItem, "購物車項目", cartItemId);
 
@@ -99,8 +113,58 @@ namespace MusicShop.Services.Implementation
                 $"庫存不足，目前庫存: {album.Stock}"
             );
 
+            // 更新數量
             cartItem.Quantity = quantity;
             await _cartRepository.UpdateCartItemAsync(cartItem);
+
+            return (cartItem, album);
+        }
+
+        public async Task<CartUpdateResult> UpdateCartItemQuantityAjaxAsync(int cartItemId, string userId, int quantity)
+        {
+            try
+            {
+                // 使用私有方法統一驗證和更新邏輯（避免重複程式碼）
+                var (cartItem, album) = await ValidateAndUpdateCartItemAsync(cartItemId, userId, quantity);
+
+                // 計算小計（該商品）
+                decimal subtotal = album.Price * quantity;
+
+                // ===== 效能優化：一次查詢取得所有購物車資料 =====
+                // 避免分別呼叫 GetCartTotalAsync 和 GetCartItemCountAsync
+                // 減少從 3 次資料庫查詢降低至 2 次
+                var allCartItems = await _cartRepository.GetCartItemsByUserIdAsync(userId);
+
+                // 計算購物車總金額（從已查詢的資料計算）
+                decimal cartTotal = allCartItems.Sum(item => item.Album!.Price * item.Quantity);
+
+                // 計算購物車商品總數量（從已查詢的資料計算）
+                int cartItemCount = allCartItems.Sum(item => item.Quantity);
+
+                // 返回成功結果（使用 PriceFormatter 統一格式化）
+                return new CartUpdateResult
+                {
+                    Success = true,
+                    Message = "數量已更新",
+                    Quantity = quantity,
+                    Subtotal = PriceFormatter.Format(subtotal),
+                    CartTotal = PriceFormatter.Format(cartTotal),
+                    CartItemCount = cartItemCount
+                };
+            }
+            catch (Exception ex)
+            {
+                // 返回失敗結果
+                return new CartUpdateResult
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Quantity = 0,
+                    Subtotal = "0",
+                    CartTotal = "0",
+                    CartItemCount = 0
+                };
+            }
         }
 
         public async Task RemoveFromCartAsync(int cartItemId, string userId)

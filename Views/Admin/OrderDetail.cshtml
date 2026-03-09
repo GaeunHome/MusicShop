@@ -1,7 +1,11 @@
 @model MusicShop.Models.Order
 @{
     ViewData["Title"] = $"訂單 #{Model.Id}";
+    ViewData["PageId"] = "admin-order-detail";
 }
+
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
 
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -12,11 +16,6 @@
                     <a asp-action="Orders" class="btn btn-sm btn-outline-secondary">← 返回訂單列表</a>
                 </div>
                 <div class="card-body">
-
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success">@TempData["Success"]</div>
-                    }
 
                     <dl class="row mb-4">
                         <dt class="col-sm-3">會員</dt>

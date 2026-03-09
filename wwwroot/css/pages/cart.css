@@ -1,0 +1,880 @@
+/* ================================================
+   購物車頁面專屬樣式
+   ================================================ */
+
+/* ==================== 頁面標題 ==================== */
+.page-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 1rem;
+}
+
+.cart-title {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1.75rem;
+    margin: 0;
+}
+
+.cart-title i {
+    color: #b19cd9;
+}
+
+/* ==================== 空購物車狀態 ==================== */
+.empty-cart-container {
+    text-align: center;
+    padding: 5rem 2rem;
+    background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+    border-radius: 20px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.empty-cart-icon {
+    font-size: 6rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+}
+
+.empty-cart-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.empty-cart-text {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+.empty-cart-container .btn {
+    background: white;
+    color: #b19cd9;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.empty-cart-container .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ==================== 購物車商品容器 ==================== */
+.cart-items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* ==================== 購物車商品卡片 ==================== */
+.cart-item-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 移除卡片 hover 上移效果，保留淡淡的陰影變化 */
+.cart-item-card:hover {
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ==================== 專輯封面 ==================== */
+.album-cover-wrapper {
+    width: 120px;
+    height: 120px;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.album-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 移除封面放大效果 */
+
+.album-cover-placeholder {
+    background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+}
+
+/* ==================== 商品資訊 ==================== */
+.cart-item-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.cart-item-title a {
+    transition: color 0.3s ease;
+}
+
+.cart-item-title a:hover {
+    color: #b19cd9;
+}
+
+.cart-item-price {
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+.cart-item-price .price-value {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+/* ==================== 數量控制器 ==================== */
+.quantity-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 50px;
+    padding: 0.25rem 0.5rem;
+}
+
+/* 移除數量控制器的 hover 效果 */
+
+.quantity-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #b19cd9;
+    color: white;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    padding: 0;
+    box-shadow: 0 2px 6px rgba(177, 156, 217, 0.2);
+}
+
+/* 簡化 hover 效果，只改變背景色 */
+.quantity-btn:hover {
+    background: #9d7ec2;
+}
+
+.quantity-btn:active {
+    transform: scale(0.98);
+}
+
+.quantity-btn i {
+    pointer-events: none;
+}
+
+.quantity-input {
+    width: 50px;
+    text-align: center;
+    border: none;
+    background: transparent;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    padding: 0;
+}
+
+.quantity-input:focus {
+    outline: none;
+}
+
+/* Chrome, Safari, Edge, Opera - 隱藏數字輸入框的上下箭頭 */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox - 隱藏數字輸入框的上下箭頭 */
+.quantity-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* ==================== 小計顯示 ==================== */
+.cart-item-subtotal {
+    font-size: 1rem;
+    color: #6c757d;
+}
+
+.cart-item-subtotal .subtotal-value {
+    font-weight: 700;
+    color: #b19cd9;
+    font-size: 1.2rem;
+}
+
+/* ==================== 載入動畫覆蓋層 ==================== */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 12px;
+}
+
+.loading-overlay .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* ==================== 操作按鈕區域 ==================== */
+.cart-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* ==================== 訂單摘要卡片 ==================== */
+.cart-summary-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    top: 2rem;
+    /* 設定較低的 z-index，避免蓋住 header 下拉選單（dropdown z-index: 1000） */
+    z-index: 100;
+}
+
+.cart-summary-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: #495057;
+}
+
+.summary-row:last-of-type {
+    margin-bottom: 0;
+}
+
+.summary-total {
+    font-size: 1.1rem;
+    padding-top: 1rem;
+}
+
+.summary-total .text-primary {
+    color: #b19cd9 !important;
+}
+
+.cart-summary-card hr {
+    margin: 1rem 0;
+    border-color: #e9ecef;
+}
+
+.cart-summary-card .btn-primary {
+    background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+    border: none;
+    font-weight: 600;
+    padding: 0.85rem;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(177, 156, 217, 0.3);
+}
+
+/* 簡化按鈕 hover 效果 */
+.cart-summary-card .btn-primary:hover {
+    background: linear-gradient(135deg, #9d7ec2 0%, #8f6fb5 100%);
+    box-shadow: 0 5px 14px rgba(177, 156, 217, 0.35);
+}
+
+/* ==================== 響應式設計 ==================== */
+
+/* 平板 */
+@media (max-width: 991px) {
+    .cart-summary-card {
+        position: static !important;
+        top: auto !important;
+    }
+
+    .album-cover-wrapper {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+/* 手機 */
+@media (max-width: 767px) {
+    .cart-title {
+        font-size: 1.5rem;
+    }
+
+    .cart-item-card {
+        padding: 1rem;
+    }
+
+    .album-cover-wrapper {
+        width: 80px;
+        height: 80px;
+    }
+
+    .cart-item-title {
+        font-size: 1rem;
+    }
+
+    .cart-item-price {
+        font-size: 0.9rem;
+    }
+
+    .cart-item-price .price-value {
+        font-size: 1rem;
+    }
+
+    .quantity-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+
+    .quantity-input {
+        width: 40px;
+        font-size: 1rem;
+    }
+
+    .cart-item-subtotal {
+        font-size: 0.9rem;
+    }
+
+    .cart-item-subtotal .subtotal-value {
+        font-size: 1.05rem;
+    }
+
+    .cart-actions {
+        flex-direction: column;
+    }
+
+    .cart-actions .btn {
+        width: 100%;
+    }
+
+    .empty-cart-container {
+        padding: 3rem 1.5rem;
+    }
+
+    .empty-cart-icon {
+        font-size: 4rem;
+    }
+
+    .empty-cart-title {
+        font-size: 1.5rem;
+    }
+
+    .empty-cart-text {
+        font-size: 1rem;
+    }
+}
+
+/* 極小螢幕 */
+@media (max-width: 575px) {
+    .cart-item-card .row {
+        flex-direction: column;
+    }
+
+    .album-cover-wrapper {
+        width: 100%;
+        max-width: 200px;
+        height: 200px;
+        margin: 0 auto 1rem;
+    }
+
+    .cart-item-title {
+        text-align: center;
+    }
+
+    .cart-item-price {
+        text-align: center;
+    }
+
+    .quantity-control {
+        justify-content: center;
+    }
+
+    .cart-item-card .col-auto {
+        width: 100%;
+        max-width: 100%;
+        flex: none;
+    }
+
+    .cart-item-card .col-auto.ms-auto {
+        margin-left: 0 !important;
+        margin-top: 1rem;
+    }
+}
+
+/* ==================== 動畫效果 ==================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cart-item-card {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ==================== 移除按鈕樣式優化 ==================== */
+.cart-item-card .btn-outline-danger {
+    border-color: #dc3545;
+    color: #dc3545;
+    transition: all 0.3s ease;
+}
+
+.cart-item-card .btn-outline-danger:hover {
+    background: #dc3545;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* ==================== 繼續購物 & 清空購物車按鈕 ==================== */
+.cart-actions .btn-outline-secondary {
+    border-color: #6c757d;
+    color: #6c757d;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.cart-actions .btn-outline-secondary:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+.cart-actions .btn-outline-danger {
+    border-color: #dc3545;
+    color: #dc3545;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.cart-actions .btn-outline-danger:hover {
+    background: #dc3545;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* ================================================
+   結帳頁面專屬樣式
+   ================================================ */
+
+/* ==================== 結帳頁面標題 ==================== */
+.checkout-title {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ==================== 結帳區塊卡片 ==================== */
+.checkout-section {
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 移除卡片 hover 效果 */
+
+.checkout-section .card-header {
+    background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+    color: white;
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+    border-bottom: none;
+}
+
+.checkout-section .card-header h5 {
+    margin-bottom: 0;
+}
+
+.checkout-section .card-header i {
+    opacity: 0.9;
+}
+
+.checkout-section .card-body {
+    padding: 1.5rem;
+}
+
+/* ==================== 必填標記 ==================== */
+.form-label.required::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* ==================== 表單控制項優化 ==================== */
+.checkout-section .form-control,
+.checkout-section .form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 0.625rem 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.checkout-section .form-control:focus,
+.checkout-section .form-select:focus {
+    border-color: #b19cd9;
+    box-shadow: 0 0 0 0.2rem rgba(177, 156, 217, 0.15);
+}
+
+.checkout-section .form-control[readonly] {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+/* ==================== 配送方式選項 ==================== */
+.delivery-options,
+.payment-options,
+.invoice-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.delivery-option,
+.payment-option,
+.invoice-option {
+    margin-bottom: 0;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* 簡化選項 hover 效果，移除 transform */
+.delivery-option:hover,
+.payment-option:hover,
+.invoice-option:hover {
+    border-color: #b19cd9;
+    background: #f8f9fa;
+}
+
+.delivery-option .form-check-input,
+.payment-option .form-check-input,
+.invoice-option .form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.5rem;
+    cursor: pointer;
+}
+
+.delivery-option .form-check-input:checked,
+.payment-option .form-check-input:checked,
+.invoice-option .form-check-input:checked {
+    background-color: #b19cd9;
+    border-color: #b19cd9;
+}
+
+.delivery-option:has(.form-check-input:checked),
+.payment-option:has(.form-check-input:checked),
+.invoice-option:has(.form-check-input:checked) {
+    border-color: #b19cd9;
+    background: linear-gradient(135deg, rgba(177, 156, 217, 0.05) 0%, rgba(167, 134, 201, 0.05) 100%);
+    box-shadow: 0 4px 12px rgba(177, 156, 217, 0.15);
+}
+
+.delivery-option .form-check-label,
+.payment-option .form-check-label,
+.invoice-option .form-check-label {
+    cursor: pointer;
+    width: 100%;
+}
+
+.option-content {
+    display: flex;
+    align-items: center;
+}
+
+.option-content i {
+    flex-shrink: 0;
+}
+
+.option-content strong {
+    font-size: 1.05rem;
+    color: #2c3e50;
+}
+
+.option-content small {
+    font-size: 0.85rem;
+}
+
+/* ==================== 訂單摘要卡片（結帳頁面）==================== */
+.checkout-summary {
+    border: 2px solid #e9ecef;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    top: 2rem;
+    /* 設定較低的 z-index，避免蓋住 header 下拉選單（dropdown z-index: 1000） */
+    z-index: 100;
+}
+
+.checkout-summary .card-header {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+    padding: 1rem 1.25rem;
+}
+
+.checkout-summary .card-body {
+    padding: 1.5rem;
+}
+
+/* ==================== 訂單商品列表 ==================== */
+.order-items {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.order-items::-webkit-scrollbar {
+    width: 6px;
+}
+
+.order-items::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.order-items::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.order-items::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.order-item {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.order-item .item-image {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+}
+
+.order-item .item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.order-item .item-image .placeholder-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+    color: white;
+    font-size: 1.5rem;
+    border-radius: 6px;
+}
+
+.order-item .item-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #2c3e50;
+}
+
+.order-item .item-details {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.order-item .item-price {
+    font-weight: 600;
+    color: #b19cd9;
+    font-size: 0.95rem;
+}
+
+/* ==================== 摘要金額行 ==================== */
+.checkout-summary .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    color: #495057;
+}
+
+.checkout-summary .summary-row:last-of-type {
+    margin-bottom: 0;
+}
+
+.checkout-summary .summary-total {
+    font-size: 1rem;
+    padding-top: 0.75rem;
+}
+
+.checkout-summary .summary-total .text-primary {
+    color: #b19cd9 !important;
+}
+
+/* ==================== 提交按鈕 ==================== */
+.checkout-summary .btn-primary {
+    background: linear-gradient(135deg, #b19cd9 0%, #a786c9 100%);
+    border: none;
+    font-weight: 600;
+    padding: 0.85rem;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(177, 156, 217, 0.3);
+}
+
+/* 簡化結帳按鈕 hover 效果 */
+.checkout-summary .btn-primary:hover {
+    background: linear-gradient(135deg, #9d7ec2 0%, #8f6fb5 100%);
+    box-shadow: 0 5px 14px rgba(177, 156, 217, 0.35);
+}
+
+.checkout-summary .btn-outline-secondary {
+    border-color: #6c757d;
+    color: #6c757d;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.checkout-summary .btn-outline-secondary:hover {
+    background: #6c757d;
+    color: white;
+    border-color: #6c757d;
+}
+
+/* ==================== 響應式設計（結帳頁面）==================== */
+@media (max-width: 991px) {
+    .checkout-summary {
+        position: static !important;
+        top: auto !important;
+    }
+
+    .delivery-options,
+    .payment-options,
+    .invoice-options {
+        gap: 0.75rem;
+    }
+
+    .option-content {
+        flex-direction: row;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .checkout-title {
+        font-size: 1.5rem;
+    }
+
+    .checkout-section .card-header h5 {
+        font-size: 1rem;
+    }
+
+    .checkout-section .card-body {
+        padding: 1rem;
+    }
+
+    .delivery-option,
+    .payment-option,
+    .invoice-option {
+        padding: 0.75rem;
+    }
+
+    .option-content i {
+        font-size: 1.25rem !important;
+    }
+
+    .option-content strong {
+        font-size: 0.95rem;
+    }
+
+    .option-content small {
+        font-size: 0.8rem;
+    }
+
+    .order-item .item-image {
+        width: 50px;
+        height: 50px;
+    }
+
+    .order-item .item-title {
+        font-size: 0.9rem;
+    }
+
+    .order-item .item-details {
+        font-size: 0.8rem;
+    }
+
+    .order-item .item-price {
+        font-size: 0.9rem;
+    }
+}
+
+/* ==================== 驗證錯誤樣式 ==================== */
+.text-danger.small {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.checkout-section .is-invalid {
+    border-color: #dc3545;
+}
+
+.checkout-section .is-invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* ==================== 資訊提示區塊 ==================== */
+.alert-info {
+    background-color: #e7f3ff;
+    border-color: #b3d9ff;
+    color: #004085;
+}
+
+.alert-info i {
+    color: #0056b3;
+}

@@ -1,86 +1,188 @@
 @model IEnumerable<MusicShop.Models.CartItem>
 @{
     ViewData["Title"] = "購物車";
+    ViewData["PageId"] = "cart-index";
     var total = Model.Sum(c => c.Album!.Price * c.Quantity);
 }
 
-<div class="container mt-4">
-    <h3 class="mb-4">🛒 我的購物車</h3>
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger">@TempData["Error"]</div>
-    }
+<div class="container my-5">
+    <!-- 頁面標題 -->
+    <div class="page-header mb-4">
+        <h2 class="cart-title">
+            <i class="bi bi-cart-fill me-2"></i>我的購物車
+        </h2>
+    </div>
 
     @if (!Model.Any())
     {
-        <div class="text-center text-muted mt-5">
-            <h5>購物車是空的 🎵</h5>
-            <a asp-controller="Album" asp-action="Index" class="btn btn-primary mt-3">去逛逛專輯</a>
+        <!-- 空購物車狀態 -->
+        <div class="empty-cart-container">
+            <div class="empty-cart-icon">
+                <i class="bi bi-cart-x"></i>
+            </div>
+            <h4 class="empty-cart-title">購物車是空的</h4>
+            <p class="empty-cart-text">快去挑選喜歡的專輯吧！</p>
+            <a asp-controller="Album" asp-action="Index" class="btn btn-primary btn-lg mt-3">
+                <i class="bi bi-music-note-list me-2"></i>前往選購
+            </a>
         </div>
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>專輯</th>
-                        <th>歌手</th>
-                        <th>單價</th>
-                        <th>數量</th>
-                        <th>小計</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
+        <div class="row">
+            <!-- 左側：購物車商品列表 -->
+            <div class="col-lg-8 mb-4">
+                <div class="cart-items-container">
                     @foreach (var item in Model)
                     {
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="fs-4">🎵</span>
-                                    <span class="fw-bold">@item.Album!.Title</span>
+                        <div class="cart-item-card" id="cart-item-@item.Id">
+                            <div class="row g-3">
+                                <!-- 專輯封面 -->
+                                <div class="col-auto">
+                                    <div class="album-cover-wrapper">
+                                        @if (!string.IsNullOrEmpty(item.Album!.CoverImageUrl))
+                                        {
+                                            <img src="@item.Album.CoverImageUrl" alt="@item.Album.Title" class="album-cover">
+                                        }
+                                        else
+                                        {
+                                            <div class="album-cover album-cover-placeholder">
+                                                <i class="bi bi-music-note"></i>
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
-                            </td>
-                            <td class="text-muted">@(item.Album.Artist?.Name ?? "未設定藝人")</td>
-                            <td>NT$ @item.Album.Price</td>
-                            <td>
-                                <form asp-action="UpdateQuantity" method="post" class="d-flex align-items-center gap-1">
-                                    <input type="hidden" name="cartItemId" value="@item.Id" />
-                                    <input type="number" name="quantity" value="@item.Quantity"
-                                           min="1" max="99" class="form-control form-control-sm"
-                                           style="width:70px;" />
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary">更新</button>
-                                </form>
-                            </td>
-                            <td class="fw-bold text-primary">NT$ @(item.Album.Price * item.Quantity)</td>
-                            <td>
-                                <form asp-action="Remove" method="post">
-                                    <input type="hidden" name="cartItemId" value="@item.Id" />
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('確定要移除嗎？')">移除</button>
-                                </form>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="4" class="text-end fw-bold fs-5">總計：</td>
-                        <td colspan="2" class="fw-bold fs-5 text-primary">NT$ @total</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
 
-        <div class="d-flex justify-content-between mt-3">
-            <a asp-controller="Album" asp-action="Index" class="btn btn-outline-secondary">← 繼續購物</a>
-            <a asp-action="Checkout" class="btn btn-primary btn-lg">前往結帳 →</a>
+                                <!-- 商品詳細資訊 -->
+                                <div class="col">
+                                    <div class="d-flex flex-column h-100">
+                                        <!-- 專輯標題 -->
+                                        <h5 class="cart-item-title mb-2">
+                                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@item.Album.Id" class="text-decoration-none text-dark">
+                                                @item.Album.Title
+                                            </a>
+                                        </h5>
+
+                                        <!-- 單價 -->
+                                        <div class="cart-item-price mb-3">
+                                            NT$ <span class="price-value">@item.Album.Price.ToString("N0")</span>
+                                        </div>
+
+                                        <div class="mt-auto">
+                                            <div class="row align-items-center g-3">
+                                                <!-- 數量控制器 -->
+                                                <div class="col-auto">
+                                                    <div class="quantity-control">
+                                                        <button type="button" class="quantity-btn quantity-decrease"
+                                                                data-cart-item-id="@item.Id"
+                                                                data-album-title="@item.Album.Title"
+                                                                data-form-id="removeForm_@item.Id">
+                                                            <i class="bi bi-dash"></i>
+                                                        </button>
+                                                        <input type="number" class="quantity-input" value="@item.Quantity"
+                                                               min="1" max="99" readonly data-cart-item-id="@item.Id">
+                                                        <button type="button" class="quantity-btn quantity-increase" data-cart-item-id="@item.Id">
+                                                            <i class="bi bi-plus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <!-- 小計 -->
+                                                <div class="col-auto">
+                                                    <div class="cart-item-subtotal">
+                                                        小計：NT$ <span class="subtotal-value" id="subtotal-@item.Id">@((item.Album.Price * item.Quantity).ToString("N0"))</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- 移除按鈕 -->
+                                                <div class="col-auto ms-auto">
+                                                    <form asp-action="Remove" method="post" id="removeForm_@item.Id" class="d-inline">
+                                                        <input type="hidden" name="cartItemId" value="@item.Id" />
+                                                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                                                data-cart-remove
+                                                                data-album-title="@item.Album.Title"
+                                                                data-form-id="removeForm_@item.Id">
+                                                            <i class="bi bi-trash me-1"></i>移除
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 載入動畫覆蓋層 -->
+                            <div class="loading-overlay" id="loading-@item.Id" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">更新中...</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- 操作按鈕 -->
+                <div class="cart-actions mt-4">
+                    <a asp-controller="Album" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>繼續購物
+                    </a>
+                    <form asp-action="Clear" method="post" class="d-inline ms-2" id="clearCartForm">
+                        <button type="button" class="btn btn-outline-danger" data-cart-clear>
+                            <i class="bi bi-trash me-2"></i>清空購物車
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 右側：訂單摘要 -->
+            <div class="col-lg-4">
+                <div class="cart-summary-card sticky-top">
+                    <h5 class="cart-summary-title">訂單摘要</h5>
+                    <hr>
+
+                    <div class="summary-row">
+                        <span>商品總計</span>
+                        <span>NT$ <span id="cart-total-display">@total.ToString("N0")</span></span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>運費</span>
+                        <span class="text-success">免費</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="summary-row summary-total">
+                        <span class="fw-bold">應付金額</span>
+                        <span class="fw-bold text-primary fs-4">NT$ <span id="final-total-display">@total.ToString("N0")</span></span>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a asp-action="Checkout" class="btn btn-primary btn-lg">
+                            <i class="bi bi-credit-card me-2"></i>前往結帳
+                        </a>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-shield-check me-1"></i>安全加密結帳
+                        </small>
+                    </div>
+                </div>
+            </div>
         </div>
     }
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/cart.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <!-- 購物車 AJAX 功能會由 cart.js 模組處理 -->
+    <!-- 不需要在這裡額外添加 script，模組會自動初始化 -->
+}

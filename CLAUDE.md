@@ -91,7 +91,7 @@ dotnet ef database drop
 
 **模型** (`Models/`)：
 - `AppUser`：擴展 `IdentityUser`，包含 FullName、PhoneNumber、Birthday、Gender、RegisteredAt，以及 Orders 和 CartItems 導航屬性
-- `Album`：Title、Artist、Description、Price（decimal）、CoverImageUrl、Stock、ArtistCategoryId、ProductTypeId
+- `Album`：Title、Artist、Description、Price（decimal）、CoverImageUrl、Stock、RowVersion（並發控制）、ArtistCategoryId、ProductTypeId
 - `ArtistCategory`：藝人分類（BOY GROUP、GIRL GROUP、SOLO）
 - `ProductType`：商品類型（階層式架構，包含 ParentId 實現父子關係）
   - 父分類：K-ALBUM、K-MAGAZINE、K-MERCH、K-EVENT
@@ -177,6 +177,10 @@ dotnet ef database drop
 10. **ViewBag 傳遞資料**：分類清單與搜尋詞透過 ViewBag 傳遞給檢視
 11. **View Components**：可重複使用的 UI 元件（如購物車徽章）
 12. **ValidationHelper 模式**（v1.1.1 新增）：集中管理所有驗證邏輯，避免重複程式碼
+13. **資料庫交易**（v1.2.0 新增）：訂單建立使用交易確保原子性（建立訂單、扣除庫存、清空購物車）
+14. **樂觀並發控制**（v1.2.0 新增）：Album 模型使用 `[Timestamp]` RowVersion 防止並發更新問題
+15. **輔助方法萃取**（v1.2.0 新增）：Controller 層萃取重複邏輯為私有方法，提升可讀性與維護性
+16. **單一職責原則**（v1.2.0 新增）：Controller 僅負責流程控制，Service 層負責業務驗證與邏輯
 
 ## 已完成功能
 
@@ -193,11 +197,13 @@ dotnet ef database drop
 ### ✅ 訂單系統（OrderController）
 - 結帳流程（從購物車建立訂單）
 - 訂單建立時：
+  - **使用資料庫交易確保原子性**（CreateOrderWithTransactionAsync）
   - 扣除專輯庫存（Album.Stock）
   - 建立 Order 記錄（訂單主檔）
   - 建立 OrderItem 記錄（訂單明細）
   - 清空使用者購物車
   - 使用 Dictionary 快取避免 N+1 查詢問題
+  - **樂觀並發控制**（Album.RowVersion 防止超賣）
 - 訂單查詢（僅能查看自己的訂單）
 - 訂單詳細資訊
 - 權限控制（無法查看他人訂單）
@@ -241,6 +247,28 @@ dotnet ef database drop
   - 完整響應式設計（@media 查詢：桌面、平板、手機）
   - 懸停效果與平滑轉場動畫
   - 下拉選單美化（圓角、陰影、hover 效果）
+
+### ✅ 程式碼品質與安全性優化（v1.2.0）
+- **資料庫交易保護**
+  - 實作 `CreateOrderWithTransactionAsync` 方法
+  - 確保訂單建立、庫存扣除、購物車清空的原子性
+  - 防止並發訂單導致超賣問題
+
+- **並發控制機制**
+  - Album 模型新增 `[Timestamp]` RowVersion 欄位
+  - 樂觀並發控制防止庫存更新衝突
+  - 資料庫層級的 rowversion 自動檢測並發修改
+
+- **程式碼重構與 DRY 原則**
+  - 移除 Controller 層重複驗證邏輯（統一由 Service 層處理）
+  - 萃取 `GetAuthorizedUserId()` 輔助方法（消除 8 處重複程式碼）
+  - 萃取 `ReturnCheckoutViewWithDataAsync()` 錯誤處理方法
+  - 優化購物車總計查詢（避免重複資料庫查詢）
+
+- **UI 色彩優化**
+  - 購物車與結帳頁面色彩調整
+  - 移除刺眼的藍紫漸層，改用柔和紫色（#b19cd9）
+  - 統一配色與導覽列、Footer 一致
 
 ## 待實作功能
 

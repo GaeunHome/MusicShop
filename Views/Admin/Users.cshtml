@@ -1,30 +1,17 @@
 @model List<MusicShop.ViewModels.UserManagementViewModel>
 @{
     ViewData["Title"] = "使用者管理";
+    ViewData["PageId"] = "admin-users";
 }
+
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>使用者管理</h2>
         <a asp-action="Index" class="btn btn-outline-secondary">返回後台首頁</a>
     </div>
-
-    @* 顯示成功或錯誤訊息 *@
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
 
     <div class="card">
         <div class="card-header">
@@ -77,19 +64,25 @@
                                     <td>@user.RegisteredAt.ToString("yyyy/MM/dd")</td>
                                     <td class="text-center">
                                         @* 切換管理員角色按鈕 *@
-                                        <form asp-action="ToggleAdminRole" method="post" class="d-inline">
+                                        <form asp-action="ToggleAdminRole" method="post" class="d-inline" id="toggleAdmin_@user.UserId">
                                             <input type="hidden" name="userId" value="@user.UserId" />
                                             @if (user.IsAdmin)
                                             {
-                                                <button type="submit" class="btn btn-sm btn-outline-warning"
-                                                        onclick="return confirm('確定要移除 @user.Email 的管理員權限嗎？')">
+                                                <button type="button" class="btn btn-sm btn-outline-warning"
+                                                        data-toggle-admin
+                                                        data-user-email="@user.Email"
+                                                        data-user-id="@user.UserId"
+                                                        data-is-remove="true">
                                                     <i class="bi bi-shield-slash"></i> 移除管理員
                                                 </button>
                                             }
                                             else
                                             {
-                                                <button type="submit" class="btn btn-sm btn-outline-success"
-                                                        onclick="return confirm('確定要將 @user.Email 設為管理員嗎？')">
+                                                <button type="button" class="btn btn-sm btn-outline-success"
+                                                        data-toggle-admin
+                                                        data-user-email="@user.Email"
+                                                        data-user-id="@user.UserId"
+                                                        data-is-remove="false">
                                                     <i class="bi bi-shield-check"></i> 設為管理員
                                                 </button>
                                             }

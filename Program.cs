@@ -26,6 +26,7 @@ builder.Services.AddScoped<MusicShop.Services.Interface.IArtistCategoryService, 
 builder.Services.AddScoped<MusicShop.Services.Interface.IProductTypeService, MusicShop.Services.Implementation.ProductTypeService>();
 builder.Services.AddScoped<MusicShop.Services.Interface.ICartService, MusicShop.Services.Implementation.CartService>();
 builder.Services.AddScoped<MusicShop.Services.Interface.IOrderService, MusicShop.Services.Implementation.OrderService>();
+builder.Services.AddScoped<MusicShop.Services.Interface.IOrderValidationService, MusicShop.Services.Implementation.OrderValidationService>();
 builder.Services.AddScoped<MusicShop.Services.Interface.IStatisticsService, MusicShop.Services.Implementation.StatisticsService>();
 builder.Services.AddScoped<MusicShop.Services.Interface.IUserService, MusicShop.Services.Implementation.UserService>();
 

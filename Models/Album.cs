@@ -26,6 +26,12 @@ namespace MusicShop.Models
 
         public int? Stock { get; set; }
 
+        /// <summary>
+        /// 並發控制欄位（用於防止庫存更新時的並發問題）
+        /// </summary>
+        [Timestamp]
+        public byte[]? RowVersion { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // 雙分類系統

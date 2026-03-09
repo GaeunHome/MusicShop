@@ -1,7 +1,11 @@
 @model List<MusicShop.Models.Order>
 @{
     ViewData["Title"] = "訂單查詢";
+    ViewData["PageId"] = "order-index";
 }
+
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
 
 <div id="order-list-page" class="container my-5">
     <!-- 麵包屑 -->
@@ -39,6 +43,9 @@
                         </li>
                         <li>
                             <a class="dropdown-item" asp-controller="Account" asp-action="Edit">更新個人資訊</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">更新密碼</a>
                         </li>
                         <li>
                             <a class="dropdown-item active" asp-controller="Order" asp-action="Index">訂單查詢</a>
@@ -135,8 +142,10 @@
                                             </a>
                                             @if (order.Status == MusicShop.Models.OrderStatus.Pending || order.Status == MusicShop.Models.OrderStatus.Paid)
                                             {
-                                                <form asp-action="Cancel" asp-route-id="@order.Id" method="post" class="d-inline" onsubmit="return confirm('確定要取消此訂單嗎？');">
-                                                    <button type="submit" class="btn btn-outline-danger">取消訂單</button>
+                                                <form asp-action="Cancel" asp-route-id="@order.Id" method="post" class="d-inline" id="cancelOrderForm_@order.Id">
+                                                    <button type="button" class="btn btn-outline-danger"
+                                                            data-order-cancel
+                                                            data-order-id="@order.Id">取消訂單</button>
                                                 </form>
                                             }
                                         </div>
