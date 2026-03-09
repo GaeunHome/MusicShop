@@ -141,6 +141,17 @@ dotnet ef database drop
   - `ValidateEntityExists<T>(T?, string, int)`：驗證實體存在
   - `ValidateCondition(bool, string)`：驗證條件為真
   - `ValidateCollectionNotEmpty<T>(IEnumerable<T>?, string)`：驗證集合不為空
+- `OrderHelper`（v1.2.1 新增）：集中管理訂單相關業務邏輯的靜態工具類別
+  - `GetPaymentStatusText(Order)`：根據付款方式和訂單狀態取得付款狀態文字
+  - `GetDeliveryStatusText(Order)`：取得配送狀態文字
+  - `GetOrderStatusText(OrderStatus)`：取得訂單狀態顯示文字
+  - `GetOrderStatusDescription(OrderStatus)`：取得訂單狀態說明文字
+  - `GetOrderStatusBadgeClass(OrderStatus)`：取得訂單狀態的 Badge CSS 類別
+  - `GetPaymentMethodText(PaymentMethod)`：取得付款方式顯示文字
+  - `GetDeliveryMethodText(DeliveryMethod)`：取得配送方式顯示文字
+  - `GetValidNextStatuses(Order)`：取得訂單的有效下一步狀態選項
+  - `CanUpdateStatus(Order)`：判斷訂單是否可以更新狀態
+  - 內含 `OrderStatusOption` 類別：封裝訂單狀態選項（用於下拉選單）
 
 ### 認證與授權
 
@@ -177,10 +188,12 @@ dotnet ef database drop
 10. **ViewBag 傳遞資料**：分類清單與搜尋詞透過 ViewBag 傳遞給檢視
 11. **View Components**：可重複使用的 UI 元件（如購物車徽章）
 12. **ValidationHelper 模式**（v1.1.1 新增）：集中管理所有驗證邏輯，避免重複程式碼
-13. **資料庫交易**（v1.2.0 新增）：訂單建立使用交易確保原子性（建立訂單、扣除庫存、清空購物車）
-14. **樂觀並發控制**（v1.2.0 新增）：Album 模型使用 `[Timestamp]` RowVersion 防止並發更新問題
-15. **輔助方法萃取**（v1.2.0 新增）：Controller 層萃取重複邏輯為私有方法，提升可讀性與維護性
-16. **單一職責原則**（v1.2.0 新增）：Controller 僅負責流程控制，Service 層負責業務驗證與邏輯
+13. **OrderHelper 模式**（v1.2.1 新增）：集中管理訂單顯示邏輯，避免在 View 層撰寫業務邏輯
+14. **業務邏輯分層**（v1.2.1 強化）：View 層僅負責顯示，業務邏輯統一放在 Service 或 Helper 層
+15. **資料庫交易**（v1.2.0 新增）：訂單建立使用交易確保原子性（建立訂單、扣除庫存、清空購物車）
+16. **樂觀並發控制**（v1.2.0 新增）：Album 模型使用 `[Timestamp]` RowVersion 防止並發更新問題
+17. **輔助方法萃取**（v1.2.0 新增）：Controller 層萃取重複邏輯為私有方法，提升可讀性與維護性
+18. **單一職責原則**（v1.2.0 新增）：Controller 僅負責流程控制，Service 層負責業務驗證與邏輯
 
 ## 已完成功能
 
@@ -292,6 +305,11 @@ dotnet ef database drop
   - 在 Service 層的方法開頭使用 ValidationHelper 進行參數驗證
   - 避免重複撰寫驗證邏輯，提升程式碼可維護性
   - 範例：`ValidationHelper.ValidateString(album.Title, "專輯標題", 200, nameof(album.Title));`
+- **使用 OrderHelper 處理訂單顯示邏輯**（v1.2.1 新增）：
+  - View 層不應包含複雜的業務邏輯（switch/case、if/else 判斷）
+  - 訂單狀態文字、付款狀態判斷等邏輯應統一在 OrderHelper 中處理
+  - 範例：`OrderHelper.GetPaymentStatusText(order)` 取代 View 中的 switch 判斷
+  - 訂單流程控制（有效下一步狀態）也應在 Helper 層處理
 
 ### 資料庫與時間
 - 統一使用 `DateTime.UtcNow` 而非 `DateTime.Now`，避免時區問題

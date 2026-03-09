@@ -1,0 +1,79 @@
+@model IEnumerable<MusicShop.Models.Album>
+@{
+    ViewData["Title"] = "商品管理";
+    ViewData["PageId"] = "admin-albums";
+}
+
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>🎵 商品管理</h3>
+        <a asp-action="AlbumCreate" class="btn btn-primary">➕ 新增商品</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>商品名稱</th>
+                    <th>藝人</th>
+                    <th>分類</th>
+                    <th>價格</th>
+                    <th>庫存</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var album in Model)
+                {
+                    <tr>
+                        <td>@album.Id</td>
+                        <td class="fw-bold">@album.Title</td>
+                        <td>@(album.Artist?.Name ?? "未設定")</td>
+                        <td>
+                            @if (album.Artist?.ArtistCategory != null)
+                            {
+                                <span class="badge bg-primary">@album.Artist.ArtistCategory.Name</span>
+                            }
+                            @if (album.ProductType != null)
+                            {
+                                <span class="badge bg-secondary">@album.ProductType.Name</span>
+                            }
+                        </td>
+                        <td>NT$ @album.Price</td>
+                        <td>
+                            @if (album.Stock <= 0)
+                            {
+                                <span class="badge bg-danger">已售完</span>
+                            }
+                            else if (album.Stock <= 5)
+                            {
+                                <span class="badge bg-warning text-dark">@album.Stock（低庫存）</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">@album.Stock</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="AlbumEdit" asp-route-id="@album.Id"
+                               class="btn btn-sm btn-outline-primary">編輯</a>
+                            <form asp-action="AlbumDelete" method="post" class="d-inline" id="deleteForm_@album.Id">
+                                <input type="hidden" name="id" value="@album.Id" />
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        data-album-delete
+                                        data-album-title="@album.Title"
+                                        data-album-id="@album.Id">刪除</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <a asp-action="Index" class="btn btn-outline-secondary mt-3">← 返回後台</a>
+</div>

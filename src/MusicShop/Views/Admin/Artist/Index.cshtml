@@ -1,0 +1,57 @@
+@model IEnumerable<MusicShop.Models.Artist>
+@{
+    ViewData["Title"] = "藝人管理";
+    ViewData["PageId"] = "admin-artists";
+}
+
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>🎤 藝人管理</h3>
+        <a asp-action="ArtistCreate" class="btn btn-primary">➕ 新增藝人</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>藝人名稱</th>
+                    <th>藝人分類</th>
+                    <th>排序順序</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var artist in Model)
+                {
+                    <tr>
+                        <td>@artist.Id</td>
+                        <td class="fw-bold">@artist.Name</td>
+                        <td>
+                            <span class="badge bg-primary">@(artist.ArtistCategory?.Name ?? "未分類")</span>
+                        </td>
+                        <td>@artist.DisplayOrder</td>
+                        <td>
+                            <a asp-action="ArtistEdit" asp-route-id="@artist.Id" class="btn btn-sm btn-outline-primary">✏️ 編輯</a>
+                            <form asp-action="ArtistDelete" asp-route-id="@artist.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('確定要刪除藝人「@artist.Name」嗎？');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ 刪除</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            <p class="mb-0">目前沒有任何藝人資料</p>
+        </div>
+    }
+</div>

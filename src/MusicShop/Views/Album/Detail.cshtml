@@ -1,0 +1,355 @@
+@model MusicShop.ViewModels.Album.AlbumDetailViewModel
+@{
+    ViewData["Title"] = Model.Album.Title;
+}
+
+<div id="album-detail-page" class="container my-5">
+    <!-- 麵包屑 -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Home" asp-action="Index">首頁</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Album" asp-action="Index">商品列表</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Album.Title</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- 左側：圖片展示區 -->
+        <div class="col-lg-6 mb-4">
+            <div class="product-gallery">
+                <!-- 主圖 -->
+                <div class="main-image-wrapper">
+                    @if (Model.HasImages)
+                    {
+                        <img id="mainImage" src="@Model.FirstImageUrl" class="img-fluid main-image" alt="@Model.Album.Title" />
+
+                        @if (Model.HasMultipleImages)
+                        {
+                            <!-- 左右切換箭頭 -->
+                            <button class="image-nav image-nav-prev" onclick="changeImage(-1)">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <button class="image-nav image-nav-next" onclick="changeImage(1)">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        }
+                    }
+                    else
+                    {
+                        <!-- 預設圖片 -->
+                        <div class="default-image">
+                            <i class="bi bi-disc"></i>
+                            <p>暫無圖片</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- 縮圖輪播 -->
+                @if (Model.HasMultipleImages)
+                {
+                    <div class="thumbnail-wrapper mt-3">
+                        <div class="thumbnail-list">
+                            @for (int i = 0; i < Model.ImageUrls.Count; i++)
+                            {
+                                <div class="thumbnail-item @(i == 0 ? "active" : "")" onclick="selectImage(@i)">
+                                    <img src="@Model.ImageUrls[i]" alt="圖片 @(i + 1)" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- 右側：商品資訊區 -->
+        <div class="col-lg-6">
+            <div class="product-info">
+                <!-- 商品標題 -->
+                <h1 class="product-title">@Model.Album.Title</h1>
+                <p class="product-artist">@(Model.Album.Artist?.Name ?? "未設定藝人")</p>
+
+                <!-- 特殊提示 -->
+                @if (Model.ShowPreOrderNotice)
+                {
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-calendar-event"></i>
+                        <strong>韓國出貨日：</strong> @Model.FormattedKoreanShippingDate
+                        <br />
+                        <small>此商品為預購商品，將於韓國出貨後依序出貨。有部分等待時間，請確定可以等待再下訂購買。</small>
+                    </div>
+                }
+
+                <!-- 價格 -->
+                <div class="product-price">
+                    @Model.FullPrice
+                </div>
+
+                <!-- 商品編號 -->
+                <div class="product-code">
+                    商品編號：@Model.ProductCode
+                </div>
+
+                <!-- 庫存狀態 -->
+                <div class="stock-status mb-3">
+                    <span class="@Model.StockStatusCssClass">
+                        <i class="bi @Model.StockStatusIcon"></i> @Model.StockStatusText
+                    </span>
+                </div>
+
+                <!-- 數量選擇器 -->
+                <div class="quantity-selector mb-4">
+                    <label class="form-label">數量</label>
+                    <div class="quantity-controls">
+                        <button type="button" class="quantity-btn" onclick="decreaseQuantity()">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <input type="number" id="quantity" value="@Model.DefaultQuantity" min="1" max="@(Model.Album.Stock ?? 1)" class="quantity-input" readonly />
+                        <button type="button" class="quantity-btn" onclick="increaseQuantity()">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 按鈕區 -->
+                <div class="action-buttons">
+                    @if (Model.IsInStock)
+                    {
+                        @if (User.Identity!.IsAuthenticated)
+                        {
+                            <form asp-controller="Cart" asp-action="Add" method="post" class="d-inline-block w-100">
+                                <input type="hidden" name="albumId" value="@Model.Album.Id" />
+                                <input type="hidden" id="quantityInput" name="quantity" value="@Model.DefaultQuantity" />
+
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    加入購物車
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg w-100">
+                                <i class="bi bi-lock-fill"></i> 登入後購買
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary btn-lg w-100" disabled>已售完</button>
+                    }
+                </div>
+
+                <!-- 加入最愛 -->
+                <div class="wishlist-section mt-3">
+                    <button type="button" class="btn btn-outline-secondary btn-wishlist">
+                        <i class="bi bi-heart"></i> 加入最愛
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 商品詳細資訊頁籤 -->
+    <div class="product-tabs mt-5">
+        <ul class="nav nav-tabs" id="productTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">
+                    商品介紹
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="notice-tab" data-bs-toggle="tab" data-bs-target="#notice" type="button" role="tab">
+                    必讀事項
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab">
+                    運送方式
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content" id="productTabContent">
+            <!-- 商品介紹 -->
+            <div class="tab-pane fade show active" id="description" role="tabpanel">
+                <div class="tab-content-wrapper">
+                    <h3 class="section-title">| 商品介紹</h3>
+
+                    @* 優先顯示商品介紹圖片（如組成內容、尺寸等詳細圖） *@
+                    @if (Model.HasDescriptionImage)
+                    {
+                        <div class="description-image-container">
+                            <img src="@Model.Album.DescriptionImageUrl" alt="@Model.Album.Title 商品介紹" class="description-image" />
+                        </div>
+                    }
+
+                    @* 文字說明（如果有） *@
+                    @if (Model.HasDescription)
+                    {
+                        <div class="description-text">
+                            @Model.Album.Description
+                        </div>
+                    }
+
+                    @* 如果兩者都沒有 *@
+                    @if (!Model.HasAnyDescription)
+                    {
+                        <p class="text-muted">暫無商品介紹</p>
+                    }
+                </div>
+            </div>
+
+            <!-- 必讀事項 -->
+            <div class="tab-pane fade" id="notice" role="tabpanel">
+                <div class="tab-content-wrapper">
+                    <h3 class="section-title">| 必讀事項</h3>
+                    <p class="notice-header">
+                        <i class="bi bi-exclamation-triangle-fill text-warning"></i> 購買前必須閱讀並同意
+                    </p>
+                    <ul class="notice-list">
+                        <li>
+                            <i class="bi bi-diamond-fill text-warning"></i>
+                            上圖皆在幫助理解，根據顯示器解析度和測量方法，可能與實際有所不同。
+                        </li>
+                        <li>
+                            <i class="bi bi-diamond-fill text-warning"></i>
+                            尺寸和成分可以根據生產情況而改變。
+                        </li>
+                        <li>
+                            <i class="bi bi-diamond-fill text-warning"></i>
+                            由於運送過程中不可避免地出現小損壞、凹痕或撕裂，紙製品無法換貨或退款。
+                        </li>
+                        <li>
+                            <i class="bi bi-diamond-fill text-warning"></i>
+                            外包裝是保護產品的防震劑，可能會在運輸過程中造成損壞（壓碎、撕裂、壓印等）、變色和污染。這可能是無法換貨或退款。
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 運送方式 -->
+            <div class="tab-pane fade" id="shipping" role="tabpanel">
+                <div class="tab-content-wrapper">
+                    <h3 class="section-title">| 運送方式</h3>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">發貨安排</h5>
+                            <ul class="shipping-list">
+                                <li>
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                    工作日上午10點前下的訂單將在工作日當天包裝和發貨。
+                                </li>
+                                <li>
+                                    <i class="bi bi-circle-fill"></i>
+                                    週五上午10點前週末下的訂單將在下週一安排。
+                                </li>
+                                <li>
+                                    <i class="bi bi-airplane-fill text-primary"></i>
+                                    平均交貨天數為安排後3-7個工作天。
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">退換貨及退款申請</h5>
+                            <ul class="shipping-list">
+                                <li>
+                                    <i class="bi bi-box-seam"></i>
+                                    退貨、換貨或退款申請必須在收貨後7天內透過K-MONSTAR客戶服務提出。
+                                </li>
+                                <li>
+                                    <i class="bi bi-camera-fill"></i>
+                                    遇失商品退款請求必須透過完整拍攝角度的全景未經編輯的開箱影片提出！
+                                </li>
+                                <li>
+                                    <i class="bi bi-card-checklist"></i>
+                                    只有符合所有標準的開箱影片才是有效的。
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 相關商品 -->
+    @if (Model.HasRelatedAlbums)
+    {
+        <div class="related-products mt-5">
+            <h3 class="section-title">| 相關商品</h3>
+            <div class="row row-cols-2 row-cols-lg-4 g-4 mt-3">
+                @foreach (var card in Model.RelatedAlbums)
+                {
+                    <div class="col">
+                        <div class="product-item">
+                            <!-- 專輯封面圖片區塊 -->
+                            <div class="product-image-wrapper">
+                                <!-- 底層連結，點擊整個圖片區域跳轉 -->
+                                <a asp-action="Detail" asp-route-id="@card.Id" class="product-image-link"></a>
+
+                                @if (card.HasCoverImage)
+                                {
+                                    <img src="@card.CoverImageUrl" class="product-image" alt="@card.Title">
+                                }
+                                else
+                                {
+                                    <!-- 預設圖片（當沒有封面時顯示） -->
+                                    <div class="product-image d-flex align-items-center justify-content-center"
+                                         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                        <span class="text-white" style="font-size: 60px;">♪</span>
+                                    </div>
+                                }
+
+                                <!-- 庫存狀態標籤 -->
+                                @if (card.IsSoldOut)
+                                {
+                                    <span class="position-absolute top-0 end-0 badge bg-danger m-2" style="z-index: 10;">已售完</span>
+                                }
+                                else if (card.IsLowStock)
+                                {
+                                    <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2" style="z-index: 10;">@card.StockStatusText</span>
+                                }
+                            </div>
+
+                            <!-- 商品資訊（照片下方） -->
+                            <div class="product-info mt-3">
+                                <a asp-action="Detail" asp-route-id="@card.Id" class="text-decoration-none text-dark">
+                                    <h6 class="product-title mb-2">@card.Title</h6>
+                                </a>
+                                <p class="product-price mb-2">
+                                    @card.FullPrice
+                                </p>
+                                @if (card.IsInStock)
+                                {
+                                    <button class="btn btn-sm btn-outline-primary w-100" onclick="location.href='@Url.Action("Detail", new { id = card.Id })'">
+                                        查看詳情
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-secondary w-100" disabled>已售完</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/album-detail.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/features/album/detail.js" asp-append-version="true"></script>
+    <script>
+        // 將商品圖片傳遞給 JavaScript
+        const imageUrls = @Html.Raw(Json.Serialize(Model.ImageUrls));
+        const maxStock = @(Model.Album.Stock ?? 0);
+    </script>
+}
