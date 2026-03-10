@@ -1,0 +1,111 @@
+@model List<MusicShop.Service.ViewModels.Admin.UserManagementViewModel>
+@{
+    ViewData["Title"] = "使用者管理";
+    ViewData["PageId"] = "admin-users";
+}
+
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>使用者管理</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">返回後台首頁</a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">所有使用者列表 (共 @Model.Count 位)</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (!Model.Any())
+            {
+                <div class="p-4 text-center text-muted">
+                    目前沒有任何使用者
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>姓名</th>
+                                <th>Email</th>
+                                <th>手機號碼</th>
+                                <th>角色</th>
+                                <th>註冊時間</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@user.FullName</strong>
+                                        @if (user.IsAdmin)
+                                        {
+                                            <span class="badge bg-danger ms-2">管理員</span>
+                                        }
+                                    </td>
+                                    <td>@user.Email</td>
+                                    <td>@(string.IsNullOrEmpty(user.PhoneNumber) ? "未填寫" : user.PhoneNumber)</td>
+                                    <td>
+                                        @if (user.Roles.Any())
+                                        {
+                                            @string.Join(", ", user.Roles)
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">無角色</span>
+                                        }
+                                    </td>
+                                    <td>@user.RegisteredAt.ToString("yyyy/MM/dd")</td>
+                                    <td class="text-center">
+                                        @* 切換管理員角色按鈕 *@
+                                        <form asp-action="ToggleAdminRole" method="post" class="d-inline" id="toggleAdmin_@user.UserId">
+                                            <input type="hidden" name="userId" value="@user.UserId" />
+                                            @if (user.IsAdmin)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-warning"
+                                                        data-toggle-admin
+                                                        data-user-email="@user.Email"
+                                                        data-user-id="@user.UserId"
+                                                        data-is-remove="true">
+                                                    <i class="bi bi-shield-slash"></i> 移除管理員
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-success"
+                                                        data-toggle-admin
+                                                        data-user-email="@user.Email"
+                                                        data-user-id="@user.UserId"
+                                                        data-is-remove="false">
+                                                    <i class="bi bi-shield-check"></i> 設為管理員
+                                                </button>
+                                            }
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <div class="alert alert-info">
+            <h6><i class="bi bi-info-circle"></i> 使用說明：</h6>
+            <ul class="mb-0">
+                <li>點擊「設為管理員」可以將一般使用者升級為管理員</li>
+                <li>點擊「移除管理員」可以將管理員降級為一般使用者</li>
+                <li>您不能移除自己的管理員權限</li>
+                <li>新註冊的使用者會自動獲得 "User" 角色</li>
+            </ul>
+        </div>
+    </div>
+</div>

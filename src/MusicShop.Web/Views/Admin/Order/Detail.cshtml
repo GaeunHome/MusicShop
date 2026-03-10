@@ -1,0 +1,110 @@
+@model MusicShop.Data.Entities.Order
+@{
+    ViewData["Title"] = $"訂單 #{Model.Id}";
+    ViewData["PageId"] = "admin-order-detail";
+}
+
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header fw-bold d-flex justify-content-between">
+                    <span>📦 訂單 #@Model.Id</span>
+                    <a asp-action="Orders" class="btn btn-sm btn-outline-secondary">← 返回訂單列表</a>
+                </div>
+                <div class="card-body">
+
+                    <dl class="row mb-4">
+                        <dt class="col-sm-3">會員</dt>
+                        <dd class="col-sm-9">@Model.User?.Email</dd>
+                        <dt class="col-sm-3">下單時間</dt>
+                        <dd class="col-sm-9">@Model.OrderDate.ToString("yyyy/MM/dd HH:mm")</dd>
+                        <dt class="col-sm-3">總金額</dt>
+                        <dd class="col-sm-9 fw-bold text-primary">NT$ @Model.TotalAmount</dd>
+                        <dt class="col-sm-3">付款方式</dt>
+                        <dd class="col-sm-9">
+                            @{
+                                var paymentBadgeClass = Model.PaymentMethod == MusicShop.Data.Entities.PaymentMethod.CashOnDelivery
+                                    ? "bg-warning text-dark" : "bg-info";
+                            }
+                            <span class="badge @paymentBadgeClass">
+                                @MusicShop.Library.Helpers.OrderHelper.GetPaymentMethodText(Model.PaymentMethod)
+                            </span>
+                        </dd>
+                        <dt class="col-sm-3">配送方式</dt>
+                        <dd class="col-sm-9">
+                            <span>@MusicShop.Library.Helpers.OrderHelper.GetDeliveryMethodText(Model.DeliveryMethod)</span>
+                        </dd>
+                        <dt class="col-sm-3">收件人</dt>
+                        <dd class="col-sm-9">@Model.ReceiverName / @Model.ReceiverPhone</dd>
+                        <dt class="col-sm-3">收件地址</dt>
+                        <dd class="col-sm-9">@Model.PostalCode @Model.City@Model.District @Model.Address</dd>
+                    </dl>
+
+                    <table class="table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>專輯</th>
+                                <th>單價</th>
+                                <th>數量</th>
+                                <th>小計</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>@item.Album?.Title</td>
+                                    <td>NT$ @item.UnitPrice</td>
+                                    <td>@item.Quantity</td>
+                                    <td>NT$ @(item.UnitPrice * item.Quantity)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <hr />
+
+                    <form asp-action="UpdateOrderStatus" method="post">
+                        <input type="hidden" name="orderId" value="@Model.Id" />
+
+                        <div class="alert alert-info mb-3">
+                            <strong>當前狀態：</strong>
+                            <span class="badge @MusicShop.Library.Helpers.OrderHelper.GetOrderStatusBadgeClass(Model.Status)">
+                                @MusicShop.Library.Helpers.OrderHelper.GetOrderStatusText(Model.Status)
+                            </span>
+                            <small class="d-block mt-1">
+                                @MusicShop.Library.Helpers.OrderHelper.GetOrderStatusDescription(Model.Status)
+                            </small>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3">
+                            <label class="fw-bold">更新訂單狀態：</label>
+                            <select name="status" class="form-select w-auto">
+                                @{
+                                    // 透過 OrderHelper 取得有效的下一步狀態選項
+                                    var validStatuses = MusicShop.Library.Helpers.OrderHelper.GetValidNextStatuses(Model);
+
+                                    foreach (var option in validStatuses)
+                                    {
+                                        var isSelected = Model.Status == option.Status;
+                                        <option value="@((int)option.Status)" selected="@isSelected">
+                                            @option.GetFullText()
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-primary"
+                                    disabled="@(!MusicShop.Library.Helpers.OrderHelper.CanUpdateStatus(Model))">
+                                更新狀態
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

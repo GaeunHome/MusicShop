@@ -45,38 +45,140 @@ dotnet ef database drop
 - `appsettings.json` 已加入 `.gitignore`，不會提交到版控
 - 請依據實際環境修改 Server、Database、User Id 和 Password
 
+## 專案結構
+
+本專案採用**多專案解決方案（Multi-Project Solution）**架構，將應用程式分為 4 個獨立專案：
+
+```
+MusicShop/
+├── src/
+│   ├── MusicShop.Data/          # 資料存取層
+│   │   ├── Entities/             # 實體模型（AppUser, Album, Order...）
+│   │   ├── Repositories/         # Repository 介面與實作
+│   │   │   ├── Interfaces/       # Repository 介面定義
+│   │   │   └── Implementation/   # Repository 實作
+│   │   ├── UnitOfWork/           # UnitOfWork 模式實作
+│   │   ├── ApplicationDbContext.cs
+│   │   ├── DbInitializer.cs
+│   │   └── SeedArtists.cs
+│   │
+│   ├── MusicShop.Service/        # 商業邏輯層
+│   │   ├── Services/
+│   │   │   ├── Interfaces/       # Service 介面定義
+│   │   │   └── Implementation/   # Service 實作
+│   │   ├── ViewModels/           # ViewModel 定義
+│   │   └── Mapper/               # AutoMapper 設定
+│   │
+│   ├── MusicShop.Library/        # 共用工具庫
+│   │   ├── Helpers/              # 工具類別（ValidationHelper, OrderHelper...）
+│   │   └── Extensions/           # 擴充方法
+│   │
+│   └── MusicShop.Web/            # 展示層（Web UI）
+│       ├── Controllers/          # MVC 控制器
+│       ├── Views/                # Razor 視圖
+│       ├── ViewComponents/       # View Components
+│       ├── wwwroot/              # 靜態資源（CSS, JS, 圖片）
+│       ├── Models/               # Web 專屬 Models（ErrorViewModel）
+│       └── Program.cs            # 應用程式進入點
+```
+
+### 專案相依關係
+
+```
+MusicShop.Web
+    ├─> MusicShop.Service
+    │       ├─> MusicShop.Data
+    │       │       └─> Entity Framework Core
+    │       └─> MusicShop.Library
+    │               └─> MusicShop.Data
+    ├─> MusicShop.Data
+    └─> MusicShop.Library
+```
+
+### 命名空間規範
+
+- `MusicShop.Data.Entities` - 實體模型
+- `MusicShop.Data.Repositories.Interfaces` - Repository 介面
+- `MusicShop.Data.Repositories.Implementation` - Repository 實作
+- `MusicShop.Data.UnitOfWork` - UnitOfWork 介面與實作
+- `MusicShop.Service.Services.Interfaces` - Service 介面
+- `MusicShop.Service.Services.Implementation` - Service 實作
+- `MusicShop.Service.ViewModels` - ViewModel 定義
+- `MusicShop.Library.Helpers` - 共用工具類別
+- `MusicShop.Web.Controllers` - MVC 控制器
+- `MusicShop.Web.Models` - Web 專屬模型
+
 ## 架構說明
 
 ### 三層式架構（Three-Tier Architecture）
 
-本專案採用標準的三層式架構設計：
+本專案採用標準的三層式架構設計，並透過**多專案解決方案**確保關注點分離：
 
-**展示層（Presentation Layer）** - `Controllers/`、`Views/`
+**展示層（Presentation Layer）** - `MusicShop.Web`
 - 負責處理使用者輸入與畫面顯示
 - 不包含商業邏輯，僅負責資料傳遞與顯示
+- Controllers、Views、ViewComponents、靜態資源
 
-**商業邏輯層（Business Logic Layer）** - `Services/`
+**商業邏輯層（Business Logic Layer）** - `MusicShop.Service`
 - 包含所有業務規則與驗證邏輯
 - 協調資料存取層與展示層之間的互動
-- 介面與實作分離（Interface/ 與 Implementation/）
+- 介面與實作分離（Interfaces/ 與 Implementation/）
+- 使用 UnitOfWork 模式管理資料存取
 
-**資料存取層（Data Access Layer）** - `Repositories/`、`Data/`
+**資料存取層（Data Access Layer）** - `MusicShop.Data`
 - 負責資料庫 CRUD 操作
 - 使用 Repository 模式封裝資料存取
-- 介面與實作分離（Interface/ 與 Implementation/）
+- 使用 UnitOfWork 模式管理交易
+- 介面與實作分離（Interfaces/ 與 Implementation/）
+
+**共用工具層（Shared Library）** - `MusicShop.Library`
+- 提供跨層共用的工具類別和擴充方法
+- ValidationHelper、OrderHelper、EnumHelper 等
 
 ### 核心元件
 
-**資料層** (`Data/ApplicationDbContext.cs` + `Repositories/`)：
+**UnitOfWork 模式**（`MusicShop.Data.UnitOfWork`）：
+- `IUnitOfWork` 介面：統一管理所有 Repository 的存取點
+- `UnitOfWork` 實作：實現 Repository 的集中管理與交易控制
+- **優點**：
+  - 確保多個 Repository 操作在同一個 DbContext 中執行
+  - 簡化依賴注入（Service 只需注入 `IUnitOfWork` 而非多個 Repository）
+  - 提供統一的 SaveChanges 控制點
+  - 支援交易管理（Transaction）
+- **提供的 Repository 屬性**：
+  - `Albums` - IAlbumRepository
+  - `Artists` - IArtistRepository
+  - `ArtistCategories` - IArtistCategoryRepository
+  - `ProductTypes` - IProductTypeRepository
+  - `Cart` - ICartRepository
+  - `Orders` - IOrderRepository
+  - `Statistics` - IStatisticsRepository
+
+**Generic Repository 模式**（`MusicShop.Data.Repositories`）：
+- `IGenericRepository<T>` 泛型介面：定義通用的 CRUD 操作
+- `GenericRepository<T>` 泛型實作：提供基礎的資料存取功能
+- **通用方法**：
+  - `GetByIdAsync(int id)` - 根據 ID 取得單一實體
+  - `GetAllAsync()` - 取得所有實體
+  - `CreateAsync(T entity)` - 新增實體
+  - `UpdateAsync(T entity)` - 更新實體
+  - `DeleteAsync(int id)` - 刪除實體
+- **好處**：
+  - 減少重複的 CRUD 程式碼
+  - 確保資料存取邏輯的一致性
+  - 易於維護和擴充
+
+**資料層** (`MusicShop.Data`)：
 - `ApplicationDbContext`：繼承自 `IdentityDbContext<AppUser>`，整合 ASP.NET Core Identity
-- DbSets：Albums、ArtistCategories、ProductTypes、Orders、OrderItems、CartItems
+- DbSets：Albums、Artists、ArtistCategories、ProductTypes、Orders、OrderItems、CartItems
 - 使用 `IDbContextFactory<ApplicationDbContext>` 提供更好的並行處理能力
 - **Repository 介面與實作**：
-  - `IAlbumRepository` / `AlbumRepository`：專輯資料存取
+  - `IAlbumRepository` / `AlbumRepository`：專輯資料存取（繼承自 GenericRepository）
+  - `IArtistRepository` / `ArtistRepository`：藝人資料存取（繼承自 GenericRepository）
   - `ICartRepository` / `CartRepository`：購物車資料存取
   - `IOrderRepository` / `OrderRepository`：訂單資料存取
-  - `IArtistCategoryRepository` / `ArtistCategoryRepository`：藝人分類資料存取
-  - `IProductTypeRepository` / `ProductTypeRepository`：商品類型資料存取
+  - `IArtistCategoryRepository` / `ArtistCategoryRepository`：藝人分類資料存取（繼承自 GenericRepository）
+  - `IProductTypeRepository` / `ProductTypeRepository`：商品類型資料存取（繼承自 GenericRepository）
   - `IStatisticsRepository` / `StatisticsRepository`：統計資料存取
 
 **實體關聯設定** (`OnModelCreating`)：
@@ -89,37 +191,45 @@ dotnet ef database drop
 - CartItem-AppUser：一對多關聯，串聯刪除（Cascade）
 - CartItem-Album：一對多關聯，限制刪除（Restrict）
 
-**模型** (`Models/`)：
+**實體模型** (`MusicShop.Data.Entities/`)：
 - `AppUser`：擴展 `IdentityUser`，包含 FullName、PhoneNumber、Birthday、Gender、RegisteredAt，以及 Orders 和 CartItems 導航屬性
-- `Album`：Title、Artist、Description、Price（decimal）、CoverImageUrl、Stock、RowVersion（並發控制）、ArtistCategoryId、ProductTypeId
+- `Album`：Title、Artist、Description、Price（decimal）、CoverImageUrl、Stock、RowVersion（並發控制）、ArtistCategoryId、ArtistId、ProductTypeId
+- `Artist`：Name、ProfileImageUrl、Description、ArtistCategoryId、DisplayOrder
 - `ArtistCategory`：藝人分類（BOY GROUP、GIRL GROUP、SOLO）
 - `ProductType`：商品類型（階層式架構，包含 ParentId 實現父子關係）
   - 父分類：K-ALBUM、K-MAGAZINE、K-MERCH、K-EVENT
   - 子分類：ALBUM、PHOTOBOOK、DVD、寫真雜誌、官方周邊等
-- `Order`：UserId、OrderDate、Status（列舉：Pending/Paid/Shipped/Completed/Cancelled）、TotalAmount、OrderItems 集合
+- `Order`：UserId、OrderDate、Status（列舉：Pending/Paid/Shipped/Completed/Cancelled）、TotalAmount、PaymentMethod、DeliveryMethod、OrderItems 集合
 - `OrderItem`：連結 Order 與 Album，包含 Quantity 和 UnitPrice
 - `CartItem`：連結 User 與 Album，包含 Quantity 和 AddedAt 時間戳
 
-**服務層** (`Services/`)：
-- **介面** (`Interface/`)：
+**服務層** (`MusicShop.Service/`)：
+- **依賴注入**：所有 Service 統一注入 `IUnitOfWork`，透過 UnitOfWork 存取 Repository
+- **AutoMapper**：使用 AutoMapper 進行 Entity ↔ ViewModel 的物件映射
+  - 設定檔：`Mapper/MapperProfile.cs`
+  - 映射規則：AppUser ↔ EditProfileViewModel、AppUser → UserManagementViewModel
+- **介面** (`Services/Interfaces/`)：
   - `IAlbumService`：專輯業務邏輯介面
+  - `IArtistService`：藝人業務邏輯介面
   - `ICartService`：購物車業務邏輯介面
   - `IOrderService`：訂單業務邏輯介面
+  - `IOrderValidationService`：訂單驗證業務邏輯介面
   - `IArtistCategoryService`：藝人分類業務邏輯介面
   - `IProductTypeService`：商品類型業務邏輯介面
   - `IStatisticsService`：統計業務邏輯介面
   - `IUserService`：使用者管理業務邏輯介面
-- **實作** (`Implementation/`)：對應的服務實作類別
+- **實作** (`Services/Implementation/`)：
+  - 所有 Service 實作類別都透過 `IUnitOfWork` 存取資料層
+  - 範例：`AlbumService` 注入 `IUnitOfWork`，透過 `_unitOfWork.Albums` 存取 AlbumRepository
+  - 優點：簡化依賴注入、確保資料一致性、支援交易管理
 
-**檢視模型** (`ViewModels/`)：
-- `RegisterViewModel`：註冊表單
-- `LoginViewModel`：登入表單
-- `AlbumViewModel`：專輯列表與詳細資訊
-- `AccountIndexViewModel`：個人帳號總覽
-- `EditProfileViewModel`：個人資料編輯
-- `UserManagementViewModel`：後台使用者管理
+**檢視模型** (`MusicShop.Service/ViewModels/`)：
+- **Account**：RegisterViewModel、LoginViewModel、AccountIndexViewModel、EditProfileViewModel
+- **Album**：AlbumCardViewModel、AlbumDetailViewModel
+- **Cart**：CheckoutViewModel、CartUpdateResult
+- **Admin**：UserManagementViewModel
 
-**控制器** (`Controllers/`)：
+**控制器** (`MusicShop.Web/Controllers/`)：
 - `AccountController`：帳號管理（註冊、登入、登出、個人資料編輯、訂單查詢）
 - `AlbumController`：專輯瀏覽，支援搜尋與雙分類篩選
 - `HomeController`：主要首頁與輪播
@@ -127,10 +237,10 @@ dotnet ef database drop
 - `OrderController`：訂單管理（✅ 已完成）
 - `AdminController`：後台管理（商品、分類、訂單、使用者管理）（✅ 已完成）
 
-**View Components** (`ViewComponents/`)：
+**View Components** (`MusicShop.Web/ViewComponents/`)：
 - `CartBadgeViewComponent`：購物車數量徽章元件，動態顯示購物車商品數量
 
-**工具類別** (`Helpers/`)：
+**工具類別** (`MusicShop.Library/Helpers/`)：
 - `ValidationHelper`（v1.1.1 新增）：集中管理所有驗證邏輯的靜態工具類別
   - `ValidateNotEmpty(string?, string, string)`：驗證字串不為空
   - `ValidateMaxLength(string, string, int, string)`：驗證字串長度
@@ -176,24 +286,28 @@ dotnet ef database drop
 
 ## 關鍵模式與最佳實踐
 
-1. **三層式架構分離**：嚴格遵守 Controller → Service → Repository 的職責分離原則
-2. **依賴注入（Dependency Injection）**：所有服務透過介面注入，降低耦合度
-3. **Repository 模式**：資料存取邏輯封裝於 Repository 層，提高可測試性
-4. **IDbContextFactory 模式**：使用工廠模式建立 DbContext，避免並行問題
-5. **預先載入（Eager Loading）**：使用 `.Include()` 載入關聯實體，避免 N+1 查詢問題
-6. **Dictionary 快取**：在 OrderService 中使用字典快取已查詢的專輯，避免重複查詢資料庫
-7. **UTC 時間**：統一使用 `DateTime.UtcNow` 避免時區問題
-8. **資料註解（Data Annotations）**：使用 `[Required]`、`[StringLength]` 等進行模型驗證
-9. **小數精度**：價格欄位使用 `[Column(TypeName = "decimal(10,2)")]`
-10. **ViewBag 傳遞資料**：分類清單與搜尋詞透過 ViewBag 傳遞給檢視
-11. **View Components**：可重複使用的 UI 元件（如購物車徽章）
-12. **ValidationHelper 模式**（v1.1.1 新增）：集中管理所有驗證邏輯，避免重複程式碼
-13. **OrderHelper 模式**（v1.2.1 新增）：集中管理訂單顯示邏輯，避免在 View 層撰寫業務邏輯
-14. **業務邏輯分層**（v1.2.1 強化）：View 層僅負責顯示，業務邏輯統一放在 Service 或 Helper 層
-15. **資料庫交易**（v1.2.0 新增）：訂單建立使用交易確保原子性（建立訂單、扣除庫存、清空購物車）
-16. **樂觀並發控制**（v1.2.0 新增）：Album 模型使用 `[Timestamp]` RowVersion 防止並發更新問題
-17. **輔助方法萃取**（v1.2.0 新增）：Controller 層萃取重複邏輯為私有方法，提升可讀性與維護性
-18. **單一職責原則**（v1.2.0 新增）：Controller 僅負責流程控制，Service 層負責業務驗證與邏輯
+1. **多專案解決方案架構**（v1.3.0 新增）：將應用程式分為 4 個獨立專案，確保關注點分離與模組化
+2. **UnitOfWork 模式**（v1.3.0 新增）：統一管理所有 Repository，確保資料一致性與交易完整性
+3. **Generic Repository 模式**（v1.3.0 新增）：提供通用的 CRUD 操作介面，減少重複程式碼
+4. **三層式架構分離**：嚴格遵守 Controller → Service → Repository 的職責分離原則
+5. **依賴注入（Dependency Injection）**：Service 層統一注入 `IUnitOfWork`，降低耦合度
+6. **Repository 模式**：資料存取邏輯封裝於 Repository 層，提高可測試性
+7. **IDbContextFactory 模式**：使用工廠模式建立 DbContext，避免並行問題
+8. **AutoMapper 物件映射**（v1.3.0 新增）：自動化 Entity ↔ ViewModel 的轉換，減少手動映射程式碼
+9. **預先載入（Eager Loading）**：使用 `.Include()` 載入關聯實體，避免 N+1 查詢問題
+10. **Dictionary 快取**：在 OrderService 中使用字典快取已查詢的專輯，避免重複查詢資料庫
+11. **UTC 時間**：統一使用 `DateTime.UtcNow` 避免時區問題
+12. **資料註解（Data Annotations）**：使用 `[Required]`、`[StringLength]` 等進行模型驗證
+13. **小數精度**：價格欄位使用 `[Column(TypeName = "decimal(10,2)")]`
+14. **ViewBag 傳遞資料**：分類清單與搜尋詞透過 ViewBag 傳遞給檢視
+15. **View Components**：可重複使用的 UI 元件（如購物車徽章）
+16. **ValidationHelper 模式**（v1.1.1 新增）：集中管理所有驗證邏輯，避免重複程式碼
+17. **OrderHelper 模式**（v1.2.1 新增）：集中管理訂單顯示邏輯，避免在 View 層撰寫業務邏輯
+18. **業務邏輯分層**（v1.2.1 強化）：View 層僅負責顯示，業務邏輯統一放在 Service 或 Helper 層
+19. **資料庫交易**（v1.2.0 新增）：訂單建立使用交易確保原子性（建立訂單、扣除庫存、清空購物車）
+20. **樂觀並發控制**（v1.2.0 新增）：Album 模型使用 `[Timestamp]` RowVersion 防止並發更新問題
+21. **輔助方法萃取**（v1.2.0 新增）：Controller 層萃取重複邏輯為私有方法，提升可讀性與維護性
+22. **單一職責原則**（v1.2.0 新增）：Controller 僅負責流程控制，Service 層負責業務驗證與邏輯
 
 ## 已完成功能
 
@@ -340,3 +454,43 @@ dotnet ef database drop
 - **範例設定**：使用 `appsettings.example.json` 提供設定範例，不包含真實資料
 - **絕不提交**：確保不要將包含真實密碼、IP 位址的設定檔提交到版控系統
 - **環境變數**：正式環境建議使用環境變數或 Azure Key Vault 管理敏感資訊
+
+## 版本更新記錄
+
+### v1.3.0 - 多專案架構重構 (2026-03-09)
+
+**🏗️ 架構升級**
+- 從單一專案重構為多專案解決方案（4 個獨立專案）
+- 建立 `MusicShop.Data` 專案（資料存取層）
+- 建立 `MusicShop.Service` 專案（商業邏輯層）
+- 建立 `MusicShop.Library` 專案（共用工具庫）
+- 保留 `MusicShop.Web` 專案（展示層）
+
+**🔧 設計模式改進**
+- 實作 **UnitOfWork 模式**：統一管理所有 Repository 的存取點
+- 實作 **Generic Repository 模式**：提供通用的 CRUD 操作介面
+- 整合 **AutoMapper**：自動化 Entity ↔ ViewModel 的物件映射
+- Service 層統一改為注入 `IUnitOfWork`（原本注入多個 Repository）
+
+**📦 命名空間重組**
+- `MusicShop.Models` → `MusicShop.Data.Entities`
+- `MusicShop.Services.Interface` → `MusicShop.Service.Services.Interfaces`
+- `MusicShop.Services.Implementation` → `MusicShop.Service.Services.Implementation`
+- `MusicShop.Repositories.Interface` → `MusicShop.Data.Repositories.Interfaces`
+- `MusicShop.Repositories.Implementation` → `MusicShop.Data.Repositories.Implementation`
+- `MusicShop.Helpers` → `MusicShop.Library.Helpers`
+- `MusicShop.ViewModels` → `MusicShop.Service.ViewModels`
+
+**✅ 重構成果**
+- 所有專案編譯成功（0 錯誤）
+- 應用程式正常啟動與運行
+- 資料庫連線與初始化正常
+- 所有核心功能測試通過（首頁、專輯列表、登入等）
+
+**🎯 改進效益**
+- **關注點分離**：每個專案職責明確，易於維護
+- **可測試性提升**：UnitOfWork 和 Repository 模式便於單元測試
+- **程式碼重用**：Generic Repository 減少重複的 CRUD 程式碼
+- **依賴管理簡化**：Service 層統一注入 IUnitOfWork，降低耦合度
+- **擴充性增強**：新增 Repository 或 Service 更加容易
+- **團隊協作**：多專案架構便於分工開發
