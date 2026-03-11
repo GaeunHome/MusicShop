@@ -14,25 +14,11 @@ namespace MusicShop.Service.Mapper
     {
         public MapperProfile()
         {
-            // Album 映射（暫時註解，AlbumViewModel 不存在）
-            // CreateMap<Album, AlbumViewModel>()
-            //     .ForMember(dest => dest.ArtistName,
-            //                opt => opt.MapFrom(src => src.Artist != null ? src.Artist.Name : string.Empty))
-            //     .ForMember(dest => dest.ArtistCategoryName,
-            //                opt => opt.MapFrom(src => src.Artist != null && src.Artist.ArtistCategory != null
-            //                                          ? src.Artist.ArtistCategory.Name
-            //                                          : string.Empty))
-            //     .ForMember(dest => dest.ProductTypeName,
-            //                opt => opt.MapFrom(src => src.ProductType != null ? src.ProductType.Name : string.Empty));
-
             // User 映射
             CreateMap<AppUser, EditProfileViewModel>()
                 .ReverseMap();
 
             CreateMap<AppUser, UserManagementViewModel>();
-
-            // Order 映射（如需要可擴充）
-            // CreateMap<Order, OrderViewModel>();
         }
     }
 }

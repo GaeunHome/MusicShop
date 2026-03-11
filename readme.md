@@ -45,6 +45,7 @@
 | **認證** | ASP.NET Core Identity | Cookie 認證 |
 | **前端** | Razor Views + Bootstrap 5 + jQuery | - |
 | **設計模式** | Repository、Dependency Injection、Factory | - |
+| **物流金流** | 綠界 ECPay 物流 API（超商取貨） | logistics API |
 
 ---
 
@@ -67,6 +68,7 @@
 | **訂單系統** | 建立訂單 | ✅ | **資料庫交易保護** |
 | | 庫存扣除 | ✅ | **樂觀並發控制** |
 | | 訂單追蹤 | ✅ | 5 種狀態（待處理→已完成） |
+| | 超商門市選取 | ✅ | 綠界 ECPay 物流 API（7-11/全家/萊爾富/OK Mart） |
 | **後台管理** | 儀表板 | ✅ | 統計資訊（商品/訂單/銷售額） |
 | | 商品管理 | ✅ | CRUD + 雙分類 |
 | | 訂單管理 | ✅ | 查看/更新狀態 |
@@ -81,49 +83,32 @@
 
 ### 三層式架構
 
-```
-╔══════════════════════════════════════════════════════════════╗
-║                    🌐 展示層 (Presentation)                   ║
-╠══════════════════════════════════════════════════════════════╣
-║  📂 Controllers/ + Views/                                    ║
-║                                                              ║
-║  ✓ 處理 HTTP 請求與回應                                       ║
-║  ✓ 資料傳遞與頁面顯示                                         ║
-║  ✗ 不包含商業邏輯                                             ║
-║  ✗ 不直接存取資料庫                                           ║
-╚══════════════════════════════════════════════════════════════╝
-                            │
-                            │ 依賴注入 (DI)
-                            ▼
-╔══════════════════════════════════════════════════════════════╗
-║                  ⚙️ 商業邏輯層 (Business Logic)               ║
-╠══════════════════════════════════════════════════════════════╣
-║  📂 Services/ (Interface + Implementation)                   ║
-║                                                              ║
-║  ✓ 業務規則與驗證邏輯                                         ║
-║  ✓ 協調 Controller 與 Repository                             ║
-║  ✓ 交易管理與並發控制                                         ║
-║  ✗ 不處理 HTTP 相關邏輯                                       ║
-╚══════════════════════════════════════════════════════════════╝
-                            │
-                            │ 依賴注入 (DI)
-                            ▼
-╔══════════════════════════════════════════════════════════════╗
-║                  💾 資料存取層 (Data Access)                  ║
-╠══════════════════════════════════════════════════════════════╣
-║  📂 Repositories/ + Data/                                    ║
-║                                                              ║
-║  ✓ 資料庫 CRUD 操作                                           ║
-║  ✓ Entity Framework Core                                    ║
-║  ✓ Repository 模式封裝                                        ║
-║  ✗ 不包含業務邏輯                                             ║
-╚══════════════════════════════════════════════════════════════╝
-                            │
-                            ▼
-                    ┌───────────────┐
-                    │  🗄️ SQL Server │
-                    └───────────────┘
-```
+**展示層 (Presentation)** — `MusicShop.Web`
+
+> Controllers/ + Views/
+> - 處理 HTTP 請求與回應、資料傳遞與頁面顯示
+> - 不包含商業邏輯，不直接存取資料庫
+
+&darr; 依賴注入 (DI)
+
+**商業邏輯層 (Business Logic)** — `MusicShop.Service`
+
+> Services/ (Interface + Implementation)
+> - 業務規則與驗證邏輯，協調 Controller 與 Repository
+> - 交易管理與並發控制
+> - 不處理 HTTP 相關邏輯
+
+&darr; 依賴注入 (DI)
+
+**資料存取層 (Data Access)** — `MusicShop.Data`
+
+> Repositories/ + UnitOfWork/ + Entities/
+> - 資料庫 CRUD 操作（Entity Framework Core）
+> - Repository 模式封裝，不包含業務邏輯
+
+&darr;
+
+**SQL Server**
 
 ### 核心設計模式
 
@@ -163,9 +148,17 @@ cd MusicShop
 {
   "ConnectionStrings": {
     "DefaultConnection": "Server=<伺服器>;Database=kalbum;User Id=<帳號>;Password=<密碼>;TrustServerCertificate=True;"
+  },
+  "Ecpay": {
+    "MerchantID": "YOUR_MERCHANT_ID",
+    "HashKey": "YOUR_HASH_KEY",
+    "HashIV": "YOUR_HASH_IV",
+    "IsTest": true
   }
 }
 ```
+
+> **ECPay 設定說明**：`IsTest: true` 使用綠界測試環境（`logistics-stage.ecpay.com.tw`），`false` 切換正式環境（`logistics.ecpay.com.tw`）。商家金鑰請至[綠界科技後台](https://www.ecpay.com.tw/)取得。
 
 #### 3. 還原套件與建立資料庫
 ```bash
