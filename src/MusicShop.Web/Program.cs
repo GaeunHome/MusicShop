@@ -33,6 +33,7 @@ builder.Services.AddScoped<IOrderValidationService, OrderValidationService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBannerService, BannerService>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
 
 // 註冊 Web 層基礎設施服務
 builder.Services.AddScoped<IAlbumImageService, AlbumImageService>();

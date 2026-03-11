@@ -1,0 +1,98 @@
+@model MusicShop.Data.Entities.Album
+@{
+    var wishlistIds = ViewData["WishlistIds"] as HashSet<int> ?? new HashSet<int>();
+    bool isInWishlist = wishlistIds.Contains(Model.Id);
+}
+
+<div class="col">
+    <div class="product-item">
+        <div class="product-image-wrapper">
+            <a asp-action="Detail" asp-route-id="@Model.Id" class="product-image-link"></a>
+
+            @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+            {
+                <img src="@Model.CoverImageUrl" class="product-image" alt="@Model.Title">
+            }
+            else
+            {
+                <div class="product-image d-flex align-items-center justify-content-center"
+                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <span class="text-white" style="font-size: 60px;">♪</span>
+                </div>
+            }
+
+            @if (Model.Stock <= 0)
+            {
+                <span class="position-absolute top-0 end-0 badge bg-danger m-2" style="z-index: 10;">已售完</span>
+            }
+            else if (Model.Stock <= 5)
+            {
+                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2" style="z-index: 10;">僅剩 @Model.Stock 件</span>
+            }
+
+            <!-- 懸停按鈕 -->
+            <div class="product-overlay">
+                <div class="overlay-buttons d-flex gap-2 mb-2">
+                    <!-- 查看商品 -->
+                    <a asp-action="Detail" asp-route-id="@Model.Id" class="btn btn-white overlay-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                    </a>
+
+                    <!-- 加入購物車 -->
+                    @if (Model.Stock > 0)
+                    {
+                        @if (User.Identity!.IsAuthenticated)
+                        {
+                            <button type="button" class="btn btn-purple overlay-btn"
+                                    data-bs-toggle="modal" data-bs-target="#addToCartModal"
+                                    data-album-id="@Model.Id"
+                                    data-album-title="@Model.Title"
+                                    data-album-artist="@(Model.Artist?.Name ?? "未設定藝人")"
+                                    data-album-price="@Model.Price"
+                                    data-album-stock="@Model.Stock"
+                                    data-album-image="@Model.CoverImageUrl">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                </svg>
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-purple overlay-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                </svg>
+                            </a>
+                        }
+                    }
+
+                    <!-- 加入收藏 -->
+                    @if (User.Identity!.IsAuthenticated)
+                    {
+                        <button type="button"
+                                class="btn btn-white overlay-btn wishlist-toggle @(isInWishlist ? "wishlisted" : "")"
+                                data-album-id="@Model.Id"
+                                title="@(isInWishlist ? "取消收藏" : "加入收藏")">
+                            <i class="bi @(isInWishlist ? "bi-heart-fill text-danger" : "bi-heart")"></i>
+                        </button>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-white overlay-btn" title="登入後加入收藏">
+                            <i class="bi bi-heart"></i>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="product-info mt-3">
+            <a asp-action="Detail" asp-route-id="@Model.Id" class="text-decoration-none text-dark">
+                <h6 class="product-title mb-2">@Model.Title</h6>
+            </a>
+            <p class="product-price mb-0">NT$@Model.Price.ToString("N0")</p>
+        </div>
+    </div>
+</div>

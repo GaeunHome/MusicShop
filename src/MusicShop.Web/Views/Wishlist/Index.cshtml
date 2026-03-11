@@ -1,0 +1,128 @@
+@model IEnumerable<MusicShop.Data.Entities.WishlistItem>
+@{
+    ViewData["Title"] = "我的收藏";
+}
+
+<partial name="_TempDataNotifications" />
+
+<div class="container mt-4">
+    <h3 class="mb-4">
+        <i class="bi bi-heart-fill text-danger me-2"></i>我的收藏
+        <span class="badge bg-secondary ms-2" style="font-size: 0.6em;">@Model.Count() 件</span>
+    </h3>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center text-muted mt-5 py-5">
+            <i class="bi bi-heart fs-1 opacity-50 d-block mb-3"></i>
+            <h5 class="mb-3">收藏清單是空的</h5>
+            <p class="text-muted mb-4">瀏覽商品並點擊愛心按鈕加入收藏</p>
+            <a asp-controller="Album" asp-action="Index" class="btn btn-primary">
+                <i class="bi bi-music-note-list me-1"></i>瀏覽商品
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- 收藏表單（含 AntiForgeryToken，供 JS 移除時使用） -->
+        <form id="wishlistForm">
+            @Html.AntiForgeryToken()
+        </form>
+
+        <div class="row row-cols-2 row-cols-lg-4 g-4">
+            @foreach (var item in Model)
+            {
+                var album = item.Album;
+                if (album == null) continue;
+
+                <div class="col" id="wishlist-item-@album.Id">
+                    <div class="product-item">
+                        <div class="product-image-wrapper">
+                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id" class="product-image-link"></a>
+
+                            @if (!string.IsNullOrEmpty(album.CoverImageUrl))
+                            {
+                                <img src="@album.CoverImageUrl" class="product-image" alt="@album.Title">
+                            }
+                            else
+                            {
+                                <div class="product-image d-flex align-items-center justify-content-center"
+                                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <span class="text-white" style="font-size: 60px;">♪</span>
+                                </div>
+                            }
+
+                            @if (album.Stock <= 0)
+                            {
+                                <span class="position-absolute top-0 end-0 badge bg-danger m-2" style="z-index:10;">已售完</span>
+                            }
+                            else if (album.Stock <= 5)
+                            {
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2" style="z-index:10;">
+                                    僅剩 @album.Stock 件
+                                </span>
+                            }
+
+                            <div class="product-overlay">
+                                <div class="overlay-buttons d-flex gap-2 mb-2">
+                                    <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id"
+                                       class="btn btn-white overlay-btn" title="查看商品">
+                                        <i class="bi bi-search"></i>
+                                    </a>
+                                    <!-- 移除收藏按鈕 -->
+                                    <button type="button" class="btn btn-danger overlay-btn wishlist-toggle"
+                                            data-album-id="@album.Id" title="取消收藏">
+                                        <i class="bi bi-heart-fill"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="product-info mt-3">
+                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id"
+                               class="text-decoration-none text-dark">
+                                <h6 class="product-title mb-1">@album.Title</h6>
+                            </a>
+                            <small class="text-muted">@(album.Artist?.Name ?? "")</small>
+                            <p class="product-price mb-0 mt-1">NT$@album.Price.ToString("N0")</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/album-index.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.wishlist-toggle').forEach(btn => {
+            btn.addEventListener('click', async function () {
+                const albumId = this.dataset.albumId;
+                const token = document.querySelector('#wishlistForm [name=__RequestVerificationToken]').value;
+
+                const res = await fetch('/Wishlist/Toggle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': token
+                    },
+                    body: `albumId=${albumId}`
+                });
+
+                if (res.ok) {
+                    // 從列表移除該卡片
+                    document.getElementById(`wishlist-item-${albumId}`)?.remove();
+
+                    // 若清單已空，重新整理顯示空狀態
+                    if (!document.querySelector('[id^="wishlist-item-"]')) {
+                        location.reload();
+                    }
+                }
+            });
+        });
+    </script>
+}

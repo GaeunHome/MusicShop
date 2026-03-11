@@ -22,6 +22,7 @@ namespace MusicShop.Data.UnitOfWork
         private IOrderRepository? _orders;
         private IStatisticsRepository? _statistics;
         private IBannerRepository? _banners;
+        private IWishlistRepository? _wishlists;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -37,6 +38,7 @@ namespace MusicShop.Data.UnitOfWork
         public IOrderRepository Orders => _orders ??= new OrderRepository(_context);
         public IStatisticsRepository Statistics => _statistics ??= new StatisticsRepository(_context);
         public IBannerRepository Banners => _banners ??= new BannerRepository(_context);
+        public IWishlistRepository Wishlists => _wishlists ??= new WishlistRepository(_context);
 
         /// <summary>
         /// 開始資料庫交易

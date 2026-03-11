@@ -3,6 +3,7 @@
     ViewData["Title"] = "商品列表";
     var artistCategories = ViewBag.ArtistCategories as IEnumerable<MusicShop.Data.Entities.ArtistCategory>;
     var childCategories = ViewBag.ChildCategories as IEnumerable<MusicShop.Data.Entities.ProductType>;
+    var wishlistIds = ViewBag.WishlistIds as HashSet<int> ?? new HashSet<int>();
 
     // 取得目前的篩選資訊
     var currentArtistCategoryId = ViewBag.ArtistCategoryId as int?;
@@ -123,8 +124,15 @@
     </div>
 
     @{
-        // 按藝人分組商品（用於有商品時顯示）
+        // 有指定排序時顯示平鋪清單（讓排序效果全域生效）；無排序時依藝人分組
+        bool isSorted = !string.IsNullOrEmpty(currentSortBy);
         var albumsByArtist = Model.GroupBy(a => a.Artist).OrderBy(g => g.Key?.DisplayOrder ?? 999);
+    }
+
+    <!-- 收藏切換表單（含 AntiForgeryToken，供 JS 使用） -->
+    @if (User.Identity!.IsAuthenticated)
+    {
+        <form id="wishlistForm" style="display:none;">@Html.AntiForgeryToken()</form>
     }
 
     @if (!Model.Any())
@@ -243,185 +251,60 @@
 
         <!-- 商品容器（支援視圖切換） -->
         <div id="productContainer" class="view-mode-grid">
-            @foreach (var artistGroup in albumsByArtist)
+            @{
+                // 共用的商品卡片渲染邏輯（抽成 local function 概念，以 IEnumerable 帶入）
+                IEnumerable<MusicShop.Data.Entities.Album> renderAlbums = isSorted
+                    ? Model
+                    : Enumerable.Empty<MusicShop.Data.Entities.Album>();
+            }
+
+            @if (isSorted)
             {
-                <!-- 藝人標題 -->
-                <div class="mb-4 mt-5">
-                    <h2 class="artist-page-title">| @(artistGroup.Key?.Name ?? "未設定藝人")</h2>
-                </div>
-
-                <!-- 網格視圖 -->
+                <!-- 排序模式：全域平鋪，不依藝人分組 -->
                 <div class="grid-view row row-cols-2 row-cols-lg-4 g-4 mb-5">
-                    @foreach (var album in artistGroup)
+                    @foreach (var album in Model)
                     {
-                        <div class="col">
-                            <div class="product-item">
-                                <!-- 專輯封面圖片區塊 -->
-                                <div class="product-image-wrapper">
-                                    <!-- 底層連結，點擊整個圖片區域跳轉 -->
-                                    <a asp-action="Detail" asp-route-id="@album.Id" class="product-image-link"></a>
-
-                                    @if (!string.IsNullOrEmpty(album.CoverImageUrl))
-                                    {
-                                        <img src="@album.CoverImageUrl" class="product-image" alt="@album.Title">
-                                    }
-                                    else
-                                    {
-                                        <!-- 預設圖片 -->
-                                        <div class="product-image d-flex align-items-center justify-content-center"
-                                             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                            <span class="text-white" style="font-size: 60px;">♪</span>
-                                        </div>
-                                    }
-
-                                    <!-- 庫存狀態標籤 -->
-                                    @if (album.Stock <= 0)
-                                    {
-                                        <span class="position-absolute top-0 end-0 badge bg-danger m-2" style="z-index: 10;">已售完</span>
-                                    }
-                                    else if (album.Stock <= 5)
-                                    {
-                                        <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2" style="z-index: 10;">僅剩 @album.Stock 件</span>
-                                    }
-
-                                    <!-- 懸停時顯示的按鈕 -->
-                                    <div class="product-overlay">
-                                        <div class="overlay-buttons d-flex gap-2 mb-2">
-                                            <!-- 查看商品按鈕 -->
-                                            <a asp-action="Detail" asp-route-id="@album.Id" class="btn btn-white overlay-btn">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                                                </svg>
-                                            </a>
-
-                                            <!-- 加入購物車按鈕 -->
-                                            @if (album.Stock > 0)
-                                            {
-                                                @if (User.Identity!.IsAuthenticated)
-                                                {
-                                                    <button type="button" class="btn btn-purple overlay-btn"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#addToCartModal"
-                                                            data-album-id="@album.Id"
-                                                            data-album-title="@album.Title"
-                                                            data-album-artist="@(album.Artist?.Name ?? "未設定藝人")"
-                                                            data-album-price="@album.Price"
-                                                            data-album-stock="@album.Stock"
-                                                            data-album-image="@album.CoverImageUrl">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                                                            <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
-                                                        </svg>
-                                                    </button>
-                                                }
-                                                else
-                                                {
-                                                    <a asp-controller="Account" asp-action="Login" class="btn btn-purple overlay-btn">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                                                            <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
-                                                        </svg>
-                                                    </a>
-                                                }
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- 商品資訊（照片下方） -->
-                                <div class="product-info mt-3">
-                                    <a asp-action="Detail" asp-route-id="@album.Id" class="text-decoration-none text-dark">
-                                        <h6 class="product-title mb-2">@album.Title</h6>
-                                    </a>
-                                    <p class="product-price mb-0">
-                                        NT$@album.Price.ToString("N0")
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("_AlbumCard", album, new ViewDataDictionary(ViewData) {
+                            { "WishlistIds", wishlistIds }
+                        })
                     }
                 </div>
-
-                <!-- 條列式視圖 -->
                 <div class="list-view mb-5">
-                    @foreach (var album in artistGroup)
+                    @foreach (var album in Model)
                     {
-                        <div class="product-list-item">
-                            <!-- 商品圖片 -->
-                            <div class="position-relative">
-                                @if (!string.IsNullOrEmpty(album.CoverImageUrl))
-                                {
-                                    <img src="@album.CoverImageUrl" class="product-list-image" alt="@album.Title">
-                                }
-                                else
-                                {
-                                    <div class="product-list-image-placeholder">
-                                        <span class="text-white" style="font-size: 40px;">♪</span>
-                                    </div>
-                                }
-
-                                <!-- 庫存狀態標籤 -->
-                                @if (album.Stock <= 0)
-                                {
-                                    <span class="position-absolute top-0 start-0 badge bg-danger m-1" style="font-size: 0.7rem;">已售完</span>
-                                }
-                                else if (album.Stock <= 5)
-                                {
-                                    <span class="position-absolute top-0 start-0 badge bg-warning text-dark m-1" style="font-size: 0.7rem;">僅剩 @album.Stock 件</span>
-                                }
-                            </div>
-
-                            <!-- 商品資訊 -->
-                            <div class="product-list-info">
-                                <a asp-action="Detail" asp-route-id="@album.Id" class="product-list-title">
-                                    @album.Title
-                                </a>
-                                <div class="product-list-artist">
-                                    @(album.Artist?.Name ?? "未設定藝人")
-                                </div>
-                                <div class="product-list-price mt-2">
-                                    NT$@album.Price.ToString("N0")
-                                </div>
-                            </div>
-
-                            <!-- 操作按鈕 -->
-                            <div class="product-list-actions">
-                                @if (album.Stock > 0)
-                                {
-                                    @if (User.Identity!.IsAuthenticated)
-                                    {
-                                        <button type="button" class="btn btn-primary"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#addToCartModal"
-                                                data-album-id="@album.Id"
-                                                data-album-title="@album.Title"
-                                                data-album-artist="@(album.Artist?.Name ?? "未設定藝人")"
-                                                data-album-price="@album.Price"
-                                                data-album-stock="@album.Stock"
-                                                data-album-image="@album.CoverImageUrl">
-                                            加入購物車
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <a asp-controller="Account" asp-action="Login" class="btn btn-primary">
-                                            加入購物車
-                                        </a>
-                                    }
-                                }
-                                else
-                                {
-                                    <button type="button" class="btn btn-secondary" disabled>
-                                        商品已售完
-                                    </button>
-                                }
-
-                                <!-- 願望清單按鈕 -->
-                                <button type="button" class="btn-wishlist">
-                                    <i class="bi bi-heart"></i>
-                                </button>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("_AlbumListItem", album, new ViewDataDictionary(ViewData) {
+                            { "WishlistIds", wishlistIds }
+                        })
                     }
                 </div>
+            }
+            else
+            {
+                <!-- 預設模式：依藝人分組 -->
+                @foreach (var artistGroup in albumsByArtist)
+                {
+                    <div class="mb-4 mt-5">
+                        <h2 class="artist-page-title">| @(artistGroup.Key?.Name ?? "未設定藝人")</h2>
+                    </div>
+
+                    <div class="grid-view row row-cols-2 row-cols-lg-4 g-4 mb-5">
+                        @foreach (var album in artistGroup)
+                        {
+                            @await Html.PartialAsync("_AlbumCard", album, new ViewDataDictionary(ViewData) {
+                                { "WishlistIds", wishlistIds }
+                            })
+                        }
+                    </div>
+
+                    <div class="list-view mb-5">
+                        @foreach (var album in artistGroup)
+                        {
+                            @await Html.PartialAsync("_AlbumListItem", album, new ViewDataDictionary(ViewData) {
+                                { "WishlistIds", wishlistIds }
+                            })
+                        }
+                    </div>
+                }
             }
         </div>
     }
@@ -439,4 +322,5 @@
 @section Scripts {
     <script src="~/js/features/cart/add-modal.js" asp-append-version="true"></script>
     <script src="~/js/features/album/view-toggle.js" asp-append-version="true"></script>
+    <script src="~/js/features/wishlist/wishlist.js" asp-append-version="true"></script>
 }

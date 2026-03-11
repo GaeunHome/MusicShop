@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using MusicShop.Data.Entities;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.ViewModels.Album;
 
@@ -14,17 +16,23 @@ public class AlbumController : Controller
     private readonly IArtistService _artistService;
     private readonly IArtistCategoryService _artistCategoryService;
     private readonly IProductTypeService _productTypeService;
+    private readonly IWishlistService _wishlistService;
+    private readonly UserManager<AppUser> _userManager;
 
     public AlbumController(
         IAlbumService albumService,
         IArtistService artistService,
         IArtistCategoryService artistCategoryService,
-        IProductTypeService productTypeService)
+        IProductTypeService productTypeService,
+        IWishlistService wishlistService,
+        UserManager<AppUser> userManager)
     {
         _albumService = albumService;
         _artistService = artistService;
         _artistCategoryService = artistCategoryService;
         _productTypeService = productTypeService;
+        _wishlistService = wishlistService;
+        _userManager = userManager;
     }
 
     // GET: /Album
@@ -59,6 +67,10 @@ public class AlbumController : Controller
         }
 
         // 傳遞資料給 View
+        // 已登入使用者：取得收藏清單 ID，供 View 顯示愛心狀態
+        var userId = _userManager.GetUserId(User);
+        ViewBag.WishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId ?? string.Empty);
+
         ViewBag.Search = search;
         ViewBag.ArtistCategoryId = artistCategoryId;
         ViewBag.ArtistId = artistId;

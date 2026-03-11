@@ -15,6 +15,7 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
     public DbSet<Banner> Banners { get; set; }
+    public DbSet<WishlistItem> WishlistItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -82,6 +83,25 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .WithMany()
             .HasForeignKey(c => c.AlbumId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // WishlistItem 與 AppUser 關聯
+        builder.Entity<WishlistItem>()
+            .HasOne(w => w.User)
+            .WithMany()
+            .HasForeignKey(w => w.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // WishlistItem 與 Album 關聯（刪除商品時一併刪除收藏）
+        builder.Entity<WishlistItem>()
+            .HasOne(w => w.Album)
+            .WithMany()
+            .HasForeignKey(w => w.AlbumId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // 每個使用者每件商品只能收藏一次
+        builder.Entity<WishlistItem>()
+            .HasIndex(w => new { w.UserId, w.AlbumId })
+            .IsUnique();
 
         // Banner 與 Album 關聯（刪除商品時，幻燈片保留但連結設為 null）
         builder.Entity<Banner>()
