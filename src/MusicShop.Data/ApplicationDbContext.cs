@@ -14,6 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
+    public DbSet<Banner> Banners { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -81,5 +82,12 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .WithMany()
             .HasForeignKey(c => c.AlbumId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Banner 與 Album 關聯（刪除商品時，幻燈片保留但連結設為 null）
+        builder.Entity<Banner>()
+            .HasOne(b => b.Album)
+            .WithMany()
+            .HasForeignKey(b => b.AlbumId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

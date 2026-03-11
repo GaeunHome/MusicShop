@@ -5,6 +5,8 @@ using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.Services.Implementation;
+using MusicShop.Web.Services;
+using MusicShop.Web.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +32,14 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderValidationService, OrderValidationService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IBannerService, BannerService>();
+
+// 註冊 Web 層基礎設施服務
+builder.Services.AddScoped<IAlbumImageService, AlbumImageService>();
+builder.Services.AddScoped<IBannerImageService, BannerImageService>();
+
+// 註冊 ECPay 物流服務（含 HttpClient）
+builder.Services.AddHttpClient<IEcpayLogisticsService, EcpayLogisticsService>();
 
 // 加入 Identity
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>

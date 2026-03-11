@@ -124,6 +124,13 @@ namespace MusicShop.Data.Repositories.Implementation
 
         public async Task UpdateAlbumAsync(Album album)
         {
+            // 若 Change Tracker 中已有同一 Id 的其他實例（例如由 Include 載入的導航屬性），
+            // 先解除追蹤，避免 "another instance with the same key" 衝突
+            var conflicting = _context.ChangeTracker.Entries<Album>()
+                .FirstOrDefault(e => e.Entity.Id == album.Id && !ReferenceEquals(e.Entity, album));
+            if (conflicting != null)
+                conflicting.State = EntityState.Detached;
+
             _context.Albums.Update(album);
             await _context.SaveChangesAsync();
         }

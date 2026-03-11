@@ -40,8 +40,7 @@ const ArtistAdmin = {
             const artistName = $('#Name').val().trim();
             if (!artistName) {
                 e.preventDefault();
-                alert('請輸入藝人名稱');
-                $('#Name').focus();
+                showWarning('請輸入藝人名稱');
                 return false;
             }
 
@@ -49,8 +48,7 @@ const ArtistAdmin = {
             const categoryId = $('#ArtistCategoryId').val();
             if (!categoryId) {
                 e.preventDefault();
-                alert('請選擇藝人分類');
-                $('#ArtistCategoryId').focus();
+                showWarning('請選擇藝人分類');
                 return false;
             }
         });

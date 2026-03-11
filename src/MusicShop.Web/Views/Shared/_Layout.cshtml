@@ -55,7 +55,17 @@
             <div class="container">
                 <div class="d-flex align-items-center justify-content-between py-3">
                     <!-- Logo 置中 -->
-                    <div class="flex-fill"></div>
+                    <div class="flex-fill d-flex align-items-center">
+                        <button class="d-lg-none border-0 bg-transparent p-1"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#mainNavCollapse"
+                                aria-controls="mainNavCollapse"
+                                aria-expanded="false"
+                                aria-label="開啟選單">
+                            <i class="bi bi-list" style="font-size: 1.6rem; color: #555;"></i>
+                        </button>
+                    </div>
                     <a asp-controller="Home" asp-action="Index" class="logo-link">
                         <h2 class="logo-text mb-0">MusicShop</h2>
                     </a>
@@ -133,71 +143,81 @@
         <!-- 主選單 -->
         <nav class="main-nav">
             <div class="container">
-                <ul class="nav-menu">
-                    <li class="nav-menu-item">
-                        <a asp-controller="Home" asp-action="Index">Home</a>
-                    </li>
-                    <li class="nav-menu-item mega-dropdown">
-                        <a asp-controller="Album" asp-action="Index" class="dropdown-toggle">K-ARTIST</a>
-                        <div class="mega-menu">
-                            <div class="container">
-                                <div class="row">
-                                    @foreach (var category in artistsGrouped.Keys.OrderBy(k => k.DisplayOrder))
-                                    {
-                                        <div class="col-md-4">
-                                            <a asp-controller="Album"
-                                               asp-action="Index"
-                                               asp-route-artistCategoryId="@category.Id"
-                                               class="mega-menu-title-link">
-                                                <h6 class="mega-menu-title">@category.Name</h6>
-                                            </a>
-                                            <ul class="mega-menu-list">
-                                                @foreach (var artist in artistsGrouped[category])
-                                                {
-                                                    <li>
-                                                        <a asp-controller="Album"
-                                                           asp-action="Index"
-                                                           asp-route-artistId="@artist.Id">
-                                                            @artist.Name
-                                                        </a>
-                                                    </li>
-                                                }
-                                            </ul>
-                                        </div>
-                                    }
+                <div class="collapse" id="mainNavCollapse">
+                    <ul class="nav-menu">
+                        <li class="nav-menu-item">
+                            <a asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-menu-item mega-dropdown dropdown">
+                            <a asp-controller="Album" asp-action="Index">K-ARTIST</a>
+                            <button class="d-lg-none nav-mobile-toggle" type="button"
+                                    data-nav-mobile-toggle>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="mega-menu">
+                                <div class="container">
+                                    <div class="row">
+                                        @foreach (var category in artistsGrouped.Keys.OrderBy(k => k.DisplayOrder))
+                                        {
+                                            <div class="col-md-4">
+                                                <a asp-controller="Album"
+                                                   asp-action="Index"
+                                                   asp-route-artistCategoryId="@category.Id"
+                                                   class="mega-menu-title-link">
+                                                    <h6 class="mega-menu-title">@category.Name</h6>
+                                                </a>
+                                                <ul class="mega-menu-list">
+                                                    @foreach (var artist in artistsGrouped[category])
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="Album"
+                                                               asp-action="Index"
+                                                               asp-route-artistId="@artist.Id">
+                                                                @artist.Name
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </li>
-                    @foreach (var parent in categoryTree.Keys.OrderBy(k => k.DisplayOrder))
-                    {
-                        <li class="nav-menu-item dropdown">
-                            <a asp-controller="Album" asp-action="Index" asp-route-parentProductTypeId="@parent.Id" class="dropdown-toggle">@parent.Name</a>
-                            <ul class="dropdown-menu">
-                                @if (categoryTree[parent].Any())
-                                {
-                                    @foreach (var child in categoryTree[parent].OrderBy(c => c.DisplayOrder))
+                        </li>
+                        @foreach (var parent in categoryTree.Keys.OrderBy(k => k.DisplayOrder))
+                        {
+                            <li class="nav-menu-item dropdown">
+                                <a asp-controller="Album" asp-action="Index" asp-route-parentProductTypeId="@parent.Id">@parent.Name</a>
+                                <button class="d-lg-none nav-mobile-toggle" type="button"
+                                        data-nav-mobile-toggle>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @if (categoryTree[parent].Any())
                                     {
-                                        <li><a asp-controller="Album" asp-action="Index" asp-route-productTypeId="@child.Id">@child.Name</a></li>
+                                        @foreach (var child in categoryTree[parent].OrderBy(c => c.DisplayOrder))
+                                        {
+                                            <li><a asp-controller="Album" asp-action="Index" asp-route-productTypeId="@child.Id">@child.Name</a></li>
+                                        }
                                     }
-                                }
-                                else
-                                {
-                                    <li class="text-muted px-3 py-2">尚無子分類</li>
-                                }
-                            </ul>
-                        </li>
-                    }
-                    @if (User.IsInRole("Admin"))
-                    {
+                                    else
+                                    {
+                                        <li class="text-muted px-3 py-2">尚無子分類</li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-menu-item">
+                                <a asp-controller="Admin" asp-action="Index">後台管理</a>
+                            </li>
+                        }
                         <li class="nav-menu-item">
-                            <a asp-controller="Admin" asp-action="Index">後台管理</a>
+                            <a asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
-                    }
-                    <li class="nav-menu-item">
-                        <a asp-controller="Home" asp-action="Privacy">Privacy</a>
-                    </li>
-                </ul>
+                    </ul>
+                </div>
             </div>
         </nav>
     </header>

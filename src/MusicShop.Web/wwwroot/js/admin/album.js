@@ -117,12 +117,12 @@ const AlbumAdmin = {
      * 確認刪除專輯
      */
     confirmDelete: function(albumTitle, albumId) {
-        if (confirm(`確定要刪除專輯「${albumTitle}」嗎？`)) {
+        showDeleteConfirm(albumTitle, () => {
             const form = document.getElementById('deleteForm_' + albumId);
             if (form) {
                 form.submit();
             }
-        }
+        });
     }
 };
 

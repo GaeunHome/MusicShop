@@ -306,12 +306,6 @@ body > .container {
   position: relative;
 }
 
-/* 移除下拉選單的三角形圖示 */
-.nav-menu-item .dropdown-toggle::after,
-.nav-menu-item a.dropdown-toggle::after {
-  display: none !important;
-  content: none !important;
-}
 
 .nav-menu-item .dropdown-menu {
   display: none;
@@ -635,5 +629,146 @@ body > .container {
 
   .mega-menu .col-md-4:last-child {
     margin-bottom: 0;
+  }
+}
+
+/* ==================== 必填欄位標記（全域）==================== */
+.form-label.required::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* ==================== 響應式導覽列 ==================== */
+
+/* 桌面版（≥992px）：強制顯示導覽列，隱藏手機toggle按鈕 */
+@media (min-width: 992px) {
+  #mainNavCollapse {
+    display: block !important;
+  }
+
+  .nav-mobile-toggle {
+    display: none !important;
+  }
+}
+
+/* 手機版（<992px）：垂直導覽列樣式 */
+@media (max-width: 991.98px) {
+  /* 主選單垂直排列 */
+  .nav-menu {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.25rem 0;
+  }
+
+  /* 導覽項目：橫向 flex，讓連結與展開按鈕並排 */
+  .nav-menu-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  /* 導覽連結佔滿剩餘空間 */
+  .nav-menu-item > a {
+    flex: 1;
+    padding: 0.875rem 1rem;
+    border-bottom: none;
+  }
+
+  /* 手機展開按鈕 */
+  .nav-mobile-toggle {
+    background: none;
+    border: none;
+    border-left: 1px solid #f0f0f0;
+    padding: 0.875rem 1rem;
+    cursor: pointer;
+    color: #555;
+    transition: color 0.2s ease, transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .nav-mobile-toggle:hover {
+    color: #b19cd9;
+  }
+
+  /* 展開時箭頭旋轉 */
+  .nav-menu-item.mobile-open .nav-mobile-toggle .bi-chevron-down {
+    display: inline-block;
+    transform: rotate(180deg);
+  }
+
+  /* 下拉選單：靜態展開，佔滿整列（預設隱藏） */
+  #mainNavCollapse .dropdown-menu {
+    position: static !important;
+    width: 100%;
+    order: 99;
+    display: none;
+    box-shadow: none;
+    border: none;
+    border-left: 3px solid #b19cd9;
+    border-radius: 0;
+    margin: 0;
+    padding: 0.25rem 0;
+    background: #fafafa;
+  }
+
+  /* 停用 hover 觸發（手機版用點擊展開） */
+  #mainNavCollapse .mega-dropdown:hover .mega-menu {
+    display: none !important;
+  }
+
+  #mainNavCollapse .nav-menu-item.dropdown:hover .dropdown-menu {
+    display: none;
+  }
+
+  /* mobile-open class 展開子選單（高 specificity，放在 hover-disable 之後確保蓋過） */
+  #mainNavCollapse .nav-menu-item.dropdown.mobile-open > .dropdown-menu {
+    display: block !important;
+  }
+
+  #mainNavCollapse .dropdown-menu a {
+    padding: 0.625rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  /* Mega Menu：手機版靜態展開（預設隱藏） */
+  #mainNavCollapse .mega-menu {
+    position: static !important;
+    width: 100% !important;
+    order: 99;
+    display: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-left: 3px solid #b19cd9 !important;
+    border-radius: 0 !important;
+    border-top: none !important;
+    margin: 0 !important;
+    padding: 0.5rem 0 !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: #fafafa !important;
+  }
+
+  /* mobile-open class 展開 mega-menu（高 specificity，蓋過 hover-disable） */
+  #mainNavCollapse .nav-menu-item.mega-dropdown.mobile-open > .mega-menu {
+    display: block !important;
+  }
+
+  /* Mega menu 手機版：分類欄位改全寬 */
+  #mainNavCollapse .mega-menu .col-md-4 {
+    width: 100%;
+    padding: 0 1rem;
+  }
+
+  #mainNavCollapse .mega-menu-title {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+  }
+
+  #mainNavCollapse .mega-menu-list a {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.875rem;
   }
 }

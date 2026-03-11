@@ -12,7 +12,7 @@
             <div class="card shadow-sm">
                 <div class="card-header fw-bold">✏️ 編輯商品</div>
                 <div class="card-body">
-                    <form asp-action="AlbumEdit" method="post">
+                    <form asp-action="AlbumEdit" method="post" enctype="multipart/form-data">
                         <input type="hidden" asp-for="Id" />
                         <input type="hidden" asp-for="CreatedAt" />
                         <input type="hidden" asp-for="RowVersion" />
@@ -22,20 +22,20 @@
                         }
 
                         <div class="mb-3">
-                            <label asp-for="Title" class="form-label">商品名稱</label>
+                            <label asp-for="Title" class="form-label required">商品名稱</label>
                             <input asp-for="Title" class="form-control" />
                             <span asp-validation-for="Title" class="text-danger small"></span>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="ArtistCategoryFilter" class="form-label">藝人分類</label>
+                                <label for="ArtistCategoryFilter" class="form-label required">藝人分類</label>
                                 <select id="ArtistCategoryFilter" asp-items="ViewBag.ArtistCategories" class="form-select">
                                     <option value="">請先選擇藝人分類</option>
                                 </select>
                                 <small class="text-muted">選擇後會顯示對應的藝人列表</small>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label asp-for="ArtistId" class="form-label">藝人/歌手</label>
+                                <label asp-for="ArtistId" class="form-label required">藝人/歌手</label>
                                 <select asp-for="ArtistId" id="ArtistSelect" class="form-select">
                                     <option value="">請先選擇藝人分類</option>
                                 </select>
@@ -63,24 +63,48 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Price" class="form-label">價格</label>
-                                <input asp-for="Price" class="form-control" type="number" />
+                                <label asp-for="Price" class="form-label required">價格</label>
+                                <input asp-for="Price" class="form-control" type="number" step="1" value="@((int)Model.Price)" />
                                 <span asp-validation-for="Price" class="text-danger small"></span>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Stock" class="form-label">庫存</label>
+                                <label asp-for="Stock" class="form-label required">庫存</label>
                                 <input asp-for="Stock" class="form-control" type="number" />
                             </div>
                         </div>
+                        <!-- 保留現有圖片 URL（若未重新上傳則維持原值） -->
+                        <input type="hidden" asp-for="CoverImageUrl" />
+                        <input type="hidden" asp-for="DescriptionImageUrl" />
+
                         <div class="mb-3">
-                            <label asp-for="CoverImageUrl" class="form-label">封面圖片網址（選填）</label>
-                            <input asp-for="CoverImageUrl" class="form-control" />
-                            <small class="text-muted">範例：/images/albums/album1.jpg</small>
+                            <label class="form-label">封面圖片</label>
+                            @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                            {
+                                <div class="mb-2">
+                                    <img src="@Model.CoverImageUrl" alt="目前封面" style="max-height:120px; border-radius:4px; border:1px solid #dee2e6;" />
+                                    <div class="text-muted small mt-1">目前圖片，上傳新圖片可取代</div>
+                                </div>
+                            }
+                            <input type="file" name="coverImageFile" class="form-control" accept="image/*" id="coverImageInput" />
+                            <small class="text-muted">支援 JPG、PNG、WebP，最大 5MB</small>
+                            <div id="coverImagePreview" class="mt-2" style="display:none;">
+                                <img id="coverPreviewImg" src="" alt="預覽" style="max-height:150px; border-radius:4px; border:1px solid #dee2e6;" />
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label asp-for="DescriptionImageUrl" class="form-label">商品介紹圖片網址（選填）</label>
-                            <input asp-for="DescriptionImageUrl" class="form-control" />
-                            <small class="text-muted">範例：/images/albums/album6.jpg（用於顯示詳細的商品組成內容、尺寸等）</small>
+                            <label class="form-label">商品介紹圖片</label>
+                            @if (!string.IsNullOrEmpty(Model.DescriptionImageUrl))
+                            {
+                                <div class="mb-2">
+                                    <img src="@Model.DescriptionImageUrl" alt="目前介紹圖" style="max-height:120px; border-radius:4px; border:1px solid #dee2e6;" />
+                                    <div class="text-muted small mt-1">目前圖片，上傳新圖片可取代</div>
+                                </div>
+                            }
+                            <input type="file" name="descriptionImageFile" class="form-control" accept="image/*" id="descImageInput" />
+                            <small class="text-muted">支援 JPG、PNG、WebP，最大 5MB（用於顯示詳細的商品組成內容）</small>
+                            <div id="descImagePreview" class="mt-2" style="display:none;">
+                                <img id="descPreviewImg" src="" alt="預覽" style="max-height:150px; border-radius:4px; border:1px solid #dee2e6;" />
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
@@ -108,16 +132,12 @@
     <script src="~/js/admin/album.js"></script>
 
     <script>
-        // 從後端傳遞的預設值
         var selectedProductTypeId = @Html.Raw(ViewBag.SelectedProductTypeId ?? "null");
         var selectedArtistId = @Html.Raw(Model.ArtistId?.ToString() ?? "null");
         var selectedArtistCategoryId = @Html.Raw(Model.Artist?.ArtistCategoryId.ToString() ?? "null");
 
         $(document).ready(function() {
-            // 使用模組化的 JavaScript，所有邏輯已封裝在 AlbumAdmin
-            // 取得父分類 ID（用於商品類型級聯）
             var selectedParentCategoryId = $('#ParentCategorySelect').val();
-
             AlbumAdmin.initEdit(
                 selectedArtistCategoryId,
                 selectedArtistId,
@@ -125,5 +145,21 @@
                 selectedProductTypeId
             );
         });
+
+        // 圖片即時預覽
+        function previewImage(inputId, previewContainerId, previewImgId) {
+            document.getElementById(inputId).addEventListener('change', function() {
+                const file = this.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(previewImgId).src = e.target.result;
+                    document.getElementById(previewContainerId).style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        previewImage('coverImageInput', 'coverImagePreview', 'coverPreviewImg');
+        previewImage('descImageInput', 'descImagePreview', 'descPreviewImg');
     </script>
 }

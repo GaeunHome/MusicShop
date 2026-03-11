@@ -28,6 +28,10 @@
            class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Action"]?.ToString() == "Users" ? "active" : "")">
             <i class="bi bi-person-badge"></i> 使用者管理
         </a>
+        <a asp-controller="Admin" asp-action="Banners"
+           class="list-group-item list-group-item-action @(ViewContext.RouteData.Values["Action"]?.ToString() is "Banners" or "BannerCreate" or "BannerEdit" ? "active" : "")">
+            <i class="bi bi-image"></i> 幻燈片管理
+        </a>
     </div>
     <div class="card-footer">
         <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-outline-secondary w-100">

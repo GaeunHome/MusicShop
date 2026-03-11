@@ -462,11 +462,14 @@ const Cart = {
      */
     openStoreSelectionModal(storeType) {
         let modalTitle;
+        let cvsType;
 
         if (storeType === 'sevenEleven') {
             modalTitle = '選擇 7-11 門市';
+            cvsType = 'UNIMART';
         } else if (storeType === 'familyMart') {
             modalTitle = '選擇全家門市';
+            cvsType = 'FAMI';
         } else {
             showError('無效的超商類型');
             return;
@@ -476,35 +479,72 @@ const Cart = {
         document.getElementById('storeSelectionModalLabel').innerHTML =
             `<i class="bi bi-shop me-2"></i>${modalTitle}`;
 
-        // 載入縣市清單
-        this.loadCityFilter(storeType);
-
-        // 載入門市清單
-        this.loadStores(storeType);
-
         // 顯示 Modal
         const modal = new bootstrap.Modal(document.getElementById('storeSelectionModal'));
         modal.show();
 
         // 儲存當前超商類型（供後續使用）
         this.currentStoreType = storeType;
+
+        // 清空搜尋和篩選
+        const searchInput = document.getElementById('store-search-input');
+        const cityFilter = document.getElementById('store-city-filter');
+        if (searchInput) searchInput.value = '';
+        if (cityFilter) cityFilter.value = '';
+
+        // 從後端 API 載入門市清單
+        this.fetchStoresFromApi(cvsType);
     },
 
     /**
-     * 載入縣市篩選選項
+     * 從後端 API 取得門市清單（串接 ECPay GetStoreList）
+     * @param {string} cvsType - 'UNIMART' 或 'FAMI'
      */
-    loadCityFilter(storeType) {
-        if (typeof StoreData === 'undefined') {
-            console.error('StoreData 未載入');
-            return;
-        }
+    fetchStoresFromApi(cvsType) {
+        // 顯示載入中
+        const storeList = document.getElementById('store-list');
+        const noStoresMessage = document.getElementById('no-stores-message');
+        storeList.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">載入門市資料中...</p></div>';
+        if (noStoresMessage) noStoresMessage.style.display = 'none';
 
+        AjaxHelper.get('/Cart/GetStoreList', { type: cvsType }, {
+            onSuccess: (data) => {
+                if (data.success && data.stores) {
+                    // 將 ECPay 回傳格式轉換為內部格式並快取
+                    this.cachedStores = data.stores.map(s => ({
+                        code: s.storeId,
+                        name: s.storeName,
+                        address: s.storeAddr,
+                        city: s.storeAddr ? s.storeAddr.substring(0, 3) : ''
+                    }));
+
+                    // 建立縣市篩選清單
+                    this.buildCityFilter(this.cachedStores);
+
+                    // 渲染門市清單
+                    this.renderStoreList(this.cachedStores);
+                } else {
+                    storeList.innerHTML = '';
+                    showError(data.message || '載入門市資料失敗');
+                }
+            },
+            onError: () => {
+                storeList.innerHTML = '';
+                showError('網路錯誤，無法載入門市資料');
+            }
+        });
+    },
+
+    /**
+     * 建立縣市篩選選項（從門市資料動態產生）
+     */
+    buildCityFilter(stores) {
         const cityFilter = document.getElementById('store-city-filter');
-        const cities = StoreData.getCities(storeType);
+        if (!cityFilter) return;
 
-        // 清空並重新填充
+        const cities = [...new Set(stores.map(s => s.city))].sort();
+
         cityFilter.innerHTML = '<option value="">所有縣市</option>';
-
         cities.forEach(city => {
             const option = document.createElement('option');
             option.value = city;
@@ -514,54 +554,60 @@ const Cart = {
     },
 
     /**
-     * 載入門市清單
+     * 篩選門市（從已快取的資料中過濾，不重複呼叫 API）
      */
-    loadStores(storeType, searchKeyword = '', city = '') {
-        if (typeof StoreData === 'undefined') {
-            console.error('StoreData 未載入');
-            return;
-        }
+    filterStoresFromCache() {
+        if (!this.cachedStores) return;
 
-        let stores;
+        const searchKeyword = (document.getElementById('store-search-input')?.value || '').toLowerCase();
+        const city = document.getElementById('store-city-filter')?.value || '';
 
-        // 根據篩選條件取得門市
+        let filtered = this.cachedStores;
+
         if (city) {
-            stores = StoreData.getStoresByCity(storeType, city);
-            // 再套用搜尋關鍵字
-            if (searchKeyword) {
-                const keyword = searchKeyword.toLowerCase();
-                stores = stores.filter(store =>
-                    store.name.toLowerCase().includes(keyword) ||
-                    store.address.toLowerCase().includes(keyword) ||
-                    store.code.includes(keyword)
-                );
-            }
-        } else {
-            stores = StoreData.getStores(storeType, searchKeyword);
+            filtered = filtered.filter(s => s.city === city);
+        }
+        if (searchKeyword) {
+            filtered = filtered.filter(s =>
+                s.name.toLowerCase().includes(searchKeyword) ||
+                s.address.toLowerCase().includes(searchKeyword) ||
+                s.code.includes(searchKeyword)
+            );
         }
 
-        // 渲染門市清單
-        this.renderStoreList(stores);
+        this.renderStoreList(filtered);
     },
 
     /**
-     * 渲染門市清單
+     * 渲染門市清單（最多顯示 100 筆，避免 DOM 爆炸）
      */
     renderStoreList(stores) {
         const storeList = document.getElementById('store-list');
         const noStoresMessage = document.getElementById('no-stores-message');
+        const MAX_DISPLAY = 100;
 
         // 清空清單
         storeList.innerHTML = '';
 
-        if (stores.length === 0) {
-            noStoresMessage.style.display = 'block';
+        if (!stores || stores.length === 0) {
+            if (noStoresMessage) noStoresMessage.style.display = 'block';
             return;
         }
 
-        noStoresMessage.style.display = 'none';
+        if (noStoresMessage) noStoresMessage.style.display = 'none';
 
-        stores.forEach(store => {
+        const displayStores = stores.slice(0, MAX_DISPLAY);
+        const fragment = document.createDocumentFragment();
+
+        // 超過 100 筆時顯示提示
+        if (stores.length > MAX_DISPLAY) {
+            const hint = document.createElement('div');
+            hint.className = 'alert alert-info py-2 mb-2';
+            hint.innerHTML = `<i class="bi bi-info-circle me-1"></i>共 ${stores.length} 間門市，目前顯示前 ${MAX_DISPLAY} 筆。請輸入關鍵字或選擇縣市縮小範圍。`;
+            fragment.appendChild(hint);
+        }
+
+        displayStores.forEach(store => {
             const storeItem = document.createElement('a');
             storeItem.href = '#';
             storeItem.className = 'list-group-item list-group-item-action';
@@ -576,24 +622,22 @@ const Cart = {
                 </div>
             `;
 
-            // 綁定選擇事件
             storeItem.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.selectStore(store);
             });
 
-            storeList.appendChild(storeItem);
+            fragment.appendChild(storeItem);
         });
+
+        storeList.appendChild(fragment);
     },
 
     /**
-     * 篩選門市
+     * 篩選門市（使用快取資料，避免重複呼叫 API）
      */
     filterStores() {
-        const searchKeyword = document.getElementById('store-search-input')?.value || '';
-        const city = document.getElementById('store-city-filter')?.value || '';
-
-        this.loadStores(this.currentStoreType, searchKeyword, city);
+        this.filterStoresFromCache();
     },
 
     /**

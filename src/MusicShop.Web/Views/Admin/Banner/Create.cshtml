@@ -1,0 +1,67 @@
+@model MusicShop.Data.Entities.Banner
+@{
+    ViewData["Title"] = "新增幻燈片";
+}
+
+<div class="container mt-4" style="max-width:640px;">
+    <div class="d-flex align-items-center mb-4 gap-3">
+        <a asp-action="Banners" class="btn btn-outline-secondary btn-sm">← 返回列表</a>
+        <h3 class="mb-0">🖼️ 新增幻燈片</h3>
+    </div>
+
+    <form asp-action="BannerCreate" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none;"></div>
+
+        <!-- 幻燈片圖片 -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">幻燈片圖片 <span class="text-danger">*</span></label>
+            <input type="file" name="bannerImageFile" class="form-control" accept=".jpg,.jpeg,.png,.webp"
+                   onchange="previewImage(this)">
+            <div class="form-text">建議尺寸 1920×600，支援 JPG / PNG / WebP，上限 10MB</div>
+            <img id="imgPreview" src="#" alt="預覽" class="mt-2 img-fluid rounded" style="display:none;max-height:200px;">
+        </div>
+
+        <!-- 連結商品（可選） -->
+        <div class="mb-3">
+            <label asp-for="AlbumId" class="form-label fw-bold">連結商品（可留空）</label>
+            <select asp-for="AlbumId" asp-items="ViewBag.Albums" class="form-select">
+                <option value="">── 不連結商品（純展示）──</option>
+            </select>
+            <div class="form-text">選擇後，點擊幻燈片將跳轉到該商品詳情頁</div>
+        </div>
+
+        <!-- 顯示順序 -->
+        <div class="mb-3">
+            <label asp-for="DisplayOrder" class="form-label fw-bold">顯示順序</label>
+            <input asp-for="DisplayOrder" class="form-control" type="number" min="0" value="0">
+            <div class="form-text">數字越小越靠前，相同數字依建立時間排序</div>
+        </div>
+
+        <!-- 是否啟用 -->
+        <div class="mb-4">
+            <div class="form-check form-switch">
+                <input asp-for="IsActive" class="form-check-input" type="checkbox" checked>
+                <label asp-for="IsActive" class="form-check-label">立即顯示</label>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">新增</button>
+            <a asp-action="Banners" class="btn btn-outline-secondary">取消</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function previewImage(input) {
+            const preview = document.getElementById('imgPreview');
+            if (input.files && input.files[0]) {
+                preview.src = URL.createObjectURL(input.files[0]);
+                preview.style.display = 'block';
+            }
+        }
+    </script>
+}

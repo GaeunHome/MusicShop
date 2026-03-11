@@ -308,6 +308,8 @@ MusicShop.Web
 20. **樂觀並發控制**（v1.2.0 新增）：Album 模型使用 `[Timestamp]` RowVersion 防止並發更新問題
 21. **輔助方法萃取**（v1.2.0 新增）：Controller 層萃取重複邏輯為私有方法，提升可讀性與維護性
 22. **單一職責原則**（v1.2.0 新增）：Controller 僅負責流程控制，Service 層負責業務驗證與邏輯
+23. **Web 層基礎設施服務**（v1.4.0 新增）：`IBannerImageService` 放在 `MusicShop.Web/Services/`，處理 `IFormFile` 等 Web 相依邏輯，不污染 Service 層
+24. **外鍵刪除行為設計**（v1.4.0 新增）：Album 刪除時使用 `DeleteBehavior.SetNull` 保留 Banner 記錄，避免誤刪幻燈片
 
 ## 已完成功能
 
@@ -344,6 +346,7 @@ MusicShop.Web
 - **訂單管理**：查看所有訂單、訂單詳細資訊、更新訂單狀態
 - **使用者管理**：查看所有使用者、切換管理員角色、防止自我移除管理員權限
 - **統計資訊**：後台儀表板顯示商品數、訂單數、使用者數、總銷售額等統計
+- **幻燈片管理**（v1.4.0 新增）：新增、編輯、刪除、啟用停用；刪除時同步清除 wwwroot 實體檔案
 - 角色驗證 `[Authorize(Roles = "Admin")]`
 
 ### ✅ 使用者個人功能
@@ -408,6 +411,11 @@ MusicShop.Web
 - 多語系支援
 - 深色模式
 
+### ✅ v1.4.0 已完成（幻燈片管理）
+- 動態首頁幻燈片（從資料庫讀取，可聯動商品）
+- 後台幻燈片 CRUD（圖片上傳、啟用停用）
+- 刪除幻燈片時同步清除 wwwroot 實體圖片
+
 ## 開發注意事項
 
 ### 架構與設計
@@ -456,6 +464,27 @@ MusicShop.Web
 - **環境變數**：正式環境建議使用環境變數或 Azure Key Vault 管理敏感資訊
 
 ## 版本更新記錄
+
+### v1.4.0 - 幻燈片管理系統 (2026-03-11)
+
+**🖼️ 動態首頁幻燈片**
+- 新增 `Banner` 實體（`MusicShop.Data.Entities`），含可選 AlbumId 外鍵
+- Album 刪除時設 `Banner.AlbumId = NULL`（DeleteBehavior.SetNull），避免幻燈片誤刪
+- 首頁輪播改為從資料庫動態讀取，支援啟用/停用控制
+- 幻燈片可選擇聯動商品詳情頁（點擊跳轉至對應專輯）
+- 無幻燈片時自動隱藏輪播；僅一張時隱藏切換箭頭
+
+**🗂️ 後台幻燈片管理**
+- `Banners`（列表）、`BannerCreate`（新增）、`BannerEdit`（編輯）、`BannerDelete`（刪除）、`BannerToggle`（啟用切換）
+- 刪除幻燈片時呼叫 `IBannerImageService.DeleteBannerImage()` 同步清除 wwwroot 實體圖片
+
+**📦 架構新增**
+- `IBannerRepository` / `BannerRepository`（`MusicShop.Data`，繼承 GenericRepository）
+- `IBannerService` / `BannerService`（`MusicShop.Service`）
+- `IBannerImageService` / `BannerImageService`（`MusicShop.Web/Services/`，Web 層基礎設施）
+- IUnitOfWork 新增 `IBannerRepository Banners` 屬性
+- EF Migration `AddBannerTable`（含 FK SetNull）
+- 圖片存放：`wwwroot/images/banners/banner-{id}.{ext}`，限 JPG/PNG/WebP，上限 10 MB
 
 ### v1.3.0 - 多專案架構重構 (2026-03-09)
 

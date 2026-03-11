@@ -39,16 +39,16 @@
                             {
                                 <tr>
                                     <td>@item.Album?.Title</td>
-                                    <td>NT$ @item.UnitPrice</td>
+                                    <td>NT$ @item.UnitPrice.ToString("N0")</td>
                                     <td>@item.Quantity</td>
-                                    <td class="fw-bold">NT$ @(item.UnitPrice * item.Quantity)</td>
+                                    <td class="fw-bold">NT$ @((item.UnitPrice * item.Quantity).ToString("N0"))</td>
                                 </tr>
                             }
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="3" class="text-end fw-bold">總計：</td>
-                                <td class="fw-bold text-primary">NT$ @Model.TotalAmount</td>
+                                <td class="fw-bold text-primary">NT$ @Model.TotalAmount.ToString("N0")</td>
                             </tr>
                         </tfoot>
                     </table>

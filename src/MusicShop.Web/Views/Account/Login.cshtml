@@ -14,13 +14,13 @@
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                         <div class="mb-3">
-                            <label asp-for="Email" class="form-label"></label>
+                            <label asp-for="Email" class="form-label required"></label>
                             <input asp-for="Email" class="form-control" placeholder="請輸入Email" />
                             <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Password" class="form-label"></label>
+                            <label asp-for="Password" class="form-label required"></label>
                             <input asp-for="Password" class="form-control" placeholder="請輸入密碼" />
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>

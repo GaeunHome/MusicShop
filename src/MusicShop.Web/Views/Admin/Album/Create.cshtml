@@ -12,27 +12,27 @@
             <div class="card shadow-sm">
                 <div class="card-header fw-bold">➕ 新增商品</div>
                 <div class="card-body">
-                    <form asp-action="AlbumCreate" method="post">
+                    <form asp-action="AlbumCreate" method="post" enctype="multipart/form-data">
                         @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
                         {
                             <div asp-validation-summary="All" class="alert alert-danger"></div>
                         }
 
                         <div class="mb-3">
-                            <label asp-for="Title" class="form-label">商品名稱</label>
+                            <label asp-for="Title" class="form-label required">商品名稱</label>
                             <input asp-for="Title" class="form-control" />
                             <span asp-validation-for="Title" class="text-danger small"></span>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="ArtistCategoryFilter" class="form-label">藝人分類</label>
+                                <label for="ArtistCategoryFilter" class="form-label required">藝人分類</label>
                                 <select id="ArtistCategoryFilter" asp-items="ViewBag.ArtistCategories" class="form-select">
                                     <option value="">請先選擇藝人分類</option>
                                 </select>
                                 <small class="text-muted">選擇後會顯示對應的藝人列表</small>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label asp-for="ArtistId" class="form-label">藝人/歌手</label>
+                                <label asp-for="ArtistId" class="form-label required">藝人/歌手</label>
                                 <select asp-for="ArtistId" id="ArtistSelect" class="form-select" disabled>
                                     <option value="">請先選擇藝人分類</option>
                                 </select>
@@ -60,24 +60,30 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Price" class="form-label">價格</label>
+                                <label asp-for="Price" class="form-label required">價格</label>
                                 <input asp-for="Price" class="form-control" type="number" />
                                 <span asp-validation-for="Price" class="text-danger small"></span>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label asp-for="Stock" class="form-label">庫存</label>
+                                <label asp-for="Stock" class="form-label required">庫存</label>
                                 <input asp-for="Stock" class="form-control" type="number" />
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label asp-for="CoverImageUrl" class="form-label">封面圖片網址（選填）</label>
-                            <input asp-for="CoverImageUrl" class="form-control" />
-                            <small class="text-muted">範例：/images/albums/album1.jpg</small>
+                            <label class="form-label">封面圖片（選填）</label>
+                            <input type="file" name="coverImageFile" class="form-control" accept="image/*" id="coverImageInput" />
+                            <small class="text-muted">支援 JPG、PNG、WebP，最大 5MB</small>
+                            <div id="coverImagePreview" class="mt-2" style="display:none;">
+                                <img id="coverPreviewImg" src="" alt="預覽" style="max-height:150px; border-radius:4px; border:1px solid #dee2e6;" />
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label asp-for="DescriptionImageUrl" class="form-label">商品介紹圖片網址（選填）</label>
-                            <input asp-for="DescriptionImageUrl" class="form-control" />
-                            <small class="text-muted">範例：/images/albums/album6.jpg（用於顯示詳細的商品組成內容、尺寸等）</small>
+                            <label class="form-label">商品介紹圖片（選填）</label>
+                            <input type="file" name="descriptionImageFile" class="form-control" accept="image/*" id="descImageInput" />
+                            <small class="text-muted">支援 JPG、PNG、WebP，最大 5MB（用於顯示詳細的商品組成內容）</small>
+                            <div id="descImagePreview" class="mt-2" style="display:none;">
+                                <img id="descPreviewImg" src="" alt="預覽" style="max-height:150px; border-radius:4px; border:1px solid #dee2e6;" />
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
@@ -106,8 +112,23 @@
 
     <script>
         $(document).ready(function() {
-            // 使用模組化的 JavaScript，所有邏輯已封裝在 AlbumAdmin
             AlbumAdmin.initCreate();
         });
+
+        // 圖片即時預覽
+        function previewImage(inputId, previewContainerId, previewImgId) {
+            document.getElementById(inputId).addEventListener('change', function() {
+                const file = this.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(previewImgId).src = e.target.result;
+                    document.getElementById(previewContainerId).style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        previewImage('coverImageInput', 'coverImagePreview', 'coverPreviewImg');
+        previewImage('descImageInput', 'descImagePreview', 'descPreviewImg');
     </script>
 }

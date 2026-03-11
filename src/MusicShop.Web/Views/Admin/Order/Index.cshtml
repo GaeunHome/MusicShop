@@ -33,7 +33,7 @@
                         <td class="fw-bold">#@order.Id</td>
                         <td>@order.User?.Email</td>
                         <td>@order.OrderDate.ToString("yyyy/MM/dd HH:mm")</td>
-                        <td>NT$ @order.TotalAmount</td>
+                        <td>NT$ @order.TotalAmount.ToString("N0")</td>
                         <td>
                             @{
                                 var paymentBadgeClass = order.PaymentMethod == MusicShop.Data.Entities.PaymentMethod.CashOnDelivery

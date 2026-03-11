@@ -1,3 +1,6 @@
 <Solution>
-  <Project Path="src/MusicShop/MusicShop.csproj" />
+  <Project Path="src/MusicShop.Web/MusicShop.Web.csproj" />
+  <Project Path="src/MusicShop.Data/MusicShop.Data.csproj" />
+  <Project Path="src/MusicShop.Service/MusicShop.Service.csproj" />
+  <Project Path="src/MusicShop.Library/MusicShop.Library.csproj" />
 </Solution>

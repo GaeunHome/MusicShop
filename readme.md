@@ -71,8 +71,8 @@
 | | 商品管理 | ✅ | CRUD + 雙分類 |
 | | 訂單管理 | ✅ | 查看/更新狀態 |
 | | 使用者管理 | ✅ | 角色切換（Admin/User） |
+| | 幻燈片管理 | ✅ | CRUD + 圖片上傳 + 商品聯動（v1.4.0） |
 | **進階功能** | 商品分頁 | ⏳ | 待開發 |
-| | 圖片上傳 | ⏳ | 待開發 |
 | | Email 通知 | ⏳ | 待開發 |
 
 ---
@@ -186,95 +186,50 @@ dotnet watch run
 
 ## 📁 專案結構
 
+本專案採用**多專案解決方案**架構（v1.3.0 起）：
+
 ```
 MusicShop/
-├── Controllers/          # 展示層 - MVC 控制器
-│   ├── AccountController.cs    # 帳戶管理（註冊、登入、個人資料）
-│   ├── AdminController.cs      # 後台管理（商品、分類、訂單、使用者）
-│   ├── AlbumController.cs      # 專輯瀏覽與詳細頁面
-│   ├── CartController.cs       # 購物車（✅ 已完成）
-│   ├── HomeController.cs       # 首頁（幻燈片、最新商品）
-│   └── OrderController.cs      # 訂單管理（✅ 已完成）
-├── Helpers/             # 共用工具類別
-│   └── ValidationHelper.cs     # 驗證工具（v1.1.1 新增）
-├── Services/            # 商業邏輯層
-│   ├── Interface/       # 服務介面
-│   │   ├── IAlbumService.cs
-│   │   ├── ICartService.cs
-│   │   ├── IOrderService.cs
-│   │   ├── IArtistCategoryService.cs
-│   │   ├── IProductTypeService.cs
-│   │   ├── IStatisticsService.cs
-│   │   └── IUserService.cs
-│   └── Implementation/  # 服務實作
-│       ├── AlbumService.cs
-│       ├── CartService.cs
-│       ├── OrderService.cs
-│       ├── ArtistCategoryService.cs
-│       ├── ProductTypeService.cs
-│       ├── StatisticsService.cs
-│       └── UserService.cs
-├── Repositories/        # 資料存取層
-│   ├── Interface/       # Repository 介面
-│   │   ├── IAlbumRepository.cs
-│   │   ├── ICartRepository.cs
-│   │   ├── IOrderRepository.cs
-│   │   ├── IArtistCategoryRepository.cs
-│   │   ├── IProductTypeRepository.cs
-│   │   └── IStatisticsRepository.cs
-│   └── Implementation/  # Repository 實作
-│       ├── AlbumRepository.cs
-│       ├── CartRepository.cs
-│       ├── OrderRepository.cs
-│       ├── ArtistCategoryRepository.cs
-│       ├── ProductTypeRepository.cs
-│       └── StatisticsRepository.cs
-├── Models/              # 資料模型
-│   ├── AppUser.cs       # 使用者模型（擴展 IdentityUser）
-│   ├── Album.cs         # 專輯模型
-│   ├── ArtistCategory.cs # 藝人分類模型
-│   ├── ProductType.cs   # 商品類型模型（階層式）
-│   ├── Order.cs         # 訂單模型
-│   ├── OrderItem.cs     # 訂單項目
-│   └── CartItem.cs      # 購物車項目
-├── ViewModels/          # 檢視模型
-│   ├── RegisterViewModel.cs
-│   ├── LoginViewModel.cs
-│   ├── AlbumViewModel.cs
-│   ├── AccountIndexViewModel.cs
-│   ├── EditProfileViewModel.cs
-│   └── UserManagementViewModel.cs
-├── ViewComponents/      # View Components
-│   └── CartBadgeViewComponent.cs  # 購物車數量徽章
-├── Views/               # Razor 檢視
-│   ├── Home/            # 首頁檢視（Index、Privacy）
-│   ├── Account/         # 帳戶檢視（Register、Login、Index、Edit）
-│   ├── Album/           # 專輯檢視（Index、Detail）
-│   ├── Cart/            # 購物車檢視（Index）
-│   ├── Order/           # 訂單檢視（Index、Detail）
-│   ├── Admin/           # 後台管理檢視
-│   ├── Shared/          # 共用檢視（_Layout、_AddToCartModal）
-│   └── Components/      # View Component 檢視
-├── Data/                # 資料庫上下文與初始化
-│   ├── ApplicationDbContext.cs
-│   └── DbInitializer.cs # 資料庫初始化（角色、管理員、範例資料）
-├── Migrations/          # EF Core 遷移檔案
-├── wwwroot/            # 靜態檔案
-│   ├── css/            # CSS 樣式
-│   │   ├── site.css    # 全域樣式
-│   │   └── pages/      # 頁面專屬樣式
-│   │       ├── album-index.css  # 專輯列表頁樣式（v1.1.1 新增）
-│   │       └── cart.css         # 購物車頁面樣式（v1.2.0 優化）
-│   ├── js/             # JavaScript
-│   │   ├── add-to-cart-modal.js
-│   │   └── pages/      # 頁面專屬 JS
-│   ├── images/         # 圖片資源
-│   │   ├── albums/     # 專輯封面
-│   │   └── banners/    # 輪播圖片
-│   └── lib/            # Bootstrap、jQuery
-├── appsettings.example.json   # 設定檔範例
-├── CLAUDE.md           # Claude Code 專案指引
-└── README.md           # 本文件
+├── src/
+│   ├── MusicShop.Data/                  # 資料存取層
+│   │   ├── Entities/                    # 實體模型（AppUser, Album, Banner, Order...）
+│   │   ├── Repositories/
+│   │   │   ├── Interfaces/              # Repository 介面
+│   │   │   └── Implementation/          # Repository 實作（含 BannerRepository）
+│   │   ├── UnitOfWork/                  # IUnitOfWork / UnitOfWork
+│   │   ├── ApplicationDbContext.cs
+│   │   ├── DbInitializer.cs
+│   │   └── Migrations/                  # EF Core 遷移檔案
+│   │
+│   ├── MusicShop.Service/               # 商業邏輯層
+│   │   ├── Services/
+│   │   │   ├── Interfaces/              # Service 介面（含 IBannerService）
+│   │   │   └── Implementation/          # Service 實作（含 BannerService）
+│   │   ├── ViewModels/                  # ViewModel 定義
+│   │   └── Mapper/                      # AutoMapper 設定
+│   │
+│   ├── MusicShop.Library/               # 共用工具庫
+│   │   └── Helpers/                     # ValidationHelper、OrderHelper 等
+│   │
+│   └── MusicShop.Web/                   # 展示層
+│       ├── Controllers/                 # MVC 控制器
+│       ├── Services/                    # Web 層基礎設施服務
+│       │   └── BannerImageService.cs    # 幻燈片圖片上傳（v1.4.0）
+│       ├── Views/
+│       │   ├── Admin/
+│       │   │   └── Banner/              # 幻燈片管理 Views（v1.4.0）
+│       │   └── Home/                    # 動態幻燈片首頁（v1.4.0）
+│       ├── ViewComponents/              # CartBadgeViewComponent
+│       └── wwwroot/
+│           ├── css/                     # 全域與頁面專屬樣式
+│           ├── js/                      # JavaScript 模組
+│           └── images/
+│               ├── albums/              # 專輯封面圖
+│               └── banners/             # 幻燈片圖片（v1.4.0）
+│
+├── CLAUDE.md                            # Claude Code 專案指引
+├── README.md                            # 本文件
+└── MusicShop.slnx                       # 解決方案檔案
 ```
 
 ---
@@ -516,6 +471,57 @@ public class Album
 ---
 
 ## 📜 版本歷史
+
+### v1.4.0 (2026-03-11) - 幻燈片管理系統
+
+**🖼️ 動態首頁幻燈片**
+- ✅ 新增 `Banner` 實體（含可選的 AlbumId 外鍵，刪除相簿時設 NULL 而非串聯刪除）
+- ✅ 首頁輪播改為從資料庫動態讀取，支援啟用/停用控制
+- ✅ 幻燈片可聯動商品詳情頁（點擊直接跳轉至對應專輯）
+- ✅ 無幻燈片時自動隱藏輪播區域，僅一張時隱藏切換按鈕
+
+**🗂️ 後台幻燈片管理（CRUD）**
+- ✅ 幻燈片列表（縮圖預覽、排序、啟用狀態）
+- ✅ 新增幻燈片（圖片上傳、商品聯動下拉選單、排序設定）
+- ✅ 編輯幻燈片（替換圖片、更新關聯商品）
+- ✅ 刪除幻燈片（同步刪除 wwwroot 實體圖片檔案）
+- ✅ 啟用/停用切換
+
+**📦 架構實作**
+- ✅ `IBannerRepository` / `BannerRepository`（繼承 GenericRepository）
+- ✅ `IBannerService` / `BannerService`（商業邏輯層）
+- ✅ `IBannerImageService` / `BannerImageService`（Web 層圖片上傳基礎設施）
+- ✅ EF Migration `AddBannerTable`（含 FK SetNull 設定）
+- ✅ 圖片儲存於 `wwwroot/images/banners/`，格式限 JPG/PNG/WebP，上限 10 MB
+
+---
+
+### v1.3.1 (2026-03-09) - 修正結帳表單條件驗證
+
+- ✅ 修正結帳頁面表單驗證邏輯問題
+
+---
+
+### v1.3.0 (2026-03-09) - 多專案架構重構
+
+**🏗️ 架構升級**
+- ✅ 從單一專案重構為多專案解決方案（4 個獨立專案）
+- ✅ `MusicShop.Data`（資料存取層）、`MusicShop.Service`（商業邏輯層）
+- ✅ `MusicShop.Library`（共用工具庫）、`MusicShop.Web`（展示層）
+
+**🔧 設計模式改進**
+- ✅ 實作 **UnitOfWork 模式**：統一管理所有 Repository
+- ✅ 實作 **Generic Repository 模式**：提供通用 CRUD 操作介面
+- ✅ 整合 **AutoMapper**：自動化 Entity ↔ ViewModel 映射
+
+---
+
+### v1.2.1 - 架構重構與訂單管理優化
+
+- ✅ 新增 `OrderHelper` 工具類別（集中管理訂單顯示邏輯）
+- ✅ 訂單狀態文字、徽章樣式、下拉選單統一從 Helper 取得
+
+---
 
 ### v1.2.0 (2026-03-09) - 程式碼品質與安全性優化
 

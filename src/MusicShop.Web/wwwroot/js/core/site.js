@@ -77,4 +77,23 @@ document.addEventListener('DOMContentLoaded', function() {
             searchOverlay.classList.remove('show');
         }
     });
+
+    // 手機版導覽列子選單展開／收合
+    document.querySelectorAll('[data-nav-mobile-toggle]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var li = btn.closest('li');
+            var isOpen = li.classList.contains('mobile-open');
+
+            // 關閉所有已展開的項目
+            document.querySelectorAll('#mainNavCollapse .nav-menu-item.mobile-open').forEach(function(openLi) {
+                openLi.classList.remove('mobile-open');
+            });
+
+            // 若原本是關閉的，才展開；已開著的就讓它維持關閉
+            if (!isOpen) {
+                li.classList.add('mobile-open');
+            }
+        });
+    });
 });

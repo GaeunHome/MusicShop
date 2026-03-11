@@ -347,6 +347,37 @@ namespace MusicShop.Migrations
                     b.ToTable("ArtistCategories");
                 });
 
+            modelBuilder.Entity("MusicShop.Data.Entities.Banner", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AlbumId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlbumId");
+
+                    b.ToTable("Banners");
+                });
+
             modelBuilder.Entity("MusicShop.Data.Entities.CartItem", b =>
                 {
                     b.Property<int>("Id")
@@ -608,6 +639,16 @@ namespace MusicShop.Migrations
                         .IsRequired();
 
                     b.Navigation("ArtistCategory");
+                });
+
+            modelBuilder.Entity("MusicShop.Data.Entities.Banner", b =>
+                {
+                    b.HasOne("MusicShop.Data.Entities.Album", "Album")
+                        .WithMany()
+                        .HasForeignKey("AlbumId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Album");
                 });
 
             modelBuilder.Entity("MusicShop.Data.Entities.CartItem", b =>

@@ -16,6 +16,7 @@ namespace MusicShop.Data.UnitOfWork
         ICartRepository Cart { get; }
         IOrderRepository Orders { get; }
         IStatisticsRepository Statistics { get; }
+        IBannerRepository Banners { get; }
 
         /// <summary>
         /// 開始資料庫交易

@@ -17,15 +17,18 @@ public class CartController : Controller
 {
     private readonly ICartService _cartService;
     private readonly IOrderService _orderService;
+    private readonly IEcpayLogisticsService _ecpayLogisticsService;
     private readonly UserManager<AppUser> _userManager;
 
     public CartController(
         ICartService cartService,
         IOrderService orderService,
+        IEcpayLogisticsService ecpayLogisticsService,
         UserManager<AppUser> userManager)
     {
         _cartService = cartService;
         _orderService = orderService;
+        _ecpayLogisticsService = ecpayLogisticsService;
         _userManager = userManager;
     }
 
@@ -262,6 +265,27 @@ public class CartController : Controller
         catch (UnauthorizedAccessException)
         {
             return Forbid();
+        }
+    }
+
+    // GET: /Cart/GetStoreList?type=UNIMART
+    // AJAX 取得 ECPay 超商門市清單
+    [HttpGet]
+    public async Task<IActionResult> GetStoreList(string type)
+    {
+        // 驗證超商類型（UNIMART=7-11, FAMI=全家）
+        var allowedTypes = new HashSet<string> { "UNIMART", "FAMI", "HILIFE", "OKMART" };
+        if (string.IsNullOrEmpty(type) || !allowedTypes.Contains(type.ToUpper()))
+            return Json(new { success = false, message = "無效的超商類型" });
+
+        try
+        {
+            var stores = await _ecpayLogisticsService.GetStoreListAsync(type.ToUpper());
+            return Json(new { success = true, stores });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
         }
     }
 

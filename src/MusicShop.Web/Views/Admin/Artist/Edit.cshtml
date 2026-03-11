@@ -20,13 +20,13 @@
                         <input type="hidden" asp-for="Id" />
 
                         <div class="mb-3">
-                            <label asp-for="Name" class="form-label">藝人名稱</label>
+                            <label asp-for="Name" class="form-label required">藝人名稱</label>
                             <input asp-for="Name" class="form-control" />
                             <span asp-validation-for="Name" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="ArtistCategoryId" class="form-label">藝人分類 <span class="text-danger">*</span></label>
+                            <label asp-for="ArtistCategoryId" class="form-label required">藝人分類</label>
                             <select asp-for="ArtistCategoryId" asp-items="ViewBag.ArtistCategories" class="form-select">
                                 <option value="0">請選擇藝人分類</option>
                             </select>

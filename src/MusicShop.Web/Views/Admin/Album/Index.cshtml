@@ -43,7 +43,7 @@
                                 <span class="badge bg-secondary">@album.ProductType.Name</span>
                             }
                         </td>
-                        <td>NT$ @album.Price</td>
+                        <td>NT$ @album.Price.ToString("N0")</td>
                         <td>
                             @if (album.Stock <= 0)
                             {
@@ -77,3 +77,9 @@
 
     <a asp-action="Index" class="btn btn-outline-secondary mt-3">← 返回後台</a>
 </div>
+
+@section Scripts {
+    <script>
+        AlbumAdmin.initList();
+    </script>
+}
