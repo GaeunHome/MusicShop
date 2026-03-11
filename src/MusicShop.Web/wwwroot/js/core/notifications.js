@@ -112,6 +112,29 @@ function showDeleteConfirm(itemName, onConfirm) {
 }
 
 /**
+ * 需要登入提示對話框
+ * 點擊「立即登入」後導向登入頁，並帶上 returnUrl 回到當前頁
+ */
+function showLoginRequired() {
+    Swal.fire({
+        icon: 'info',
+        title: '請先登入',
+        text: '您需要登入才能使用此功能',
+        showCancelButton: true,
+        confirmButtonText: '立即登入',
+        cancelButtonText: '稍後再說',
+        confirmButtonColor: '#b19cd9',
+        cancelButtonColor: '#6c757d',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = '/Account/Login?returnUrl=' + returnUrl;
+        }
+    });
+}
+
+/**
  * 登出確認對話框
  * @param {Function} onConfirm - 確認後的回調函數
  */

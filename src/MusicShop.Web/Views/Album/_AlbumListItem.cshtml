@@ -51,7 +51,7 @@
             }
             else
             {
-                <a asp-controller="Account" asp-action="Login" class="btn btn-primary">加入購物車</a>
+                <button type="button" class="btn btn-primary" data-require-auth>加入購物車</button>
             }
         }
         else
@@ -71,9 +71,9 @@
         }
         else
         {
-            <a asp-controller="Account" asp-action="Login" class="btn-wishlist" title="登入後加入收藏">
+            <button type="button" class="btn-wishlist" data-require-auth title="登入後加入收藏">
                 <i class="bi bi-heart"></i>
-            </a>
+            </button>
         }
     </div>
 </div>

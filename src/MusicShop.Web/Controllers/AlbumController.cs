@@ -93,6 +93,11 @@ public class AlbumController : Controller
         if (album == null)
             return NotFound();
 
+        // 傳遞收藏狀態（已登入才需查詢）
+        var userId = _userManager.GetUserId(User);
+        var wishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId ?? string.Empty);
+        ViewBag.IsInWishlist = wishlistIds.Contains(id);
+
         // 取得相關商品（同藝人分類或同商品類型，排除當前商品，最多 8 個）
         var relatedAlbums = await _albumService.GetAlbumsAsync(
             searchTerm: null,

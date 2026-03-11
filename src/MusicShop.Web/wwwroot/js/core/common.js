@@ -9,6 +9,21 @@ const Common = {
         this.bindLogoutHandler();
         this.bindGenericDeleteHandlers();
         this.bindGenericConfirmHandlers();
+        this.bindAuthGuard();
+    },
+
+    /**
+     * 攔截所有帶有 data-require-auth 屬性的元素點擊
+     * 顯示「請先登入」彈跳視窗，取代直接跳轉到登入頁
+     */
+    bindAuthGuard() {
+        document.addEventListener('click', function (e) {
+            const el = e.target.closest('[data-require-auth]');
+            if (!el) return;
+            e.preventDefault();
+            e.stopPropagation();
+            showLoginRequired();
+        });
     },
 
     /**
