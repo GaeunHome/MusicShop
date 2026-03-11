@@ -28,7 +28,7 @@
     </div>
 
     <div class="product-list-info">
-        <a asp-action="Detail" asp-route-id="@Model.Id" class="product-list-title">@Model.Title</a>
+        <a asp-controller="Album" asp-action="Detail" asp-route-id="@Model.Id" class="product-list-title">@Model.Title</a>
         <div class="product-list-artist">@(Model.Artist?.Name ?? "未設定藝人")</div>
         <div class="product-list-price mt-2">NT$@Model.Price.ToString("N0")</div>
     </div>
