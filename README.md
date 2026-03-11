@@ -74,6 +74,8 @@
 | | 訂單管理 | ✅ | 查看/更新狀態 |
 | | 使用者管理 | ✅ | 角色切換（Admin/User） |
 | | 幻燈片管理 | ✅ | CRUD + 圖片上傳 + 商品聯動（v1.4.0） |
+| **收藏清單** | 加入最愛 | ✅ | AJAX 即時切換（v1.5.0） |
+| | 收藏清單頁 | ✅ | 顯示收藏商品，可直接移除 |
 | **進階功能** | 商品分頁 | ⏳ | 待開發 |
 | | Email 通知 | ⏳ | 待開發 |
 
@@ -211,6 +213,10 @@ MusicShop/
 │       ├── Views/
 │       │   ├── Admin/
 │       │   │   └── Banner/              # 幻燈片管理 Views（v1.4.0）
+│       │   ├── Shared/
+│       │   │   ├── _AlbumCard.cshtml    # 商品卡片局部視圖（v1.5.2 移至 Shared）
+│       │   │   └── _AlbumListItem.cshtml # 商品條列局部視圖（v1.5.2 移至 Shared）
+│       │   ├── Wishlist/                # 收藏清單 Views（v1.5.0）
 │       │   └── Home/                    # 動態幻燈片首頁（v1.4.0）
 │       ├── ViewComponents/              # CartBadgeViewComponent
 │       └── wwwroot/
@@ -327,6 +333,7 @@ await _cartRepository.ClearCartAsync(userId);
 | **Orders** | 訂單主檔 | UserId, TotalAmount, Status |
 | **OrderItems** | 訂單明細 | OrderId, AlbumId, Quantity, UnitPrice |
 | **CartItems** | 購物車項目 | UserId, AlbumId, Quantity |
+| **WishlistItems** | 收藏清單項目 | UserId, AlbumId, AddedAt（唯一索引） |
 | **AspNetUsers** | 使用者資料 | Email, PasswordHash, FullName, PhoneNumber |
 | **AspNetRoles** | 角色資料 | User, Admin |
 
@@ -465,27 +472,16 @@ public class Album
 
 ## 📜 版本歷史
 
-### v1.4.0 (2026-03-11) - 幻燈片管理系統
+### v1.5.2 (2026-03-11) - 首頁與收藏頁面優化
 
-**🖼️ 動態首頁幻燈片**
-- ✅ 新增 `Banner` 實體（含可選的 AlbumId 外鍵，刪除相簿時設 NULL 而非串聯刪除）
-- ✅ 首頁輪播改為從資料庫動態讀取，支援啟用/停用控制
-- ✅ 幻燈片可聯動商品詳情頁（點擊直接跳轉至對應專輯）
-- ✅ 無幻燈片時自動隱藏輪播區域，僅一張時隱藏切換按鈕
+**🏠 首頁商品展示統一**
+- ✅ 首頁商品卡片改用 `_AlbumCard` 共用局部視圖，與商品列表頁完全一致
+- ✅ 首頁加入收藏愛心按鈕（AJAX 即時切換，初始反映收藏狀態）
+- ✅ 首頁未登入按鈕統一改為 `data-require-auth` 彈窗提示，不再直接跳轉登入頁
+- ✅ `_AlbumCard` / `_AlbumListItem` 局部視圖移至 `Views/Shared/`，可跨 Controller 共用
 
-**🗂️ 後台幻燈片管理（CRUD）**
-- ✅ 幻燈片列表（縮圖預覽、排序、啟用狀態）
-- ✅ 新增幻燈片（圖片上傳、商品聯動下拉選單、排序設定）
-- ✅ 編輯幻燈片（替換圖片、更新關聯商品）
-- ✅ 刪除幻燈片（同步刪除 wwwroot 實體圖片檔案）
-- ✅ 啟用/停用切換
-
-**📦 架構實作**
-- ✅ `IBannerRepository` / `BannerRepository`（繼承 GenericRepository）
-- ✅ `IBannerService` / `BannerService`（商業邏輯層）
-- ✅ `IBannerImageService` / `BannerImageService`（Web 層圖片上傳基礎設施）
-- ✅ EF Migration `AddBannerTable`（含 FK SetNull 設定）
-- ✅ 圖片儲存於 `wwwroot/images/banners/`，格式限 JPG/PNG/WebP，上限 10 MB
+**❤️ 收藏頁面版面修正**
+- ✅ 補上 `home.css`，商品卡片樣式（懸停效果、圖片覆蓋層）正常顯示
 
 ---
 
@@ -521,6 +517,30 @@ public class Album
 - ✅ 整合綠界 ECPay 超商物流服務（`IEcpayLogisticsService`）
 - ✅ README 架構圖改用 Markdown 格式避免框線字元跑版
 - ✅ README 補充綠界 ECPay 超商物流整合說明與 `appsettings.json` 設定範例
+
+---
+
+### v1.4.0 (2026-03-11) - 幻燈片管理系統
+
+**🖼️ 動態首頁幻燈片**
+- ✅ 新增 `Banner` 實體（含可選的 AlbumId 外鍵，刪除相簿時設 NULL 而非串聯刪除）
+- ✅ 首頁輪播改為從資料庫動態讀取，支援啟用/停用控制
+- ✅ 幻燈片可聯動商品詳情頁（點擊直接跳轉至對應專輯）
+- ✅ 無幻燈片時自動隱藏輪播區域，僅一張時隱藏切換按鈕
+
+**🗂️ 後台幻燈片管理（CRUD）**
+- ✅ 幻燈片列表（縮圖預覽、排序、啟用狀態）
+- ✅ 新增幻燈片（圖片上傳、商品聯動下拉選單、排序設定）
+- ✅ 編輯幻燈片（替換圖片、更新關聯商品）
+- ✅ 刪除幻燈片（同步刪除 wwwroot 實體圖片檔案）
+- ✅ 啟用/停用切換
+
+**📦 架構實作**
+- ✅ `IBannerRepository` / `BannerRepository`（繼承 GenericRepository）
+- ✅ `IBannerService` / `BannerService`（商業邏輯層）
+- ✅ `IBannerImageService` / `BannerImageService`（Web 層圖片上傳基礎設施）
+- ✅ EF Migration `AddBannerTable`（含 FK SetNull 設定）
+- ✅ 圖片儲存於 `wwwroot/images/banners/`，格式限 JPG/PNG/WebP，上限 10 MB
 
 ---
 
