@@ -489,6 +489,41 @@ public class Album
 
 ---
 
+### v1.5.1 (2026-03-11) - 登入提示彈跳視窗
+
+- ✅ 未登入點擊「加入購物車」、「加入最愛」、「購買」時，改以 SweetAlert2 彈跳視窗提示
+- ✅ 提供「立即登入」（帶 returnUrl）與「稍後再說」兩個選項
+- ✅ 使用 `data-require-auth` 屬性統一標記需要登入的按鈕，`common.js` 全域攔截
+
+---
+
+### v1.5.0 (2026-03-11) - 收藏清單功能
+
+**❤️ 加入最愛**
+- ✅ `WishlistItem` 實體（UserId + AlbumId 唯一索引，刪除商品/使用者時串聯刪除）
+- ✅ `IWishlistRepository` / `WishlistRepository`（Data 層）
+- ✅ `IWishlistService` / `WishlistService`（Service 層，Toggle 模式）
+- ✅ `WishlistController`（Index 頁面 + Toggle AJAX API）
+- ✅ 收藏清單頁 `/Wishlist`（顯示所有收藏商品，可直接移除）
+- ✅ 商品列表頁愛心按鈕：即時 AJAX 切換（空心 ↔ 實心），頁面初始即反映收藏狀態
+- ✅ 商品詳細頁愛心按鈕：同步顯示「加入最愛 ↔ 已收藏」文字與圖示
+- ✅ EF Migration `AddWishlistTable`
+
+**🔧 排序修正**
+- ✅ 有指定排序（價格/日期）時改為全域平鋪清單，排序效果不被藝人分組覆蓋
+- ✅ 商品卡片與條列項目抽成 `_AlbumCard` / `_AlbumListItem` 局部視圖
+
+---
+
+### v1.4.1 (2026-03-11) - 搜尋修正與文件更新
+
+- ✅ 修正導覽列搜尋框參數名稱（`searchTerm` → `search`），搜尋功能正常運作
+- ✅ 整合綠界 ECPay 超商物流服務（`IEcpayLogisticsService`）
+- ✅ README 架構圖改用 Markdown 格式避免框線字元跑版
+- ✅ README 補充綠界 ECPay 超商物流整合說明與 `appsettings.json` 設定範例
+
+---
+
 ### v1.3.1 (2026-03-09) - 修正結帳表單條件驗證
 
 - ✅ 修正結帳頁面表單驗證邏輯問題

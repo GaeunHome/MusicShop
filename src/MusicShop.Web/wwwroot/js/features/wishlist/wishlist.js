@@ -35,15 +35,15 @@
             if (data.added) {
                 btn.classList.add('wishlisted');
                 btn.title = '取消收藏';
-                if (icon) {
-                    icon.className = 'bi bi-heart-fill text-danger';
-                }
+                if (icon) icon.className = 'bi bi-heart-fill text-danger';
+                const label = btn.querySelector('.wishlist-label');
+                if (label) label.textContent = '已收藏';
             } else {
                 btn.classList.remove('wishlisted');
                 btn.title = '加入收藏';
-                if (icon) {
-                    icon.className = 'bi bi-heart';
-                }
+                if (icon) icon.className = 'bi bi-heart';
+                const label = btn.querySelector('.wishlist-label');
+                if (label) label.textContent = '加入最愛';
             }
         } catch (err) {
             console.error('收藏切換失敗', err);

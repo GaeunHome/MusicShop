@@ -251,30 +251,19 @@
 
         <!-- 商品容器（支援視圖切換） -->
         <div id="productContainer" class="view-mode-grid">
-            @{
-                // 共用的商品卡片渲染邏輯（抽成 local function 概念，以 IEnumerable 帶入）
-                IEnumerable<MusicShop.Data.Entities.Album> renderAlbums = isSorted
-                    ? Model
-                    : Enumerable.Empty<MusicShop.Data.Entities.Album>();
-            }
-
             @if (isSorted)
             {
                 <!-- 排序模式：全域平鋪，不依藝人分組 -->
                 <div class="grid-view row row-cols-2 row-cols-lg-4 g-4 mb-5">
                     @foreach (var album in Model)
                     {
-                        @await Html.PartialAsync("_AlbumCard", album, new ViewDataDictionary(ViewData) {
-                            { "WishlistIds", wishlistIds }
-                        })
+                        @await Html.PartialAsync("_AlbumCard", album)
                     }
                 </div>
                 <div class="list-view mb-5">
                     @foreach (var album in Model)
                     {
-                        @await Html.PartialAsync("_AlbumListItem", album, new ViewDataDictionary(ViewData) {
-                            { "WishlistIds", wishlistIds }
-                        })
+                        @await Html.PartialAsync("_AlbumListItem", album)
                     }
                 </div>
             }
@@ -290,18 +279,14 @@
                     <div class="grid-view row row-cols-2 row-cols-lg-4 g-4 mb-5">
                         @foreach (var album in artistGroup)
                         {
-                            @await Html.PartialAsync("_AlbumCard", album, new ViewDataDictionary(ViewData) {
-                                { "WishlistIds", wishlistIds }
-                            })
+                            @await Html.PartialAsync("_AlbumCard", album)
                         }
                     </div>
 
                     <div class="list-view mb-5">
                         @foreach (var album in artistGroup)
                         {
-                            @await Html.PartialAsync("_AlbumListItem", album, new ViewDataDictionary(ViewData) {
-                                { "WishlistIds", wishlistIds }
-                            })
+                            @await Html.PartialAsync("_AlbumListItem", album)
                         }
                     </div>
                 }
