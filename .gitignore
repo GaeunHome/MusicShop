@@ -1,8 +1,8 @@
 appsettings.json
 .DS_Store
 *.log
-bin/
-obj/
+**/bin/
+**/obj/
 img/
 _backup/
 .claude/
