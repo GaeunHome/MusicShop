@@ -1,4 +1,6 @@
 using MusicShop.Data.Entities;
+using MusicShop.Service.ViewModels;
+using MusicShop.Service.ViewModels.Admin;
 
 namespace MusicShop.Service.Services.Interfaces;
 
@@ -8,24 +10,32 @@ namespace MusicShop.Service.Services.Interfaces;
 public interface IArtistCategoryService
 {
     /// <summary>
-    /// 取得所有藝人分類
+    /// 取得所有藝人分類（Entity，內部使用）
     /// </summary>
     Task<IEnumerable<ArtistCategory>> GetAllArtistCategoriesAsync();
 
     /// <summary>
-    /// 根據 ID 取得藝人分類
+    /// 取得所有藝人分類下拉選單項目 ViewModel（供展示層使用）
     /// </summary>
-    Task<ArtistCategory?> GetArtistCategoryByIdAsync(int id);
+    Task<IEnumerable<SelectItemViewModel>> GetArtistCategorySelectItemsAsync();
 
     /// <summary>
-    /// 新增藝人分類
+    /// 根據 ID 取得後台藝人分類表單 ViewModel（用於編輯頁面預填資料）
+    /// 【架構說明】服務層負責 Entity → ViewModel 轉換，Controller 與 View 只使用 ViewModel
     /// </summary>
-    Task<ArtistCategory> CreateArtistCategoryAsync(ArtistCategory artistCategory);
+    Task<ArtistCategoryFormViewModel?> GetArtistCategoryFormByIdAsync(int id);
 
     /// <summary>
-    /// 更新藝人分類
+    /// 新增藝人分類（後台管理用）
+    /// 【架構說明】服務層負責 ViewModel → Entity 轉換，Controller 只傳遞 ViewModel
     /// </summary>
-    Task UpdateArtistCategoryAsync(ArtistCategory artistCategory);
+    Task<ArtistCategoryFormViewModel> CreateArtistCategoryAsync(ArtistCategoryFormViewModel vm);
+
+    /// <summary>
+    /// 更新藝人分類（後台管理用）
+    /// 【架構說明】服務層負責 ViewModel → Entity 轉換，Controller 只傳遞 ViewModel
+    /// </summary>
+    Task UpdateArtistCategoryAsync(ArtistCategoryFormViewModel vm);
 
     /// <summary>
     /// 刪除藝人分類

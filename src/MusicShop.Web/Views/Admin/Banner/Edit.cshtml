@@ -1,4 +1,4 @@
-@model MusicShop.Data.Entities.Banner
+@model MusicShop.Service.ViewModels.Admin.BannerFormViewModel
 @{
     ViewData["Title"] = "編輯幻燈片";
 }
@@ -12,7 +12,7 @@
     <form asp-action="BannerEdit" method="post" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="CreatedAt" />
+        <input type="hidden" asp-for="ImageUrl" />
 
         <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none;"></div>
 

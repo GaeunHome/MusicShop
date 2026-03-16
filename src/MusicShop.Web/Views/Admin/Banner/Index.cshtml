@@ -1,4 +1,4 @@
-@model IEnumerable<MusicShop.Data.Entities.Banner>
+@model IEnumerable<MusicShop.Service.ViewModels.Admin.BannerListItemViewModel>
 @{
     ViewData["Title"] = "幻燈片管理";
     ViewData["PageId"] = "admin-banners";
@@ -29,7 +29,7 @@
                     <tr>
                         <td>@banner.DisplayOrder</td>
                         <td>
-                            @if (!string.IsNullOrEmpty(banner.ImageUrl))
+                            @if (banner.HasImage)
                             {
                                 <img src="@banner.ImageUrl" alt="幻燈片" style="height:60px;object-fit:cover;border-radius:4px;">
                             }
@@ -39,10 +39,10 @@
                             }
                         </td>
                         <td>
-                            @if (banner.Album != null)
+                            @if (banner.HasLinkedAlbum)
                             {
                                 <a asp-controller="Album" asp-action="Detail" asp-route-id="@banner.AlbumId" target="_blank">
-                                    @banner.Album.Title
+                                    @banner.AlbumTitle
                                 </a>
                             }
                             else

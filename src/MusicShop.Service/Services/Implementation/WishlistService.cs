@@ -2,6 +2,7 @@ using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Library.Helpers;
 using MusicShop.Service.Services.Interfaces;
+using MusicShop.Service.ViewModels.Wishlist;
 
 namespace MusicShop.Service.Services.Implementation
 {
@@ -21,6 +22,26 @@ namespace MusicShop.Service.Services.Implementation
         {
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
             return await _unitOfWork.Wishlists.GetByUserIdAsync(userId);
+        }
+
+        public async Task<IEnumerable<WishlistItemViewModel>> GetWishlistItemViewModelsAsync(string userId)
+        {
+            ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
+            var items = await _unitOfWork.Wishlists.GetByUserIdAsync(userId);
+
+            return items
+                .Where(i => i.Album != null)
+                .Select(item => new WishlistItemViewModel
+                {
+                    Id = item.Id,
+                    AlbumId = item.AlbumId,
+                    AlbumTitle = item.Album!.Title,
+                    ArtistName = item.Album.Artist?.Name,
+                    CoverImageUrl = item.Album.CoverImageUrl,
+                    Price = item.Album.Price,
+                    Stock = item.Album.Stock,
+                    AddedAt = item.AddedAt
+                });
         }
 
         public async Task<bool> ToggleWishlistAsync(string userId, int albumId)

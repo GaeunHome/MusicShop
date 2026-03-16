@@ -37,8 +37,8 @@ public class CartController : Controller
     {
         var userId = GetAuthorizedUserId();
 
-        var cartItems = await _cartService.GetUserCartAsync(userId);
-        var total = await _cartService.GetCartTotalAsync(userId);
+        var cartItems = await _cartService.GetCartItemViewModelsAsync(userId);
+        var total = cartItems.Sum(c => c.SubTotal);
 
         ViewBag.Total = total;
         return View(cartItems);
@@ -170,10 +170,9 @@ public class CartController : Controller
     {
         var userId = GetAuthorizedUserId();
 
-        var cartItems = await _cartService.GetUserCartAsync(userId);
-        var cartItemsList = cartItems.ToList();
+        var cartItemViewModels = await _cartService.GetCartItemViewModelsAsync(userId);
 
-        if (!cartItemsList.Any())
+        if (!cartItemViewModels.Any())
         {
             TempData["Error"] = "購物車是空的！";
             return RedirectToAction("Index");
@@ -183,7 +182,7 @@ public class CartController : Controller
         var user = await _userManager.GetUserAsync(User);
 
         // 計算總金額
-        var total = await _cartService.GetCartTotalAsync(userId);
+        var total = cartItemViewModels.Sum(c => c.SubTotal);
 
         // 建立 CheckoutViewModel，預填使用者資料
         var viewModel = new CheckoutViewModel
@@ -193,7 +192,7 @@ public class CartController : Controller
             ReceiverPhone = user?.PhoneNumber ?? string.Empty,
 
             // 購物車項目
-            CartItems = cartItemsList,
+            CartItems = cartItemViewModels,
             TotalAmount = total,
 
             // 預設值
@@ -255,12 +254,12 @@ public class CartController : Controller
 
         try
         {
-            var order = await _orderService.GetOrderDetailAsync(orderId, userId);
+            var orderViewModel = await _orderService.GetOrderConfirmationViewModelAsync(orderId, userId);
 
-            if (order == null)
+            if (orderViewModel == null)
                 return NotFound();
 
-            return View(order);
+            return View(orderViewModel);
         }
         catch (UnauthorizedAccessException)
         {
@@ -331,10 +330,10 @@ public class CartController : Controller
     /// <returns>結帳視圖</returns>
     private async Task<IActionResult> ReturnCheckoutViewWithDataAsync(CheckoutViewModel model, string userId)
     {
-        var cartItems = await _cartService.GetUserCartAsync(userId);
-        model.CartItems = cartItems.ToList();
+        var cartItemViewModels = await _cartService.GetCartItemViewModelsAsync(userId);
+        model.CartItems = cartItemViewModels;
         // 優化：直接從已取得的 cartItems 計算總計，避免重複查詢資料庫
-        model.TotalAmount = cartItems.Sum(c => c.Album!.Price * c.Quantity);
+        model.TotalAmount = cartItemViewModels.Sum(c => c.SubTotal);
         ViewBag.Cities = TaiwanDistricts.Cities;
         return View("Checkout", model);
     }

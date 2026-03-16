@@ -472,160 +472,32 @@ public class Album
 
 ## 📜 版本歷史
 
-### v1.5.2 (2026-03-11) - 首頁與收藏頁面優化
+### v1.6.0 (2026-03-16) - 購物車登入提示優化
 
-**🏠 首頁商品展示統一**
-- ✅ 首頁商品卡片改用 `_AlbumCard` 共用局部視圖，與商品列表頁完全一致
-- ✅ 首頁加入收藏愛心按鈕（AJAX 即時切換，初始反映收藏狀態）
-- ✅ 首頁未登入按鈕統一改為 `data-require-auth` 彈窗提示，不再直接跳轉登入頁
-- ✅ `_AlbumCard` / `_AlbumListItem` 局部視圖移至 `Views/Shared/`，可跨 Controller 共用
-
-**❤️ 收藏頁面版面修正**
-- ✅ 補上 `home.css`，商品卡片樣式（懸停效果、圖片覆蓋層）正常顯示
+**🛒 未登入購物車互動改善**
+- ✅ 未登入點擊導覽列購物車圖示時，以 SweetAlert2 彈跳視窗提示「請先登入」
+- ✅ 提供「立即登入」（帶 returnUrl）與「稍後再說」兩個選項，取代直接跳轉登入頁
+- ✅ `_Layout.cshtml` 依登入狀態條件渲染：已登入顯示 `<a>` 連結（含購物車徽章），未登入渲染為 `<button data-require-auth>`
+- ✅ 沿用現有 `data-require-auth` + `Common.bindAuthGuard()` 機制，無需新增任何 JS
 
 ---
 
-### v1.5.1 (2026-03-11) - 登入提示彈跳視窗
+### 歷史版本摘要（v1.0.0 ~ v1.5.2）
 
-- ✅ 未登入點擊「加入購物車」、「加入最愛」、「購買」時，改以 SweetAlert2 彈跳視窗提示
-- ✅ 提供「立即登入」（帶 returnUrl）與「稍後再說」兩個選項
-- ✅ 使用 `data-require-auth` 屬性統一標記需要登入的按鈕，`common.js` 全域攔截
-
----
-
-### v1.5.0 (2026-03-11) - 收藏清單功能
-
-**❤️ 加入最愛**
-- ✅ `WishlistItem` 實體（UserId + AlbumId 唯一索引，刪除商品/使用者時串聯刪除）
-- ✅ `IWishlistRepository` / `WishlistRepository`（Data 層）
-- ✅ `IWishlistService` / `WishlistService`（Service 層，Toggle 模式）
-- ✅ `WishlistController`（Index 頁面 + Toggle AJAX API）
-- ✅ 收藏清單頁 `/Wishlist`（顯示所有收藏商品，可直接移除）
-- ✅ 商品列表頁愛心按鈕：即時 AJAX 切換（空心 ↔ 實心），頁面初始即反映收藏狀態
-- ✅ 商品詳細頁愛心按鈕：同步顯示「加入最愛 ↔ 已收藏」文字與圖示
-- ✅ EF Migration `AddWishlistTable`
-
-**🔧 排序修正**
-- ✅ 有指定排序（價格/日期）時改為全域平鋪清單，排序效果不被藝人分組覆蓋
-- ✅ 商品卡片與條列項目抽成 `_AlbumCard` / `_AlbumListItem` 局部視圖
-
----
-
-### v1.4.x (2026-03-11) - 幻燈片管理系統 & 搜尋修正
-
-#### v1.4.1 - 搜尋修正與文件更新
-- ✅ 修正導覽列搜尋框參數名稱（`searchTerm` → `search`），搜尋功能正常運作
-- ✅ 整合綠界 ECPay 超商物流服務（`IEcpayLogisticsService`）
-- ✅ README 架構圖改用 Markdown 格式避免框線字元跑版
-- ✅ README 補充綠界 ECPay 超商物流整合說明與 `appsettings.json` 設定範例
-
-#### v1.4.0 - 幻燈片管理系統
-
-**🖼️ 動態首頁幻燈片**
-- ✅ 新增 `Banner` 實體（含可選的 AlbumId 外鍵，刪除相簿時設 NULL 而非串聯刪除）
-- ✅ 首頁輪播改為從資料庫動態讀取，支援啟用/停用控制
-- ✅ 幻燈片可聯動商品詳情頁（點擊直接跳轉至對應專輯）
-- ✅ 無幻燈片時自動隱藏輪播區域，僅一張時隱藏切換按鈕
-
-**🗂️ 後台幻燈片管理（CRUD）**
-- ✅ 幻燈片列表（縮圖預覽、排序、啟用狀態）
-- ✅ 新增幻燈片（圖片上傳、商品聯動下拉選單、排序設定）
-- ✅ 編輯幻燈片（替換圖片、更新關聯商品）
-- ✅ 刪除幻燈片（同步刪除 wwwroot 實體圖片檔案）
-- ✅ 啟用/停用切換
-
-**📦 架構實作**
-- ✅ `IBannerRepository` / `BannerRepository`（繼承 GenericRepository）
-- ✅ `IBannerService` / `BannerService`（商業邏輯層）
-- ✅ `IBannerImageService` / `BannerImageService`（Web 層圖片上傳基礎設施）
-- ✅ EF Migration `AddBannerTable`（含 FK SetNull 設定）
-- ✅ 圖片儲存於 `wwwroot/images/banners/`，格式限 JPG/PNG/WebP，上限 10 MB
-
----
-
-### v1.3.x (2026-03-09) - 多專案架構重構
-
-#### v1.3.1 - 修正結帳表單條件驗證
-- ✅ 修正結帳頁面表單驗證邏輯問題
-
-#### v1.3.0 - 多專案架構重構
-
-**🏗️ 架構升級**
-- ✅ 從單一專案重構為多專案解決方案（4 個獨立專案）
-- ✅ `MusicShop.Data`（資料存取層）、`MusicShop.Service`（商業邏輯層）
-- ✅ `MusicShop.Library`（共用工具庫）、`MusicShop.Web`（展示層）
-
-**🔧 設計模式改進**
-- ✅ 實作 **UnitOfWork 模式**：統一管理所有 Repository
-- ✅ 實作 **Generic Repository 模式**：提供通用 CRUD 操作介面
-- ✅ 整合 **AutoMapper**：自動化 Entity ↔ ViewModel 映射
-
----
-
-### v1.2.x (2026-03-09) - 程式碼品質與安全性優化
-
-#### v1.2.1 - 訂單管理優化
-- ✅ 新增 `OrderHelper` 工具類別（集中管理訂單顯示邏輯）
-- ✅ 訂單狀態文字、徽章樣式、下拉選單統一從 Helper 取得
-
-#### v1.2.0 - 程式碼品質與安全性優化
-
-**🔒 資料庫交易保護**
-- ✅ 實作 `CreateOrderWithTransactionAsync` 方法
-- ✅ 確保訂單建立、庫存扣除、購物車清空的原子性（ACID）
-- ✅ 防止並發訂單導致超賣問題
-
-**⚡ 並發控制機制**
-- ✅ Album 模型新增 `[Timestamp]` RowVersion 欄位
-- ✅ 樂觀並發控制防止庫存更新衝突
-- ✅ 資料庫層級的 rowversion 自動檢測並發修改
-
-**🧹 程式碼重構（DRY 原則）**
-- ✅ 移除 Controller 層重複驗證邏輯（統一由 Service 層處理）
-- ✅ 萃取 `GetAuthorizedUserId()` 輔助方法（消除 8 處重複）
-- ✅ 萃取 `ReturnCheckoutViewWithDataAsync()` 錯誤處理方法
-
-**🎨 UI 色彩優化**
-- ✅ 購物車與結帳頁面統一使用柔和紫色（#b19cd9）
-
----
-
-### v1.1.x (2026-03-04 ~ 2026-03-06) - 三層式架構與 UI/UX 優化
-
-#### v1.1.1 - ValidationHelper 與 UI/UX 優化
-
-**程式碼品質**
-- ✅ 新增 `ValidationHelper` 工具類別（9 個靜態驗證方法）
-- ✅ 重構 8 個 Service 類別使用 ValidationHelper
-- ✅ 驗證程式碼減少 67%（~150 行 → ~50 行）
-
-**UI/UX 改善**
-- ✅ 重新設計專輯列表搜尋介面（現代化卡片式設計）
-- ✅ 新增專屬樣式檔案 `album-index.css`（380+ 行）
-- ✅ 雙下拉式排序系統 + 格狀/清單視圖切換
-
-#### v1.1.0 - 三層式架構與核心功能
-
-**架構重構**
-- ✅ 實作完整三層式架構（Controller → Service → Repository）
-- ✅ 雙分類系統（ArtistCategory + 階層式 ProductType）
-
-**功能實作**
-- ✅ 購物車系統（完整 CRUD + 庫存驗證）
-- ✅ 訂單系統（結帳、狀態追蹤、權限控制）
-- ✅ 後台管理系統（儀表板、商品、訂單、使用者管理）
-- ✅ 個人功能（帳號總覽、資料編輯、訂單歷史）
-- ✅ DbInitializer（自動初始化角色、管理員、範例資料）
-
----
-
-### v1.0.0 (2026-03-03) - 初始版本
-
-**核心功能**
-- ✅ 使用者認證系統（ASP.NET Core Identity）
-- ✅ 專輯展示與搜尋
-- ✅ 首頁設計（幻燈片輪播 + 最新商品）
-- ✅ 隱私權政策頁面
+| 版本 | 日期 | 主要內容 |
+|------|------|---------|
+| **v1.5.2** | 2026-03-11 | 首頁商品卡片改用 `_AlbumCard` 共用局部視圖；`_AlbumCard` / `_AlbumListItem` 移至 `Views/Shared/`；收藏頁補上樣式 |
+| **v1.5.1** | 2026-03-11 | 未登入操作改以 SweetAlert2 彈窗提示；`data-require-auth` + `bindAuthGuard()` 全域攔截機制 |
+| **v1.5.0** | 2026-03-11 | 收藏清單功能（WishlistItem 實體、WishlistRepository/Service、AJAX 愛心切換、EF Migration） |
+| **v1.4.1** | 2026-03-11 | 修正搜尋參數名稱；整合綠界 ECPay 超商物流（`IEcpayLogisticsService`） |
+| **v1.4.0** | 2026-03-11 | 動態首頁幻燈片（Banner 實體、後台 CRUD、圖片上傳、商品聯動、Web 層 BannerImageService） |
+| **v1.3.1** | 2026-03-09 | 修正結帳頁面表單條件驗證 |
+| **v1.3.0** | 2026-03-09 | 多專案解決方案重構（Data / Service / Library / Web）；UnitOfWork、Generic Repository、AutoMapper |
+| **v1.2.1** | 2026-03-09 | 新增 `OrderHelper` 工具類別；訂單顯示邏輯集中管理 |
+| **v1.2.0** | 2026-03-09 | 資料庫交易保護（原子性）；樂觀並發控制（RowVersion）；DRY 重構 |
+| **v1.1.1** | 2026-03-06 | `ValidationHelper` 工具類別（9 個靜態方法）；專輯列表頁 UI/UX 重新設計 |
+| **v1.1.0** | 2026-03-04 | 三層式架構、購物車、訂單、後台管理、個人功能、DbInitializer |
+| **v1.0.0** | 2026-03-03 | 初始版本：使用者認證、專輯展示、首頁輪播 |
 
 ---
 

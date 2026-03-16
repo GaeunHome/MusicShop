@@ -1,4 +1,4 @@
-@model MusicShop.Data.Entities.Order
+@model OrderDetailViewModel
 @{
     ViewData["Title"] = $"訂單詳情 - #{Model.Id}";
     ViewData["PageId"] = "order-detail";
@@ -47,7 +47,7 @@
                             <strong>訂單日期：</strong>
                         </div>
                         <div class="col-8">
-                            @Model.OrderDate.ToString("yyyy-MM-dd HH:mm:ss")
+                            @Model.FormattedOrderDate
                         </div>
                     </div>
                     <div class="row mb-2">
@@ -55,24 +55,7 @@
                             <strong>訂單狀態：</strong>
                         </div>
                         <div class="col-8">
-                            @switch (Model.Status)
-                            {
-                                case MusicShop.Data.Entities.OrderStatus.Pending:
-                                    <span class="badge bg-warning text-dark">待處理</span>
-                                    break;
-                                case MusicShop.Data.Entities.OrderStatus.Paid:
-                                    <span class="badge bg-success">已付款</span>
-                                    break;
-                                case MusicShop.Data.Entities.OrderStatus.Shipped:
-                                    <span class="badge bg-info">已出貨</span>
-                                    break;
-                                case MusicShop.Data.Entities.OrderStatus.Completed:
-                                    <span class="badge bg-primary">已完成</span>
-                                    break;
-                                case MusicShop.Data.Entities.OrderStatus.Cancelled:
-                                    <span class="badge bg-secondary">已取消</span>
-                                    break;
-                            }
+                            <span class="badge @Model.StatusBadgeClass">@Model.StatusText</span>
                         </div>
                     </div>
                 </div>
@@ -95,18 +78,18 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var item in Model.OrderItems)
+                                @foreach (var item in Model.Items)
                                 {
                                     <tr>
                                         <td>
                                             <a asp-controller="Album" asp-action="Detail" asp-route-id="@item.AlbumId" class="text-decoration-none">
-                                                @item.Album?.Title
+                                                @item.AlbumTitle
                                             </a>
                                         </td>
-                                        <td class="text-center">NT$@item.UnitPrice.ToString("N0")</td>
+                                        <td class="text-center">NT$@item.FormattedUnitPrice</td>
                                         <td class="text-center">@item.Quantity</td>
                                         <td class="text-end text-primary">
-                                            <strong>NT$@((item.UnitPrice * item.Quantity).ToString("N0"))</strong>
+                                            <strong>NT$@item.FormattedSubTotal</strong>
                                         </td>
                                     </tr>
                                 }
@@ -126,23 +109,23 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
                         <span>商品數量：</span>
-                        <span>@Model.OrderItems.Sum(i => i.Quantity) 件</span>
+                        <span>@Model.TotalQuantity 件</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>商品小計：</span>
-                        <span>NT$@Model.TotalAmount.ToString("N0")</span>
+                        <span>NT$@Model.FormattedTotalAmount</span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between">
                         <strong class="fs-5">訂單總額：</strong>
-                        <strong class="fs-5 text-primary">NT$@Model.TotalAmount.ToString("N0")</strong>
+                        <strong class="fs-5 text-primary">NT$@Model.FormattedTotalAmount</strong>
                     </div>
                 </div>
             </div>
 
             <!-- 操作按鈕 -->
             <div class="d-grid gap-2">
-                @if (Model.Status == MusicShop.Data.Entities.OrderStatus.Pending || Model.Status == MusicShop.Data.Entities.OrderStatus.Paid)
+                @if (Model.CanCancel)
                 {
                     <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" id="cancelOrderFormDetail">
                         <button type="button" class="btn btn-danger w-100" data-order-cancel-detail>取消訂單</button>

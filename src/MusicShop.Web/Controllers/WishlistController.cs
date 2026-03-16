@@ -25,7 +25,7 @@ namespace MusicShop.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var userId = _userManager.GetUserId(User)!;
-            var items = await _wishlistService.GetWishlistAsync(userId);
+            var items = await _wishlistService.GetWishlistItemViewModelsAsync(userId);
             return View(items);
         }
 

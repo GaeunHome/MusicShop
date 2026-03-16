@@ -1,13 +1,16 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using MusicShop.Service.Services.Interfaces;
-using MusicShop.Web.Services.Interfaces;
+using MusicShop.Web.Infrastructure.Interfaces;
 
-namespace MusicShop.Web.Services;
+namespace MusicShop.Web.Infrastructure;
 
 /// <summary>
-/// 商品圖片上傳服務實作
-/// 負責目錄命名、檔案驗證與儲存至 wwwroot
+/// 商品圖片上傳實作（Web 層基礎設施）
+///
+/// 【職責】
+/// 處理 HTTP 上傳的圖片檔案，儲存至 wwwroot/images/albums/ 並回傳相對 URL。
+/// 此類別屬於 Web 層基礎設施，不包含商業邏輯，故放在 Infrastructure 而非 MusicShop.Service。
 /// </summary>
 public class AlbumImageService : IAlbumImageService
 {

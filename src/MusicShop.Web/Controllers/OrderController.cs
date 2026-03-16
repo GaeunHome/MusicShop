@@ -30,7 +30,7 @@ public class OrderController : Controller
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
-        var orders = await _orderService.GetUserOrdersAsync(userId);
+        var orders = await _orderService.GetOrderListViewModelsByUserAsync(userId);
         return View(orders);
     }
 
@@ -44,12 +44,12 @@ public class OrderController : Controller
 
         try
         {
-            var order = await _orderService.GetOrderDetailAsync(id, userId);
+            var orderViewModel = await _orderService.GetOrderDetailViewModelAsync(id, userId);
 
-            if (order == null)
+            if (orderViewModel == null)
                 return NotFound();
 
-            return View(order);
+            return View(orderViewModel);
         }
         catch (UnauthorizedAccessException)
         {

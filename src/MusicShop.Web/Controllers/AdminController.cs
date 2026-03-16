@@ -5,13 +5,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using MusicShop.Data.Entities;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.ViewModels.Admin;
-using MusicShop.Web.Services.Interfaces;
+using MusicShop.Web.Infrastructure.Interfaces;
 
 namespace MusicShop.Controllers
 {
     /// <summary>
     /// 後台管理控制器 - 展示層
     /// 使用三層式架構：Controller → Service → Repository
+    /// Controller 只使用 ViewModel，不直接接觸 Data 層實體
     /// </summary>
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
@@ -70,42 +71,37 @@ namespace MusicShop.Controllers
         // ─── 商品管理 ───────────────────────────────────────
         public async Task<IActionResult> Albums()
         {
-            var albums = await _albumService.GetAlbumsAsync();
+            var albums = await _albumService.GetAlbumListItemsAsync();
             return View("Album/Index", albums);
         }
 
         public async Task<IActionResult> AlbumCreate()
         {
             await PopulateAlbumViewBags();
-            return View("Album/Create");
+            return View("Album/Create", new AlbumFormViewModel());
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> AlbumCreate(Album album, IFormFile? coverImageFile, IFormFile? descriptionImageFile)
+        public async Task<IActionResult> AlbumCreate(AlbumFormViewModel vm, IFormFile? coverImageFile, IFormFile? descriptionImageFile)
         {
-            ModelState.Remove("Artist");
-            ModelState.Remove("ProductType");
-            ModelState.Remove("CoverImageUrl");
-            ModelState.Remove("DescriptionImageUrl");
-
             if (!ModelState.IsValid)
             {
                 await PopulateAlbumViewBags();
-                return View("Album/Create", album);
+                return View("Album/Create", vm);
             }
 
             try
             {
                 // 先建立商品以取得 DB 產生的 ID
-                await _albumService.CreateAlbumAsync(album);
+                await _albumService.CreateAlbumAsync(vm);
 
                 // 再以 ID 組出目錄並儲存圖片
                 if (coverImageFile?.Length > 0 || descriptionImageFile?.Length > 0)
                 {
-                    var subFolder = await _albumImageService.BuildSubFolderAsync(album.ProductTypeId, album.ArtistId, album.Id);
-                    album.CoverImageUrl = await _albumImageService.SaveImageAsync(coverImageFile, subFolder, "cover");
-                    album.DescriptionImageUrl = await _albumImageService.SaveImageAsync(descriptionImageFile, subFolder, "description");
-                    await _albumService.UpdateAlbumAsync(album);
+                    var subFolder = await _albumImageService.BuildSubFolderAsync(vm.ProductTypeId, vm.ArtistId, vm.Id);
+                    vm.CoverImageUrl = await _albumImageService.SaveImageAsync(coverImageFile, subFolder, "cover");
+                    vm.DescriptionImageUrl = await _albumImageService.SaveImageAsync(descriptionImageFile, subFolder, "description");
+                    await _albumService.UpdateAlbumAsync(vm);
                 }
 
                 TempData["Success"] = "商品新增成功！";
@@ -115,52 +111,61 @@ namespace MusicShop.Controllers
             {
                 TempData["Error"] = ex.Message;
                 await PopulateAlbumViewBags();
-                return View("Album/Create", album);
+                return View("Album/Create", vm);
             }
         }
 
         public async Task<IActionResult> AlbumEdit(int id)
         {
-            var album = await _albumService.GetAlbumDetailAsync(id);
-            if (album == null) return NotFound();
+            var vm = await _albumService.GetAlbumFormByIdAsync(id);
+            if (vm == null) return NotFound();
 
-            int? selectedParentId = album.ProductType?.ParentId;
+            // 取得商品類型父分類 ID（用於 JS 初始化級聯下拉選單）
+            int? selectedParentId = null;
+            if (vm.ProductTypeId.HasValue)
+            {
+                var productType = await _productTypeService.GetProductTypeWithChildrenAsync(vm.ProductTypeId.Value);
+                selectedParentId = productType?.ParentId;
+            }
 
-            await PopulateAlbumViewBags(album.ArtistId);
+            await PopulateAlbumViewBags(vm.ArtistId);
             ViewBag.ParentCategories = new SelectList(
                 await _productTypeService.GetParentCategoriesAsync(), "Id", "Name", selectedParentId);
-            ViewBag.SelectedProductTypeId = album.ProductTypeId;
-            return View("Album/Edit", album);
+            ViewBag.SelectedProductTypeId = vm.ProductTypeId;
+
+            // 取得藝人的分類 ID，供 JS 初始化使用
+            if (vm.ArtistId.HasValue)
+            {
+                var artist = await _artistService.GetArtistByIdAsync(vm.ArtistId.Value);
+                ViewBag.SelectedArtistCategoryId = artist?.ArtistCategoryId;
+            }
+
+            return View("Album/Edit", vm);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> AlbumEdit(Album album, IFormFile? coverImageFile, IFormFile? descriptionImageFile)
+        public async Task<IActionResult> AlbumEdit(AlbumFormViewModel vm, IFormFile? coverImageFile, IFormFile? descriptionImageFile)
         {
-            ModelState.Remove("Artist");
-            ModelState.Remove("ProductType");
-            ModelState.Remove("CoverImageUrl");
-            ModelState.Remove("DescriptionImageUrl");
-
             if (!ModelState.IsValid)
             {
-                await PopulateAlbumViewBags(album.ArtistId);
-                return View("Album/Edit", album);
+                await PopulateAlbumViewBags(vm.ArtistId);
+                return View("Album/Edit", vm);
             }
 
             try
             {
-                var subFolder = await _albumImageService.BuildSubFolderAsync(album.ProductTypeId, album.ArtistId, album.Id);
-                album.CoverImageUrl = await _albumImageService.SaveImageAsync(coverImageFile, subFolder, "cover", album.CoverImageUrl);
-                album.DescriptionImageUrl = await _albumImageService.SaveImageAsync(descriptionImageFile, subFolder, "description", album.DescriptionImageUrl);
-                await _albumService.UpdateAlbumAsync(album);
+                var subFolder = await _albumImageService.BuildSubFolderAsync(vm.ProductTypeId, vm.ArtistId, vm.Id);
+                vm.CoverImageUrl = await _albumImageService.SaveImageAsync(coverImageFile, subFolder, "cover", vm.CoverImageUrl);
+                vm.DescriptionImageUrl = await _albumImageService.SaveImageAsync(descriptionImageFile, subFolder, "description", vm.DescriptionImageUrl);
+                await _albumService.UpdateAlbumAsync(vm);
                 TempData["Success"] = "商品更新成功！";
                 return RedirectToAction("Albums");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
-                await PopulateAlbumViewBags(album.ArtistId);
-                return View("Album/Edit", album);
+                await PopulateAlbumViewBags(vm.ArtistId);
+                return View("Album/Edit", vm);
             }
         }
 
@@ -215,50 +220,50 @@ namespace MusicShop.Controllers
         }
 
         // 藝人分類 CRUD
-        public IActionResult ArtistCategoryCreate() => View("Category/ArtistCategory/Create");
+        public IActionResult ArtistCategoryCreate() => View("Category/ArtistCategory/Create", new ArtistCategoryFormViewModel());
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ArtistCategoryCreate(ArtistCategory artistCategory)
+        public async Task<IActionResult> ArtistCategoryCreate(ArtistCategoryFormViewModel vm)
         {
             if (!ModelState.IsValid)
-                return View("Category/ArtistCategory/Create", artistCategory);
+                return View("Category/ArtistCategory/Create", vm);
 
             try
             {
-                await _artistCategoryService.CreateArtistCategoryAsync(artistCategory);
+                await _artistCategoryService.CreateArtistCategoryAsync(vm);
                 TempData["Success"] = "藝人分類新增成功！";
                 return RedirectToAction("Categories");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
-                return View("Category/ArtistCategory/Create", artistCategory);
+                return View("Category/ArtistCategory/Create", vm);
             }
         }
 
         public async Task<IActionResult> ArtistCategoryEdit(int id)
         {
-            var artistCategory = await _artistCategoryService.GetArtistCategoryByIdAsync(id);
-            if (artistCategory == null) return NotFound();
-            return View("Category/ArtistCategory/Edit", artistCategory);
+            var vm = await _artistCategoryService.GetArtistCategoryFormByIdAsync(id);
+            if (vm == null) return NotFound();
+            return View("Category/ArtistCategory/Edit", vm);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ArtistCategoryEdit(ArtistCategory artistCategory)
+        public async Task<IActionResult> ArtistCategoryEdit(ArtistCategoryFormViewModel vm)
         {
             if (!ModelState.IsValid)
-                return View("Category/ArtistCategory/Edit", artistCategory);
+                return View("Category/ArtistCategory/Edit", vm);
 
             try
             {
-                await _artistCategoryService.UpdateArtistCategoryAsync(artistCategory);
+                await _artistCategoryService.UpdateArtistCategoryAsync(vm);
                 TempData["Success"] = "藝人分類更新成功！";
                 return RedirectToAction("Categories");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
-                return View("Category/ArtistCategory/Edit", artistCategory);
+                return View("Category/ArtistCategory/Edit", vm);
             }
         }
 
@@ -283,55 +288,67 @@ namespace MusicShop.Controllers
         {
             var parentCategories = await _productTypeService.GetParentCategoriesAsync();
             ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
-            return View("Category/ProductType/Create");
+            return View("Category/ProductType/Create", new ProductTypeFormViewModel());
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ProductTypeCreate(ProductType productType)
+        public async Task<IActionResult> ProductTypeCreate(ProductTypeFormViewModel vm)
         {
             if (!ModelState.IsValid)
-                return View("Category/ProductType/Create", productType);
+            {
+                var parentCategories = await _productTypeService.GetParentCategoriesAsync();
+                ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+                return View("Category/ProductType/Create", vm);
+            }
 
             try
             {
-                await _productTypeService.CreateProductTypeAsync(productType);
+                await _productTypeService.CreateProductTypeAsync(vm);
                 TempData["Success"] = "商品類型新增成功！";
                 return RedirectToAction("Categories");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
-                return View("Category/ProductType/Create", productType);
+                var parentCategories = await _productTypeService.GetParentCategoriesAsync();
+                ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+                return View("Category/ProductType/Create", vm);
             }
         }
 
         public async Task<IActionResult> ProductTypeEdit(int id)
         {
-            var productType = await _productTypeService.GetProductTypeByIdAsync(id);
-            if (productType == null) return NotFound();
+            var vm = await _productTypeService.GetProductTypeFormByIdAsync(id);
+            if (vm == null) return NotFound();
 
             var parentCategories = await _productTypeService.GetParentCategoriesAsync();
             ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
 
-            return View("Category/ProductType/Edit", productType);
+            return View("Category/ProductType/Edit", vm);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ProductTypeEdit(ProductType productType)
+        public async Task<IActionResult> ProductTypeEdit(ProductTypeFormViewModel vm)
         {
             if (!ModelState.IsValid)
-                return View("Category/ProductType/Edit", productType);
+            {
+                var parentCategories = await _productTypeService.GetParentCategoriesAsync();
+                ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+                return View("Category/ProductType/Edit", vm);
+            }
 
             try
             {
-                await _productTypeService.UpdateProductTypeAsync(productType);
+                await _productTypeService.UpdateProductTypeAsync(vm);
                 TempData["Success"] = "商品類型更新成功！";
                 return RedirectToAction("Categories");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
-                return View("Category/ProductType/Edit", productType);
+                var parentCategories = await _productTypeService.GetParentCategoriesAsync();
+                ViewBag.ParentCategories = new SelectList(parentCategories, "Id", "Name");
+                return View("Category/ProductType/Edit", vm);
             }
         }
 
@@ -363,7 +380,7 @@ namespace MusicShop.Controllers
         // ─── 藝人管理 ───────────────────────────────────────
         public async Task<IActionResult> Artists()
         {
-            var artists = await _artistService.GetAllArtistsAsync();
+            var artists = await _artistService.GetArtistListItemsAsync();
             return View("Artist/Index", artists);
         }
 
@@ -371,26 +388,22 @@ namespace MusicShop.Controllers
         {
             var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
             ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name");
-            return View("Artist/Create");
+            return View("Artist/Create", new ArtistFormViewModel());
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ArtistCreate(Artist artist)
+        public async Task<IActionResult> ArtistCreate(ArtistFormViewModel vm)
         {
-            // 移除導航屬性的驗證錯誤（因為表單只提交 ID，不提交整個物件）
-            ModelState.Remove("ArtistCategory");
-            ModelState.Remove("Albums");
-
             if (!ModelState.IsValid)
             {
                 var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
                 ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name");
-                return View("Artist/Create", artist);
+                return View("Artist/Create", vm);
             }
 
             try
             {
-                await _artistService.CreateArtistAsync(artist);
+                await _artistService.CreateArtistAsync(vm);
                 TempData["Success"] = "藝人新增成功！";
                 return RedirectToAction("Artists");
             }
@@ -399,37 +412,33 @@ namespace MusicShop.Controllers
                 TempData["Error"] = ex.Message;
                 var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
                 ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name");
-                return View("Artist/Create", artist);
+                return View("Artist/Create", vm);
             }
         }
 
         public async Task<IActionResult> ArtistEdit(int id)
         {
-            var artist = await _artistService.GetArtistByIdAsync(id);
-            if (artist == null) return NotFound();
+            var vm = await _artistService.GetArtistFormByIdAsync(id);
+            if (vm == null) return NotFound();
 
             var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
-            ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name", artist.ArtistCategoryId);
-            return View("Artist/Edit", artist);
+            ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name", vm.ArtistCategoryId);
+            return View("Artist/Edit", vm);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ArtistEdit(Artist artist)
+        public async Task<IActionResult> ArtistEdit(ArtistFormViewModel vm)
         {
-            // 移除導航屬性的驗證錯誤（因為表單只提交 ID，不提交整個物件）
-            ModelState.Remove("ArtistCategory");
-            ModelState.Remove("Albums");
-
             if (!ModelState.IsValid)
             {
                 var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
-                ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name", artist.ArtistCategoryId);
-                return View("Artist/Edit", artist);
+                ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name", vm.ArtistCategoryId);
+                return View("Artist/Edit", vm);
             }
 
             try
             {
-                await _artistService.UpdateArtistAsync(artist);
+                await _artistService.UpdateArtistAsync(vm);
                 TempData["Success"] = "藝人更新成功！";
                 return RedirectToAction("Artists");
             }
@@ -437,8 +446,8 @@ namespace MusicShop.Controllers
             {
                 TempData["Error"] = ex.Message;
                 var artistCategories = await _artistCategoryService.GetAllArtistCategoriesAsync();
-                ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name", artist.ArtistCategoryId);
-                return View("Artist/Edit", artist);
+                ViewBag.ArtistCategories = new SelectList(artistCategories, "Id", "Name", vm.ArtistCategoryId);
+                return View("Artist/Edit", vm);
             }
         }
 
@@ -553,39 +562,35 @@ namespace MusicShop.Controllers
         // ─── 幻燈片管理 ─────────────────────────────────────
         public async Task<IActionResult> Banners()
         {
-            var banners = await _bannerService.GetAllBannersAsync();
+            var banners = await _bannerService.GetBannerListItemsAsync();
             return View("Banner/Index", banners);
         }
 
         public async Task<IActionResult> BannerCreate()
         {
             await PopulateBannerViewBags();
-            return View("Banner/Create");
+            return View("Banner/Create", new BannerFormViewModel());
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> BannerCreate(Banner banner, IFormFile? bannerImageFile)
+        public async Task<IActionResult> BannerCreate(BannerFormViewModel vm, IFormFile? bannerImageFile)
         {
-            ModelState.Remove("Album");
-            ModelState.Remove("ImageUrl");
-
             if (!ModelState.IsValid)
             {
                 await PopulateBannerViewBags();
-                return View("Banner/Create", banner);
+                return View("Banner/Create", vm);
             }
 
             try
             {
                 // 先建立 Banner 取得 Id，再儲存圖片
-                banner.ImageUrl = string.Empty;
-                var created = await _bannerService.CreateBannerAsync(banner);
+                vm.ImageUrl = string.Empty;
+                await _bannerService.CreateBannerAsync(vm);
 
-                var imageUrl = await _bannerImageService.SaveBannerImageAsync(bannerImageFile, created.Id);
+                var imageUrl = await _bannerImageService.SaveBannerImageAsync(bannerImageFile, vm.Id);
                 if (!string.IsNullOrEmpty(imageUrl))
                 {
-                    created.ImageUrl = imageUrl;
-                    await _bannerService.UpdateBannerAsync(created);
+                    await _bannerService.UpdateBannerImageUrlAsync(vm.Id, imageUrl);
                 }
 
                 TempData["Success"] = "幻燈片新增成功！";
@@ -595,44 +600,34 @@ namespace MusicShop.Controllers
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
                 await PopulateBannerViewBags();
-                return View("Banner/Create", banner);
+                return View("Banner/Create", vm);
             }
         }
 
         public async Task<IActionResult> BannerEdit(int id)
         {
-            var banner = await _bannerService.GetBannerByIdAsync(id);
-            if (banner == null) return NotFound();
+            var vm = await _bannerService.GetBannerFormByIdAsync(id);
+            if (vm == null) return NotFound();
 
             await PopulateBannerViewBags();
-            return View("Banner/Edit", banner);
+            return View("Banner/Edit", vm);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> BannerEdit(Banner banner, IFormFile? bannerImageFile)
+        public async Task<IActionResult> BannerEdit(BannerFormViewModel vm, IFormFile? bannerImageFile)
         {
-            ModelState.Remove("Album");
-            ModelState.Remove("ImageUrl");
-
             if (!ModelState.IsValid)
             {
                 await PopulateBannerViewBags();
-                return View("Banner/Edit", banner);
+                return View("Banner/Edit", vm);
             }
 
             try
             {
-                var existing = await _bannerService.GetBannerByIdAsync(banner.Id);
-                if (existing == null) return NotFound();
+                var imageUrl = await _bannerImageService.SaveBannerImageAsync(bannerImageFile, vm.Id, vm.ImageUrl);
+                vm.ImageUrl = imageUrl ?? vm.ImageUrl;
 
-                existing.AlbumId = banner.AlbumId;
-                existing.DisplayOrder = banner.DisplayOrder;
-                existing.IsActive = banner.IsActive;
-
-                var imageUrl = await _bannerImageService.SaveBannerImageAsync(bannerImageFile, existing.Id, existing.ImageUrl);
-                existing.ImageUrl = imageUrl ?? existing.ImageUrl;
-
-                await _bannerService.UpdateBannerAsync(existing);
+                await _bannerService.UpdateBannerAsync(vm);
 
                 TempData["Success"] = "幻燈片更新成功！";
                 return RedirectToAction(nameof(Banners));
@@ -641,17 +636,17 @@ namespace MusicShop.Controllers
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
                 await PopulateBannerViewBags();
-                return View("Banner/Edit", banner);
+                return View("Banner/Edit", vm);
             }
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> BannerDelete(int id)
         {
-            var banner = await _bannerService.GetBannerByIdAsync(id);
-            if (banner != null)
+            var vm = await _bannerService.GetBannerFormByIdAsync(id);
+            if (vm != null)
             {
-                _bannerImageService.DeleteBannerImage(banner.ImageUrl);
+                _bannerImageService.DeleteBannerImage(vm.ImageUrl);
                 await _bannerService.DeleteBannerAsync(id);
             }
             TempData["Success"] = "幻燈片已刪除。";
@@ -661,13 +656,13 @@ namespace MusicShop.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> BannerToggle(int id)
         {
-            var banner = await _bannerService.GetBannerByIdAsync(id);
-            if (banner == null) return NotFound();
+            var vm = await _bannerService.GetBannerFormByIdAsync(id);
+            if (vm == null) return NotFound();
 
-            banner.IsActive = !banner.IsActive;
-            await _bannerService.UpdateBannerAsync(banner);
+            vm.IsActive = !vm.IsActive;
+            await _bannerService.UpdateBannerAsync(vm);
 
-            TempData["Success"] = banner.IsActive ? "幻燈片已啟用。" : "幻燈片已停用。";
+            TempData["Success"] = vm.IsActive ? "幻燈片已啟用。" : "幻燈片已停用。";
             return RedirectToAction(nameof(Banners));
         }
 

@@ -1,4 +1,4 @@
-@model IEnumerable<MusicShop.Data.Entities.Artist>
+@model IEnumerable<MusicShop.Service.ViewModels.Admin.ArtistListItemViewModel>
 @{
     ViewData["Title"] = "藝人管理";
     ViewData["PageId"] = "admin-artists";
@@ -31,7 +31,7 @@
                         <td>@artist.Id</td>
                         <td class="fw-bold">@artist.Name</td>
                         <td>
-                            <span class="badge bg-primary">@(artist.ArtistCategory?.Name ?? "未分類")</span>
+                            <span class="badge bg-primary">@(artist.ArtistCategoryName ?? "未分類")</span>
                         </td>
                         <td>@artist.DisplayOrder</td>
                         <td>

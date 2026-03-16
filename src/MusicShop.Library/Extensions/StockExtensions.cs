@@ -8,44 +8,44 @@ public static class StockExtensions
     /// <summary>
     /// 判斷是否有庫存
     /// </summary>
-    public static bool IsInStock(this int? stock)
+    public static bool IsInStock(this int stock)
     {
-        return stock.HasValue && stock.Value > 0;
+        return stock > 0;
     }
 
     /// <summary>
     /// 判斷是否庫存不足（低於或等於 5 件）
     /// </summary>
-    public static bool IsLowStock(this int? stock)
+    public static bool IsLowStock(this int stock)
     {
-        return stock.HasValue && stock.Value > 0 && stock.Value <= 5;
+        return stock > 0 && stock <= 5;
     }
 
     /// <summary>
     /// 判斷是否已售完
     /// </summary>
-    public static bool IsSoldOut(this int? stock)
+    public static bool IsSoldOut(this int stock)
     {
-        return !stock.HasValue || stock.Value <= 0;
+        return stock <= 0;
     }
 
     /// <summary>
     /// 取得庫存狀態文字
     /// </summary>
-    public static string GetStockStatusText(this int? stock)
+    public static string GetStockStatusText(this int stock)
     {
         if (stock.IsSoldOut())
             return "已售完";
         else if (stock.IsLowStock())
-            return $"僅剩 {stock!.Value} 件";
+            return $"僅剩 {stock} 件";
         else
-            return $"庫存充足（剩餘 {stock!.Value} 件）";
+            return $"庫存充足（剩餘 {stock} 件）";
     }
 
     /// <summary>
     /// 取得庫存狀態 CSS 類別
     /// </summary>
-    public static string GetStockStatusCssClass(this int? stock)
+    public static string GetStockStatusCssClass(this int stock)
     {
         if (stock.IsSoldOut())
             return "text-danger";
@@ -58,7 +58,7 @@ public static class StockExtensions
     /// <summary>
     /// 取得庫存狀態圖示
     /// </summary>
-    public static string GetStockStatusIcon(this int? stock)
+    public static string GetStockStatusIcon(this int stock)
     {
         if (stock.IsSoldOut())
             return "bi-x-circle-fill";

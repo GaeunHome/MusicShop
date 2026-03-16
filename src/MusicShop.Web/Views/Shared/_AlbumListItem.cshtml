@@ -1,4 +1,4 @@
-@model MusicShop.Data.Entities.Album
+@model AlbumCardViewModel
 @{
     var wishlistIds = ViewData["WishlistIds"] as HashSet<int> ?? new HashSet<int>();
     bool isInWishlist = wishlistIds.Contains(Model.Id);
@@ -6,7 +6,7 @@
 
 <div class="product-list-item">
     <div class="position-relative">
-        @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+        @if (Model.HasCoverImage)
         {
             <img src="@Model.CoverImageUrl" class="product-list-image" alt="@Model.Title">
         }
@@ -17,24 +17,24 @@
             </div>
         }
 
-        @if (Model.Stock <= 0)
+        @if (Model.IsSoldOut)
         {
             <span class="position-absolute top-0 start-0 badge bg-danger m-1" style="font-size: 0.7rem;">已售完</span>
         }
-        else if (Model.Stock <= 5)
+        else if (Model.IsLowStock)
         {
-            <span class="position-absolute top-0 start-0 badge bg-warning text-dark m-1" style="font-size: 0.7rem;">僅剩 @Model.Stock 件</span>
+            <span class="position-absolute top-0 start-0 badge bg-warning text-dark m-1" style="font-size: 0.7rem;">@Model.StockStatusText</span>
         }
     </div>
 
     <div class="product-list-info">
         <a asp-controller="Album" asp-action="Detail" asp-route-id="@Model.Id" class="product-list-title">@Model.Title</a>
-        <div class="product-list-artist">@(Model.Artist?.Name ?? "未設定藝人")</div>
-        <div class="product-list-price mt-2">NT$@Model.Price.ToString("N0")</div>
+        <div class="product-list-artist">@(Model.ArtistName ?? "未設定藝人")</div>
+        <div class="product-list-price mt-2">NT$@Model.FormattedPrice</div>
     </div>
 
     <div class="product-list-actions">
-        @if (Model.Stock > 0)
+        @if (Model.IsInStock)
         {
             @if (User.Identity!.IsAuthenticated)
             {
@@ -42,7 +42,7 @@
                         data-bs-toggle="modal" data-bs-target="#addToCartModal"
                         data-album-id="@Model.Id"
                         data-album-title="@Model.Title"
-                        data-album-artist="@(Model.Artist?.Name ?? "未設定藝人")"
+                        data-album-artist="@(Model.ArtistName ?? "未設定藝人")"
                         data-album-price="@Model.Price"
                         data-album-stock="@Model.Stock"
                         data-album-image="@Model.CoverImageUrl">

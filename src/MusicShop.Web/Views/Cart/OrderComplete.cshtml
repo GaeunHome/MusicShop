@@ -1,4 +1,4 @@
-@model MusicShop.Data.Entities.Order
+@model OrderConfirmationViewModel
 @{
     ViewData["Title"] = "訂單完成";
 }
@@ -35,26 +35,26 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model.OrderItems)
+                            @foreach (var item in Model.Items)
                             {
                                 <tr>
-                                    <td>@item.Album?.Title</td>
-                                    <td>NT$ @item.UnitPrice.ToString("N0")</td>
+                                    <td>@item.AlbumTitle</td>
+                                    <td>NT$ @item.FormattedUnitPrice</td>
                                     <td>@item.Quantity</td>
-                                    <td class="fw-bold">NT$ @((item.UnitPrice * item.Quantity).ToString("N0"))</td>
+                                    <td class="fw-bold">NT$ @item.FormattedSubTotal</td>
                                 </tr>
                             }
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="3" class="text-end fw-bold">總計：</td>
-                                <td class="fw-bold text-primary">NT$ @Model.TotalAmount.ToString("N0")</td>
+                                <td class="fw-bold text-primary">NT$ @Model.FormattedTotalAmount</td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
                 <div class="card-footer text-muted small">
-                    訂單時間：@Model.OrderDate.ToString("yyyy/MM/dd HH:mm")　
+                    訂單時間：@Model.FormattedOrderDate
                     狀態：<span class="badge bg-warning text-dark">待處理</span>
                 </div>
             </div>

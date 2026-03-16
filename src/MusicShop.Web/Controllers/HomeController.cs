@@ -28,15 +28,15 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
-        // 取得首頁幻燈片（啟用中，依順序）
-        ViewBag.Banners = await _bannerService.GetActiveBannersAsync();
+        // 取得首頁幻燈片 ViewModel（啟用中，依順序）
+        ViewBag.Banners = await _bannerService.GetActiveBannerDisplaysAsync();
 
         // 傳遞使用者收藏清單 ID（供商品卡片判斷愛心狀態）
         var userId = _userManager.GetUserId(User);
         ViewBag.WishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId ?? string.Empty);
 
-        // 從服務層取得最新上架的 8 個專輯（首頁展示用）
-        var latestAlbums = await _albumService.GetLatestAlbumsAsync(8);
+        // 從服務層取得最新上架的 8 個專輯 ViewModel（首頁展示用）
+        var latestAlbums = await _albumService.GetLatestAlbumCardsAsync(8);
 
         return View(latestAlbums.ToList());
     }

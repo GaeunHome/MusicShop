@@ -1,4 +1,4 @@
-@model IEnumerable<MusicShop.Data.Entities.WishlistItem>
+@model IEnumerable<WishlistItemViewModel>
 @{
     ViewData["Title"] = "我的收藏";
 }
@@ -32,17 +32,14 @@
         <div class="row row-cols-2 row-cols-lg-4 g-4">
             @foreach (var item in Model)
             {
-                var album = item.Album;
-                if (album == null) continue;
-
-                <div class="col" id="wishlist-item-@album.Id">
+                <div class="col" id="wishlist-item-@item.AlbumId">
                     <div class="product-item">
                         <div class="product-image-wrapper">
-                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id" class="product-image-link"></a>
+                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@item.AlbumId" class="product-image-link"></a>
 
-                            @if (!string.IsNullOrEmpty(album.CoverImageUrl))
+                            @if (!string.IsNullOrEmpty(item.CoverImageUrl))
                             {
-                                <img src="@album.CoverImageUrl" class="product-image" alt="@album.Title">
+                                <img src="@item.CoverImageUrl" class="product-image" alt="@item.AlbumTitle">
                             }
                             else
                             {
@@ -52,26 +49,26 @@
                                 </div>
                             }
 
-                            @if (album.Stock <= 0)
+                            @if (item.IsSoldOut)
                             {
                                 <span class="position-absolute top-0 end-0 badge bg-danger m-2" style="z-index:10;">已售完</span>
                             }
-                            else if (album.Stock <= 5)
+                            else if (item.IsLowStock)
                             {
                                 <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2" style="z-index:10;">
-                                    僅剩 @album.Stock 件
+                                    @item.StockStatusText
                                 </span>
                             }
 
                             <div class="product-overlay">
                                 <div class="overlay-buttons d-flex gap-2 mb-2">
-                                    <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id"
+                                    <a asp-controller="Album" asp-action="Detail" asp-route-id="@item.AlbumId"
                                        class="btn btn-white overlay-btn" title="查看商品">
                                         <i class="bi bi-search"></i>
                                     </a>
                                     <!-- 移除收藏按鈕 -->
                                     <button type="button" class="btn btn-danger overlay-btn wishlist-toggle"
-                                            data-album-id="@album.Id" title="取消收藏">
+                                            data-album-id="@item.AlbumId" title="取消收藏">
                                         <i class="bi bi-heart-fill"></i>
                                     </button>
                                 </div>
@@ -79,12 +76,12 @@
                         </div>
 
                         <div class="product-info mt-3">
-                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@album.Id"
+                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@item.AlbumId"
                                class="text-decoration-none text-dark">
-                                <h6 class="product-title mb-1">@album.Title</h6>
+                                <h6 class="product-title mb-1">@item.AlbumTitle</h6>
                             </a>
-                            <small class="text-muted">@(album.Artist?.Name ?? "")</small>
-                            <p class="product-price mb-0 mt-1">NT$@album.Price.ToString("N0")</p>
+                            <small class="text-muted">@item.ArtistName</small>
+                            <p class="product-price mb-0 mt-1">@item.FormattedPrice</p>
                         </div>
                     </div>
                 </div>

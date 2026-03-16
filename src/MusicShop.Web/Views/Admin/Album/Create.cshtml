@@ -1,4 +1,4 @@
-@model MusicShop.Data.Entities.Album
+@model MusicShop.Service.ViewModels.Admin.AlbumFormViewModel
 @{
     ViewData["Title"] = "新增商品";
 }
@@ -67,6 +67,7 @@
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Stock" class="form-label required">庫存</label>
                                 <input asp-for="Stock" class="form-control" type="number" />
+                                <span asp-validation-for="Stock" class="text-danger small"></span>
                             </div>
                         </div>
                         <div class="mb-3">

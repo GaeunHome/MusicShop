@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using MusicShop.Data.Entities;
 using MusicShop.Library.Helpers;
+using CartItemVm = MusicShop.Service.ViewModels.Cart.CartItemViewModel;
 
 namespace MusicShop.Service.ViewModels.Cart
 {
@@ -102,7 +103,7 @@ namespace MusicShop.Service.ViewModels.Cart
         public string? OrderNote { get; set; }
 
         // ==================== 購物車項目（用於顯示訂單摘要）====================
-        public List<CartItem> CartItems { get; set; } = new();
+        public List<CartItemVm> CartItems { get; set; } = new();
 
         // 總金額
         public decimal TotalAmount { get; set; }

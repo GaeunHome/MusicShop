@@ -1,4 +1,4 @@
-@model MusicShop.Data.Entities.Album
+@model MusicShop.Service.ViewModels.Admin.AlbumFormViewModel
 @{
     ViewData["Title"] = "編輯商品";
 }
@@ -134,7 +134,7 @@
     <script>
         var selectedProductTypeId = @Html.Raw(ViewBag.SelectedProductTypeId ?? "null");
         var selectedArtistId = @Html.Raw(Model.ArtistId?.ToString() ?? "null");
-        var selectedArtistCategoryId = @Html.Raw(Model.Artist?.ArtistCategoryId.ToString() ?? "null");
+        var selectedArtistCategoryId = @Html.Raw(ViewBag.SelectedArtistCategoryId ?? "null");
 
         $(document).ready(function() {
             var selectedParentCategoryId = $('#ParentCategorySelect').val();

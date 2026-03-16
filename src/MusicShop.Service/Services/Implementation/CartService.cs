@@ -26,6 +26,25 @@ namespace MusicShop.Service.Services.Implementation
             return await _unitOfWork.Cart.GetCartItemsByUserIdAsync(userId);
         }
 
+        public async Task<List<CartItemViewModel>> GetCartItemViewModelsAsync(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                throw new ArgumentException("使用者 ID 不能為空", nameof(userId));
+
+            var cartItems = await _unitOfWork.Cart.GetCartItemsByUserIdAsync(userId);
+
+            return cartItems.Select(item => new CartItemViewModel
+            {
+                Id = item.Id,
+                AlbumId = item.AlbumId,
+                AlbumTitle = item.Album?.Title ?? "未知商品",
+                CoverImageUrl = item.Album?.CoverImageUrl,
+                Price = item.Album?.Price ?? 0,
+                Quantity = item.Quantity,
+                MaxStock = item.Album?.Stock ?? 0
+            }).ToList();
+        }
+
         public async Task<CartItem> AddToCartAsync(string userId, int albumId, int quantity = 1)
         {
             // 驗證參數

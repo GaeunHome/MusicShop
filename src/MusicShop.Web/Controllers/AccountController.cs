@@ -118,6 +118,9 @@ public class AccountController : Controller
         var orders = await _orderService.GetUserOrdersAsync(user.Id);
         var ordersList = orders.ToList();
 
+        // 取得近期訂單 ViewModel（不含 Entity）
+        var recentOrders = await _orderService.GetRecentOrderViewModelsAsync(user.Id, 5);
+
         var viewModel = new AccountIndexViewModel
         {
             FullName = user.FullName ?? "訪客",
@@ -125,7 +128,7 @@ public class AccountController : Controller
             RegisteredAt = user.RegisteredAt,
             TotalSpent = ordersList.Where(o => o.Status != OrderStatus.Cancelled).Sum(o => o.TotalAmount),
             TotalOrders = ordersList.Count,
-            RecentOrders = ordersList.Take(5).ToList()
+            RecentOrders = recentOrders
         };
 
         return View(viewModel);

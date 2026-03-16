@@ -2,6 +2,7 @@ using MusicShop.Data.Entities;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Library.Helpers;
+using MusicShop.Service.ViewModels.Admin;
 
 namespace MusicShop.Service.Services.Implementation;
 
@@ -38,23 +39,69 @@ public class ArtistService : IArtistService
         return await _unitOfWork.Artists.GetArtistByIdAsync(id);
     }
 
-    public async Task<Artist> CreateArtistAsync(Artist artist)
+    public async Task<IEnumerable<ArtistListItemViewModel>> GetArtistListItemsAsync()
     {
-        // 商業邏輯驗證
-        ValidationHelper.ValidateNotEmpty(artist.Name, "藝人名稱", nameof(artist.Name));
-        ValidationHelper.ValidateId(artist.ArtistCategoryId, "藝人分類", nameof(artist.ArtistCategoryId));
-
-        return await _unitOfWork.Artists.AddArtistAsync(artist);
+        var artists = await _unitOfWork.Artists.GetAllArtistsAsync();
+        return artists.Select(a => new ArtistListItemViewModel
+        {
+            Id = a.Id,
+            Name = a.Name,
+            ArtistCategoryName = a.ArtistCategory?.Name,
+            DisplayOrder = a.DisplayOrder
+        });
     }
 
-    public async Task UpdateArtistAsync(Artist artist)
+    public async Task<ArtistFormViewModel?> GetArtistFormByIdAsync(int id)
+    {
+        var artist = await _unitOfWork.Artists.GetArtistByIdAsync(id);
+        if (artist == null) return null;
+
+        return new ArtistFormViewModel
+        {
+            Id = artist.Id,
+            Name = artist.Name,
+            Description = artist.Description,
+            ProfileImageUrl = artist.ProfileImageUrl,
+            ArtistCategoryId = artist.ArtistCategoryId,
+            DisplayOrder = artist.DisplayOrder
+        };
+    }
+
+    public async Task<ArtistFormViewModel> CreateArtistAsync(ArtistFormViewModel vm)
     {
         // 商業邏輯驗證
-        ValidationHelper.ValidateNotEmpty(artist.Name, "藝人名稱", nameof(artist.Name));
-        ValidationHelper.ValidateId(artist.ArtistCategoryId, "藝人分類", nameof(artist.ArtistCategoryId));
+        ValidationHelper.ValidateNotEmpty(vm.Name, "藝人名稱", nameof(vm.Name));
+        ValidationHelper.ValidateId(vm.ArtistCategoryId, "藝人分類", nameof(vm.ArtistCategoryId));
 
-        var exists = await _unitOfWork.Artists.ArtistExistsAsync(artist.Id);
-        ValidationHelper.ValidateCondition(exists, $"找不到 ID 為 {artist.Id} 的藝人");
+        var artist = new Artist
+        {
+            Name = vm.Name,
+            Description = vm.Description,
+            ProfileImageUrl = vm.ProfileImageUrl,
+            ArtistCategoryId = vm.ArtistCategoryId,
+            DisplayOrder = vm.DisplayOrder
+        };
+
+        var created = await _unitOfWork.Artists.AddArtistAsync(artist);
+        vm.Id = created.Id;
+        return vm;
+    }
+
+    public async Task UpdateArtistAsync(ArtistFormViewModel vm)
+    {
+        // 商業邏輯驗證
+        ValidationHelper.ValidateNotEmpty(vm.Name, "藝人名稱", nameof(vm.Name));
+        ValidationHelper.ValidateId(vm.ArtistCategoryId, "藝人分類", nameof(vm.ArtistCategoryId));
+
+        var exists = await _unitOfWork.Artists.ArtistExistsAsync(vm.Id);
+        ValidationHelper.ValidateCondition(exists, $"找不到 ID 為 {vm.Id} 的藝人");
+
+        var artist = await _unitOfWork.Artists.GetArtistByIdAsync(vm.Id);
+        artist!.Name = vm.Name;
+        artist.Description = vm.Description;
+        artist.ProfileImageUrl = vm.ProfileImageUrl;
+        artist.ArtistCategoryId = vm.ArtistCategoryId;
+        artist.DisplayOrder = vm.DisplayOrder;
 
         await _unitOfWork.Artists.UpdateArtistAsync(artist);
     }

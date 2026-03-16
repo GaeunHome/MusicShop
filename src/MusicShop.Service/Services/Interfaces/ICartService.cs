@@ -9,9 +9,14 @@ namespace MusicShop.Service.Services.Interfaces
     public interface ICartService
     {
         /// <summary>
-        /// 取得使用者的購物車項目
+        /// 取得使用者的購物車項目（Entity，供 Service 層使用）
         /// </summary>
         Task<IEnumerable<CartItem>> GetUserCartAsync(string userId);
+
+        /// <summary>
+        /// 取得使用者的購物車項目 ViewModel（供展示層使用）
+        /// </summary>
+        Task<List<CartItemViewModel>> GetCartItemViewModelsAsync(string userId);
 
         /// <summary>
         /// 加入商品到購物車（若已存在則增加數量）

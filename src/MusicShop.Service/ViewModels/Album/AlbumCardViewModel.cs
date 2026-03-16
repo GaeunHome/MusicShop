@@ -1,51 +1,26 @@
-using AlbumModel = MusicShop.Data.Entities.Album;
 using MusicShop.Library.Extensions;
 
 namespace MusicShop.Service.ViewModels.Album;
 
 /// <summary>
 /// 商品卡片 ViewModel（用於首頁、列表頁、相關商品等）
+/// 所有欄位已攤平，不含 Data 層實體參考
 /// </summary>
 public class AlbumCardViewModel
 {
     // ==================== 資料屬性 ====================
 
-    /// <summary>
-    /// 專輯資料
-    /// </summary>
-    public AlbumModel Album { get; set; } = null!;
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
+    public string? CoverImageUrl { get; set; }
+    public string? ArtistName { get; set; }
+    public int? ArtistId { get; set; }
+    public string? ArtistCategoryName { get; set; }
+    public string? ProductTypeName { get; set; }
 
     // ==================== 顯示邏輯屬性 ====================
-
-    /// <summary>
-    /// 商品 ID
-    /// </summary>
-    public int Id => Album.Id;
-
-    /// <summary>
-    /// 商品標題
-    /// </summary>
-    public string Title => Album.Title;
-
-    /// <summary>
-    /// 藝人名稱
-    /// </summary>
-    public string? Artist => Album.Artist?.Name;
-
-    /// <summary>
-    /// 封面圖片 URL（取第一張）
-    /// </summary>
-    public string? CoverImageUrl
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(Album.CoverImageUrl))
-                return null;
-
-            var urls = Album.CoverImageUrl.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            return urls.Length > 0 ? urls[0] : null;
-        }
-    }
 
     /// <summary>
     /// 是否有封面圖片
@@ -57,64 +32,54 @@ public class AlbumCardViewModel
     /// <summary>
     /// 格式化價格（例如：1,250）
     /// </summary>
-    public string FormattedPrice => Album.Price.ToTaiwanPrice();
+    public string FormattedPrice => Price.ToTaiwanPrice();
 
     /// <summary>
     /// 完整價格顯示（例如：NT$ 1,250）
     /// </summary>
-    public string FullPrice => Album.Price.ToFullTaiwanPrice();
+    public string FullPrice => Price.ToFullTaiwanPrice();
 
     // ==================== 庫存相關 ====================
 
     /// <summary>
     /// 是否有庫存
     /// </summary>
-    public bool IsInStock => Album.Stock.IsInStock();
+    public bool IsInStock => Stock.IsInStock();
 
     /// <summary>
     /// 是否庫存不足
     /// </summary>
-    public bool IsLowStock => Album.Stock.IsLowStock();
+    public bool IsLowStock => Stock.IsLowStock();
 
     /// <summary>
     /// 是否已售完
     /// </summary>
-    public bool IsSoldOut => Album.Stock.IsSoldOut();
+    public bool IsSoldOut => Stock.IsSoldOut();
 
     /// <summary>
     /// 庫存狀態文字
     /// </summary>
-    public string StockStatusText => Album.Stock.GetStockStatusText();
+    public string StockStatusText => Stock.GetStockStatusText();
 
     /// <summary>
     /// 庫存狀態 CSS 類別
     /// </summary>
-    public string StockStatusCssClass => Album.Stock.GetStockStatusCssClass();
+    public string StockStatusCssClass => Stock.GetStockStatusCssClass();
 
     /// <summary>
     /// 庫存狀態圖示
     /// </summary>
-    public string StockStatusIcon => Album.Stock.GetStockStatusIcon();
+    public string StockStatusIcon => Stock.GetStockStatusIcon();
 
     // ==================== 分類相關 ====================
 
     /// <summary>
-    /// 藝人分類名稱（透過 Artist 間接取得）
+    /// 是否有藝人分類
     /// </summary>
-    public string? ArtistCategoryName => Album.Artist?.ArtistCategory?.Name;
-
-    /// <summary>
-    /// 商品類型名稱
-    /// </summary>
-    public string? ProductTypeName => Album.ProductType?.Name;
-
-    /// <summary>
-    /// 是否有藝人分類（透過 Artist 間接取得）
-    /// </summary>
-    public bool HasArtistCategory => Album.Artist?.ArtistCategory != null;
+    public bool HasArtistCategory => !string.IsNullOrEmpty(ArtistCategoryName);
 
     /// <summary>
     /// 是否有商品類型
     /// </summary>
-    public bool HasProductType => Album.ProductType != null;
+    public bool HasProductType => !string.IsNullOrEmpty(ProductTypeName);
 }

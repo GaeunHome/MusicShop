@@ -5,8 +5,8 @@ using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.Services.Implementation;
-using MusicShop.Web.Services;
-using MusicShop.Web.Services.Interfaces;
+using MusicShop.Web.Infrastructure;
+using MusicShop.Web.Infrastructure.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

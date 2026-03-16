@@ -2,6 +2,8 @@ using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Library.Helpers;
+using MusicShop.Service.ViewModels;
+using MusicShop.Service.ViewModels.Admin;
 
 namespace MusicShop.Service.Services.Implementation;
 
@@ -22,28 +24,60 @@ public class ArtistCategoryService : IArtistCategoryService
         return await _unitOfWork.ArtistCategories.GetAllAsync();
     }
 
-    public async Task<ArtistCategory?> GetArtistCategoryByIdAsync(int id)
+    public async Task<IEnumerable<SelectItemViewModel>> GetArtistCategorySelectItemsAsync()
     {
-        return await _unitOfWork.ArtistCategories.GetByIdAsync(id);
+        var categories = await _unitOfWork.ArtistCategories.GetAllAsync();
+        return categories.Select(c => new SelectItemViewModel
+        {
+            Id = c.Id,
+            Name = c.Name
+        });
     }
 
-    public async Task<ArtistCategory> CreateArtistCategoryAsync(ArtistCategory artistCategory)
+    public async Task<ArtistCategoryFormViewModel?> GetArtistCategoryFormByIdAsync(int id)
     {
-        // 商業邏輯驗證
-        ValidationHelper.ValidateString(artistCategory.Name, "藝人分類名稱", 50, nameof(artistCategory.Name));
+        var entity = await _unitOfWork.ArtistCategories.GetByIdAsync(id);
+        if (entity == null) return null;
 
-        return await _unitOfWork.ArtistCategories.CreateAsync(artistCategory);
+        return new ArtistCategoryFormViewModel
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            Description = entity.Description,
+            DisplayOrder = entity.DisplayOrder
+        };
     }
 
-    public async Task UpdateArtistCategoryAsync(ArtistCategory artistCategory)
+    public async Task<ArtistCategoryFormViewModel> CreateArtistCategoryAsync(ArtistCategoryFormViewModel vm)
     {
         // 商業邏輯驗證
-        ValidationHelper.ValidateString(artistCategory.Name, "藝人分類名稱", 50, nameof(artistCategory.Name));
+        ValidationHelper.ValidateString(vm.Name, "藝人分類名稱", 50, nameof(vm.Name));
 
-        var exists = await _unitOfWork.ArtistCategories.GetByIdAsync(artistCategory.Id);
-        ValidationHelper.ValidateEntityExists(exists, "藝人分類", artistCategory.Id);
+        var entity = new ArtistCategory
+        {
+            Name = vm.Name,
+            Description = vm.Description,
+            DisplayOrder = vm.DisplayOrder
+        };
 
-        await _unitOfWork.ArtistCategories.UpdateAsync(artistCategory);
+        var created = await _unitOfWork.ArtistCategories.CreateAsync(entity);
+        vm.Id = created.Id;
+        return vm;
+    }
+
+    public async Task UpdateArtistCategoryAsync(ArtistCategoryFormViewModel vm)
+    {
+        // 商業邏輯驗證
+        ValidationHelper.ValidateString(vm.Name, "藝人分類名稱", 50, nameof(vm.Name));
+
+        var existing = await _unitOfWork.ArtistCategories.GetByIdAsync(vm.Id);
+        ValidationHelper.ValidateEntityExists(existing, "藝人分類", vm.Id);
+
+        existing!.Name = vm.Name;
+        existing.Description = vm.Description;
+        existing.DisplayOrder = vm.DisplayOrder;
+
+        await _unitOfWork.ArtistCategories.UpdateAsync(existing);
     }
 
     public async Task DeleteArtistCategoryAsync(int id)

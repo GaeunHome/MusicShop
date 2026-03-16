@@ -1,8 +1,8 @@
-@model IEnumerable<MusicShop.Data.Entities.CartItem>
+@model IEnumerable<CartItemViewModel>
 @{
     ViewData["Title"] = "購物車";
     ViewData["PageId"] = "cart-index";
-    var total = Model.Sum(c => c.Album!.Price * c.Quantity);
+    var total = Model.Sum(c => c.SubTotal);
 }
 
 <!-- 引用共用的 TempData 通知元件 -->
@@ -43,9 +43,9 @@
                                 <!-- 專輯封面 -->
                                 <div class="col-auto">
                                     <div class="album-cover-wrapper">
-                                        @if (!string.IsNullOrEmpty(item.Album!.CoverImageUrl))
+                                        @if (!string.IsNullOrEmpty(item.CoverImageUrl))
                                         {
-                                            <img src="@item.Album.CoverImageUrl" alt="@item.Album.Title" class="album-cover">
+                                            <img src="@item.CoverImageUrl" alt="@item.AlbumTitle" class="album-cover">
                                         }
                                         else
                                         {
@@ -61,14 +61,14 @@
                                     <div class="d-flex flex-column h-100">
                                         <!-- 專輯標題 -->
                                         <h5 class="cart-item-title mb-2">
-                                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@item.Album.Id" class="text-decoration-none text-dark">
-                                                @item.Album.Title
+                                            <a asp-controller="Album" asp-action="Detail" asp-route-id="@item.AlbumId" class="text-decoration-none text-dark">
+                                                @item.AlbumTitle
                                             </a>
                                         </h5>
 
                                         <!-- 單價 -->
                                         <div class="cart-item-price mb-3">
-                                            NT$ <span class="price-value">@item.Album.Price.ToString("N0")</span>
+                                            NT$ <span class="price-value">@item.FormattedPrice</span>
                                         </div>
 
                                         <div class="mt-auto">
@@ -78,7 +78,7 @@
                                                     <div class="quantity-control">
                                                         <button type="button" class="quantity-btn quantity-decrease"
                                                                 data-cart-item-id="@item.Id"
-                                                                data-album-title="@item.Album.Title"
+                                                                data-album-title="@item.AlbumTitle"
                                                                 data-form-id="removeForm_@item.Id">
                                                             <i class="bi bi-dash"></i>
                                                         </button>
@@ -93,7 +93,7 @@
                                                 <!-- 小計 -->
                                                 <div class="col-auto">
                                                     <div class="cart-item-subtotal">
-                                                        小計：NT$ <span class="subtotal-value" id="subtotal-@item.Id">@((item.Album.Price * item.Quantity).ToString("N0"))</span>
+                                                        小計：NT$ <span class="subtotal-value" id="subtotal-@item.Id">@item.FormattedSubTotal</span>
                                                     </div>
                                                 </div>
 
@@ -103,7 +103,7 @@
                                                         <input type="hidden" name="cartItemId" value="@item.Id" />
                                                         <button type="button" class="btn btn-outline-danger btn-sm"
                                                                 data-cart-remove
-                                                                data-album-title="@item.Album.Title"
+                                                                data-album-title="@item.AlbumTitle"
                                                                 data-form-id="removeForm_@item.Id">
                                                             <i class="bi bi-trash me-1"></i>移除
                                                         </button>

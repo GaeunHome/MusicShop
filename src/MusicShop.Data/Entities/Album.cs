@@ -23,8 +23,8 @@ namespace MusicShop.Data.Entities
         public decimal Price { get; set; }
 
         public string? CoverImageUrl { get; set; }
-
-        public int? Stock { get; set; }
+        [Required]
+        public int Stock { get; set; }
 
         /// <summary>
         /// 並發控制欄位（用於防止庫存更新時的並發問題）

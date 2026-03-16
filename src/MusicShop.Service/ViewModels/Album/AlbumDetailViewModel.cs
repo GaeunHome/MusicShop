@@ -1,19 +1,26 @@
-using AlbumModel = MusicShop.Data.Entities.Album;
 using MusicShop.Library.Extensions;
 
 namespace MusicShop.Service.ViewModels.Album;
 
 /// <summary>
 /// 商品詳情頁面 ViewModel（包含所有顯示邏輯）
+/// 所有欄位已攤平，不含 Data 層實體參考
 /// </summary>
 public class AlbumDetailViewModel
 {
     // ==================== 資料屬性 ====================
 
-    /// <summary>
-    /// 當前商品
-    /// </summary>
-    public AlbumModel Album { get; set; } = null!;
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? DescriptionImageUrl { get; set; }
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
+    public string? CoverImageUrl { get; set; }
+    public string? ArtistName { get; set; }
+    public int? ArtistId { get; set; }
+    public int? ArtistCategoryId { get; set; }
+    public int? ProductTypeId { get; set; }
 
     /// <summary>
     /// 相關商品推薦（同藝人分類或同商品類型）
@@ -40,7 +47,7 @@ public class AlbumDetailViewModel
     /// <summary>
     /// 商品編號（格式化）
     /// </summary>
-    public string ProductCode => $"ALBUM{Album.Id:D6}";
+    public string ProductCode => $"ALBUM{Id:D6}";
 
     /// <summary>
     /// 商品圖片清單（處理後的 URL 列表）
@@ -67,39 +74,39 @@ public class AlbumDetailViewModel
     /// <summary>
     /// 格式化價格（例如：1,250）
     /// </summary>
-    public string FormattedPrice => Album.Price.ToTaiwanPrice();
+    public string FormattedPrice => Price.ToTaiwanPrice();
 
     /// <summary>
     /// 完整價格顯示（例如：NT$ 1,250）
     /// </summary>
-    public string FullPrice => Album.Price.ToFullTaiwanPrice();
+    public string FullPrice => Price.ToFullTaiwanPrice();
 
     // ==================== 庫存相關 ====================
 
     /// <summary>
     /// 是否有庫存
     /// </summary>
-    public bool IsInStock => Album.Stock.IsInStock();
+    public bool IsInStock => Stock.IsInStock();
 
     /// <summary>
     /// 是否已售完
     /// </summary>
-    public bool IsSoldOut => Album.Stock.IsSoldOut();
+    public bool IsSoldOut => Stock.IsSoldOut();
 
     /// <summary>
     /// 庫存狀態文字
     /// </summary>
-    public string StockStatusText => Album.Stock.GetStockStatusText();
+    public string StockStatusText => Stock.GetStockStatusText();
 
     /// <summary>
     /// 庫存狀態 CSS 類別
     /// </summary>
-    public string StockStatusCssClass => Album.Stock.GetStockStatusCssClass();
+    public string StockStatusCssClass => Stock.GetStockStatusCssClass();
 
     /// <summary>
     /// 庫存狀態圖示
     /// </summary>
-    public string StockStatusIcon => Album.Stock.GetStockStatusIcon();
+    public string StockStatusIcon => Stock.GetStockStatusIcon();
 
     // ==================== 預購相關 ====================
 
@@ -118,12 +125,12 @@ public class AlbumDetailViewModel
     /// <summary>
     /// 是否有商品介紹圖片
     /// </summary>
-    public bool HasDescriptionImage => !string.IsNullOrEmpty(Album.DescriptionImageUrl);
+    public bool HasDescriptionImage => !string.IsNullOrEmpty(DescriptionImageUrl);
 
     /// <summary>
     /// 是否有文字說明
     /// </summary>
-    public bool HasDescription => !string.IsNullOrEmpty(Album.Description);
+    public bool HasDescription => !string.IsNullOrEmpty(Description);
 
     /// <summary>
     /// 是否有任何商品介紹

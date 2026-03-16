@@ -1,5 +1,3 @@
-using MusicShop.Data.Entities;
-
 namespace MusicShop.Service.ViewModels.Account;
 
 /// <summary>
@@ -16,5 +14,5 @@ public class AccountIndexViewModel
     public int TotalOrders { get; set; }
 
     // 近期訂單（最多顯示 5 筆）
-    public List<Order> RecentOrders { get; set; } = new();
+    public List<RecentOrderViewModel> RecentOrders { get; set; } = new();
 }

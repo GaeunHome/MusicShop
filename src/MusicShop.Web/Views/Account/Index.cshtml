@@ -110,37 +110,34 @@
                                                     訂單編號 #@order.Id
                                                 </a>
                                             </td>
-                                            <td>訂單日期 @order.OrderDate.ToString("yyyy-MM-dd")</td>
-                                            <td>NT$@order.TotalAmount.ToString("N0")</td>
+                                            <td>訂單日期 @order.FormattedOrderDate</td>
+                                            <td>NT$@order.FormattedTotalAmount</td>
                                             <td>
-                                                <span>@MusicShop.Library.Helpers.OrderHelper.GetPaymentStatusText(order)</span>
+                                                <span>@order.PaymentStatusText</span>
                                             </td>
                                             <td>
-                                                @{
-                                                    var deliveryStatus = MusicShop.Library.Helpers.OrderHelper.GetDeliveryStatusText(order);
-                                                }
-                                                @if (order.Status == MusicShop.Data.Entities.OrderStatus.Shipped)
+                                                @if (order.IsDelivered)
                                                 {
-                                                    <span class="badge bg-info">@deliveryStatus</span>
+                                                    <span class="badge bg-info">@order.DeliveryStatusText</span>
                                                 }
-                                                else if (order.Status == MusicShop.Data.Entities.OrderStatus.Completed)
+                                                else if (order.IsCompleted)
                                                 {
-                                                    <span class="badge bg-success">@deliveryStatus</span>
+                                                    <span class="badge bg-success">@order.DeliveryStatusText</span>
                                                 }
                                                 else
                                                 {
-                                                    <span>@deliveryStatus</span>
+                                                    <span>@order.DeliveryStatusText</span>
                                                 }
                                             </td>
                                             <td>
-                                                @foreach (var item in order.OrderItems.Take(1))
+                                                @if (!string.IsNullOrEmpty(order.FirstItemTitle))
                                                 {
-                                                    <div>@item.Album?.Title</div>
-                                                    <small class="text-muted">數量：@item.Quantity</small>
+                                                    <div>@order.FirstItemTitle</div>
+                                                    <small class="text-muted">數量：@order.FirstItemQuantity</small>
                                                 }
-                                                @if (order.OrderItems.Count > 1)
+                                                @if (order.TotalItemCount > 1)
                                                 {
-                                                    <small class="text-muted d-block">還有 @(order.OrderItems.Count - 1) 項...</small>
+                                                    <small class="text-muted d-block">還有 @(order.TotalItemCount - 1) 項...</small>
                                                 }
                                             </td>
                                             <td class="text-end">

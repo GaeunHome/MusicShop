@@ -1,5 +1,6 @@
 using MusicShop.Data.Entities;
 using MusicShop.Service.ViewModels.Cart;
+using MusicShop.Service.ViewModels.Order;
 
 namespace MusicShop.Service.Services.Interfaces
 {
@@ -56,5 +57,25 @@ namespace MusicShop.Service.Services.Interfaces
         /// 檢查訂單是否屬於該使用者
         /// </summary>
         Task<bool> IsOrderOwnedByUserAsync(int orderId, string userId);
+
+        /// <summary>
+        /// 取得使用者訂單列表 ViewModel（供展示層使用）
+        /// </summary>
+        Task<List<OrderListItemViewModel>> GetOrderListViewModelsByUserAsync(string userId);
+
+        /// <summary>
+        /// 取得訂單詳情 ViewModel（供展示層使用，含使用者驗證）
+        /// </summary>
+        Task<OrderDetailViewModel?> GetOrderDetailViewModelAsync(int orderId, string userId);
+
+        /// <summary>
+        /// 取得訂單完成確認 ViewModel（供展示層使用）
+        /// </summary>
+        Task<OrderConfirmationViewModel?> GetOrderConfirmationViewModelAsync(int orderId, string userId);
+
+        /// <summary>
+        /// 取得最近訂單 ViewModel（供帳號首頁使用）
+        /// </summary>
+        Task<List<MusicShop.Service.ViewModels.Account.RecentOrderViewModel>> GetRecentOrderViewModelsAsync(string userId, int count = 5);
     }
 }

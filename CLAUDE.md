@@ -465,61 +465,22 @@ MusicShop.Web
 
 ## 版本更新記錄
 
-### v1.4.0 - 幻燈片管理系統 (2026-03-11)
+### v1.6.0 - 購物車登入提示優化 (2026-03-16)
 
-**🖼️ 動態首頁幻燈片**
-- 新增 `Banner` 實體（`MusicShop.Data.Entities`），含可選 AlbumId 外鍵
-- Album 刪除時設 `Banner.AlbumId = NULL`（DeleteBehavior.SetNull），避免幻燈片誤刪
-- 首頁輪播改為從資料庫動態讀取，支援啟用/停用控制
-- 幻燈片可選擇聯動商品詳情頁（點擊跳轉至對應專輯）
-- 無幻燈片時自動隱藏輪播；僅一張時隱藏切換箭頭
+**🛒 購物車圖示互動改善**
+- 未登入點擊導覽列購物車圖示時，以 SweetAlert2 彈跳視窗提示「請先登入」
+- 提供「立即登入」（帶 returnUrl）與「稍後再說」選項，取代直接跳轉登入頁
+- `_Layout.cshtml` 依登入狀態條件渲染：已登入為 `<a>` 連結（含購物車徽章），未登入為 `<button data-require-auth>`
+- 沿用現有 `data-require-auth` + `Common.bindAuthGuard()` 機制，無需新增 JS
 
-**🗂️ 後台幻燈片管理**
-- `Banners`（列表）、`BannerCreate`（新增）、`BannerEdit`（編輯）、`BannerDelete`（刪除）、`BannerToggle`（啟用切換）
-- 刪除幻燈片時呼叫 `IBannerImageService.DeleteBannerImage()` 同步清除 wwwroot 實體圖片
+### 歷史版本摘要（v1.3.0 ~ v1.5.2）
 
-**📦 架構新增**
-- `IBannerRepository` / `BannerRepository`（`MusicShop.Data`，繼承 GenericRepository）
-- `IBannerService` / `BannerService`（`MusicShop.Service`）
-- `IBannerImageService` / `BannerImageService`（`MusicShop.Web/Services/`，Web 層基礎設施）
-- IUnitOfWork 新增 `IBannerRepository Banners` 屬性
-- EF Migration `AddBannerTable`（含 FK SetNull）
-- 圖片存放：`wwwroot/images/banners/banner-{id}.{ext}`，限 JPG/PNG/WebP，上限 10 MB
-
-### v1.3.0 - 多專案架構重構 (2026-03-09)
-
-**🏗️ 架構升級**
-- 從單一專案重構為多專案解決方案（4 個獨立專案）
-- 建立 `MusicShop.Data` 專案（資料存取層）
-- 建立 `MusicShop.Service` 專案（商業邏輯層）
-- 建立 `MusicShop.Library` 專案（共用工具庫）
-- 保留 `MusicShop.Web` 專案（展示層）
-
-**🔧 設計模式改進**
-- 實作 **UnitOfWork 模式**：統一管理所有 Repository 的存取點
-- 實作 **Generic Repository 模式**：提供通用的 CRUD 操作介面
-- 整合 **AutoMapper**：自動化 Entity ↔ ViewModel 的物件映射
-- Service 層統一改為注入 `IUnitOfWork`（原本注入多個 Repository）
-
-**📦 命名空間重組**
-- `MusicShop.Models` → `MusicShop.Data.Entities`
-- `MusicShop.Services.Interface` → `MusicShop.Service.Services.Interfaces`
-- `MusicShop.Services.Implementation` → `MusicShop.Service.Services.Implementation`
-- `MusicShop.Repositories.Interface` → `MusicShop.Data.Repositories.Interfaces`
-- `MusicShop.Repositories.Implementation` → `MusicShop.Data.Repositories.Implementation`
-- `MusicShop.Helpers` → `MusicShop.Library.Helpers`
-- `MusicShop.ViewModels` → `MusicShop.Service.ViewModels`
-
-**✅ 重構成果**
-- 所有專案編譯成功（0 錯誤）
-- 應用程式正常啟動與運行
-- 資料庫連線與初始化正常
-- 所有核心功能測試通過（首頁、專輯列表、登入等）
-
-**🎯 改進效益**
-- **關注點分離**：每個專案職責明確，易於維護
-- **可測試性提升**：UnitOfWork 和 Repository 模式便於單元測試
-- **程式碼重用**：Generic Repository 減少重複的 CRUD 程式碼
-- **依賴管理簡化**：Service 層統一注入 IUnitOfWork，降低耦合度
-- **擴充性增強**：新增 Repository 或 Service 更加容易
-- **團隊協作**：多專案架構便於分工開發
+| 版本 | 日期 | 主要內容 |
+|------|------|---------|
+| **v1.5.2** | 2026-03-11 | 首頁商品卡片改用 `_AlbumCard` 共用局部視圖；`_AlbumCard` / `_AlbumListItem` 移至 `Views/Shared/`；收藏頁補上樣式 |
+| **v1.5.1** | 2026-03-11 | 未登入操作改以 SweetAlert2 彈窗提示；`data-require-auth` + `bindAuthGuard()` 全域攔截機制 |
+| **v1.5.0** | 2026-03-11 | 收藏清單功能（WishlistItem 實體、WishlistRepository/Service、AJAX 愛心切換） |
+| **v1.4.1** | 2026-03-11 | 修正搜尋參數名稱；整合綠界 ECPay 超商物流（`IEcpayLogisticsService`） |
+| **v1.4.0** | 2026-03-11 | 動態首頁幻燈片（Banner 實體、後台 CRUD、圖片上傳、商品聯動、Web 層 BannerImageService） |
+| **v1.3.1** | 2026-03-09 | 修正結帳頁面表單條件驗證 |
+| **v1.3.0** | 2026-03-09 | 多專案解決方案重構（Data / Service / Library / Web）；UnitOfWork、Generic Repository、AutoMapper |

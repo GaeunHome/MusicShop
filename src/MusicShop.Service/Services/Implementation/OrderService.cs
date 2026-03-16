@@ -2,7 +2,9 @@ using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Library.Helpers;
+using MusicShop.Service.ViewModels.Account;
 using MusicShop.Service.ViewModels.Cart;
+using MusicShop.Service.ViewModels.Order;
 
 namespace MusicShop.Service.Services.Implementation
 {
@@ -223,6 +225,142 @@ namespace MusicShop.Service.Services.Implementation
                 return false;
 
             return await _unitOfWork.Orders.IsOrderOwnedByUserAsync(orderId, userId);
+        }
+
+        public async Task<List<OrderListItemViewModel>> GetOrderListViewModelsByUserAsync(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                throw new ArgumentException("使用者 ID 不能為空", nameof(userId));
+
+            var orders = await _unitOfWork.Orders.GetOrdersByUserIdAsync(userId);
+
+            return orders.Select(order =>
+            {
+                var topItems = order.OrderItems.Take(3).Select(i => new OrderItemSummaryViewModel
+                {
+                    AlbumTitle = i.Album?.Title ?? "未知商品",
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
+                }).ToList();
+
+                return new OrderListItemViewModel
+                {
+                    Id = order.Id,
+                    OrderDate = order.OrderDate,
+                    TotalAmount = order.TotalAmount,
+                    StatusText = OrderHelper.GetOrderStatusText(order.Status),
+                    StatusBadgeClass = OrderHelper.GetOrderStatusBadgeClass(order.Status),
+                    PaymentMethodText = OrderHelper.GetPaymentMethodText(order.PaymentMethod),
+                    DeliveryMethodText = OrderHelper.GetDeliveryMethodText(order.DeliveryMethod),
+                    PaymentStatusText = OrderHelper.GetPaymentStatusText(order),
+                    CanCancel = order.Status == OrderStatus.Pending || order.Status == OrderStatus.Paid,
+                    Items = topItems,
+                    TotalItemCount = order.OrderItems.Count
+                };
+            }).ToList();
+        }
+
+        public async Task<OrderDetailViewModel?> GetOrderDetailViewModelAsync(int orderId, string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                throw new ArgumentException("使用者 ID 不能為空", nameof(userId));
+
+            var order = await _unitOfWork.Orders.GetOrderByIdAsync(orderId);
+
+            if (order == null)
+                return null;
+
+            // 驗證訂單是否屬於該使用者
+            if (order.UserId != userId)
+                throw new UnauthorizedAccessException("無權限查看此訂單");
+
+            var items = order.OrderItems.Select(i => new OrderItemViewModel
+            {
+                AlbumId = i.AlbumId,
+                AlbumTitle = i.Album?.Title ?? "未知商品",
+                CoverImageUrl = i.Album?.CoverImageUrl,
+                UnitPrice = i.UnitPrice,
+                Quantity = i.Quantity
+            }).ToList();
+
+            return new OrderDetailViewModel
+            {
+                Id = order.Id,
+                OrderDate = order.OrderDate,
+                TotalAmount = order.TotalAmount,
+                StatusText = OrderHelper.GetOrderStatusText(order.Status),
+                StatusBadgeClass = OrderHelper.GetOrderStatusBadgeClass(order.Status),
+                StatusDescription = OrderHelper.GetOrderStatusDescription(order.Status),
+                IsPending = order.Status == OrderStatus.Pending,
+                CanCancel = order.Status == OrderStatus.Pending || order.Status == OrderStatus.Paid,
+                PaymentMethodText = OrderHelper.GetPaymentMethodText(order.PaymentMethod),
+                DeliveryMethodText = OrderHelper.GetDeliveryMethodText(order.DeliveryMethod),
+                PaymentStatusText = OrderHelper.GetPaymentStatusText(order),
+                DeliveryStatusText = OrderHelper.GetDeliveryStatusText(order),
+                Items = items
+            };
+        }
+
+        public async Task<OrderConfirmationViewModel?> GetOrderConfirmationViewModelAsync(int orderId, string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                throw new ArgumentException("使用者 ID 不能為空", nameof(userId));
+
+            var order = await _unitOfWork.Orders.GetOrderByIdAsync(orderId);
+
+            if (order == null)
+                return null;
+
+            // 驗證訂單是否屬於該使用者
+            if (order.UserId != userId)
+                throw new UnauthorizedAccessException("無權限查看此訂單");
+
+            var items = order.OrderItems.Select(i => new OrderConfirmationItemViewModel
+            {
+                AlbumTitle = i.Album?.Title ?? "未知商品",
+                UnitPrice = i.UnitPrice,
+                Quantity = i.Quantity
+            }).ToList();
+
+            return new OrderConfirmationViewModel
+            {
+                Id = order.Id,
+                OrderDate = order.OrderDate,
+                TotalAmount = order.TotalAmount,
+                PaymentMethodText = OrderHelper.GetPaymentMethodText(order.PaymentMethod),
+                DeliveryMethodText = OrderHelper.GetDeliveryMethodText(order.DeliveryMethod),
+                StatusText = OrderHelper.GetOrderStatusText(order.Status),
+                Items = items
+            };
+        }
+
+        public async Task<List<RecentOrderViewModel>> GetRecentOrderViewModelsAsync(string userId, int count = 5)
+        {
+            if (string.IsNullOrEmpty(userId))
+                throw new ArgumentException("使用者 ID 不能為空", nameof(userId));
+
+            var orders = await _unitOfWork.Orders.GetOrdersByUserIdAsync(userId);
+
+            return orders.Take(count).Select(order =>
+            {
+                var firstItem = order.OrderItems.FirstOrDefault();
+
+                return new RecentOrderViewModel
+                {
+                    Id = order.Id,
+                    OrderDate = order.OrderDate,
+                    TotalAmount = order.TotalAmount,
+                    StatusText = OrderHelper.GetOrderStatusText(order.Status),
+                    StatusBadgeClass = OrderHelper.GetOrderStatusBadgeClass(order.Status),
+                    PaymentStatusText = OrderHelper.GetPaymentStatusText(order),
+                    DeliveryStatusText = OrderHelper.GetDeliveryStatusText(order),
+                    IsDelivered = order.Status == OrderStatus.Shipped,
+                    IsCompleted = order.Status == OrderStatus.Completed,
+                    FirstItemTitle = firstItem?.Album?.Title,
+                    FirstItemQuantity = firstItem?.Quantity,
+                    TotalItemCount = order.OrderItems.Count
+                };
+            }).ToList();
         }
     }
 }

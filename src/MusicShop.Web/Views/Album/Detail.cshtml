@@ -1,6 +1,6 @@
-@model MusicShop.Service.ViewModels.Album.AlbumDetailViewModel
+@model AlbumDetailViewModel
 @{
-    ViewData["Title"] = Model.Album.Title;
+    ViewData["Title"] = Model.Title;
     bool isInWishlist = ViewBag.IsInWishlist == true;
 }
 
@@ -14,7 +14,7 @@
             <li class="breadcrumb-item">
                 <a asp-controller="Album" asp-action="Index">商品列表</a>
             </li>
-            <li class="breadcrumb-item active" aria-current="page">@Model.Album.Title</li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
         </ol>
     </nav>
 
@@ -26,7 +26,7 @@
                 <div class="main-image-wrapper">
                     @if (Model.HasImages)
                     {
-                        <img id="mainImage" src="@Model.FirstImageUrl" class="img-fluid main-image" alt="@Model.Album.Title" />
+                        <img id="mainImage" src="@Model.FirstImageUrl" class="img-fluid main-image" alt="@Model.Title" />
 
                         @if (Model.HasMultipleImages)
                         {
@@ -70,8 +70,8 @@
         <div class="col-lg-6">
             <div class="product-info">
                 <!-- 商品標題 -->
-                <h1 class="product-title">@Model.Album.Title</h1>
-                <p class="product-artist">@(Model.Album.Artist?.Name ?? "未設定藝人")</p>
+                <h1 class="product-title">@Model.Title</h1>
+                <p class="product-artist">@(Model.ArtistName ?? "未設定藝人")</p>
 
                 <!-- 特殊提示 -->
                 @if (Model.ShowPreOrderNotice)
@@ -108,7 +108,7 @@
                         <button type="button" class="quantity-btn" onclick="decreaseQuantity()">
                             <i class="bi bi-dash"></i>
                         </button>
-                        <input type="number" id="quantity" value="@Model.DefaultQuantity" min="1" max="@(Model.Album.Stock ?? 1)" class="quantity-input" readonly />
+                        <input type="number" id="quantity" value="@Model.DefaultQuantity" min="1" max="@Model.Stock" class="quantity-input" readonly />
                         <button type="button" class="quantity-btn" onclick="increaseQuantity()">
                             <i class="bi bi-plus"></i>
                         </button>
@@ -122,7 +122,7 @@
                         @if (User.Identity!.IsAuthenticated)
                         {
                             <form asp-controller="Cart" asp-action="Add" method="post" class="d-inline-block w-100">
-                                <input type="hidden" name="albumId" value="@Model.Album.Id" />
+                                <input type="hidden" name="albumId" value="@Model.Id" />
                                 <input type="hidden" id="quantityInput" name="quantity" value="@Model.DefaultQuantity" />
 
                                 <button type="submit" class="btn btn-primary btn-lg w-100">
@@ -150,7 +150,7 @@
                     <div class="wishlist-section mt-3">
                         <button type="button"
                                 class="btn btn-outline-secondary btn-wishlist wishlist-toggle @(isInWishlist ? "wishlisted" : "")"
-                                data-album-id="@Model.Album.Id"
+                                data-album-id="@Model.Id"
                                 title="@(isInWishlist ? "取消收藏" : "加入收藏")">
                             <i class="bi @(isInWishlist ? "bi-heart-fill text-danger" : "bi-heart")"></i>
                             <span class="wishlist-label">@(isInWishlist ? "已收藏" : "加入最愛")</span>
@@ -198,7 +198,7 @@
                     @if (Model.HasDescriptionImage)
                     {
                         <div class="description-image-container">
-                            <img src="@Model.Album.DescriptionImageUrl" alt="@Model.Album.Title 商品介紹" class="description-image" />
+                            <img src="@Model.DescriptionImageUrl" alt="@Model.Title 商品介紹" class="description-image" />
                         </div>
                     }
 
@@ -206,7 +206,7 @@
                     @if (Model.HasDescription)
                     {
                         <div class="description-text">
-                            @Model.Album.Description
+                            @Model.Description
                         </div>
                     }
 
@@ -368,6 +368,6 @@
     <script>
         // 將商品圖片傳遞給 JavaScript
         const imageUrls = @Html.Raw(Json.Serialize(Model.ImageUrls));
-        const maxStock = @(Model.Album.Stock ?? 0);
+        const maxStock = @Model.Stock;
     </script>
 }
