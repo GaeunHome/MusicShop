@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using MusicShop.Data.Entities;
+using MusicShop.Controllers;
 using MusicShop.Service.Services.Interfaces;
 
 namespace MusicShop.Web.Controllers
@@ -10,21 +9,19 @@ namespace MusicShop.Web.Controllers
     /// 收藏清單控制器
     /// </summary>
     [Authorize]
-    public class WishlistController : Controller
+    public class WishlistController : BaseController
     {
         private readonly IWishlistService _wishlistService;
-        private readonly UserManager<AppUser> _userManager;
 
-        public WishlistController(IWishlistService wishlistService, UserManager<AppUser> userManager)
+        public WishlistController(IWishlistService wishlistService)
         {
             _wishlistService = wishlistService;
-            _userManager = userManager;
         }
 
         // GET: /Wishlist
         public async Task<IActionResult> Index()
         {
-            var userId = _userManager.GetUserId(User)!;
+            var userId = GetAuthorizedUserId();
             var items = await _wishlistService.GetWishlistItemViewModelsAsync(userId);
             return View(items);
         }
@@ -34,7 +31,7 @@ namespace MusicShop.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Toggle(int albumId)
         {
-            var userId = _userManager.GetUserId(User)!;
+            var userId = GetAuthorizedUserId();
             var added = await _wishlistService.ToggleWishlistAsync(userId, albumId);
             return Json(new { added, message = added ? "已加入收藏" : "已取消收藏" });
         }

@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using MusicShop.Data.Entities;
+using MusicShop.Library.Enums;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.ViewModels.Cart;
 using MusicShop.Library.Helpers;
+using MusicShop.Web.Infrastructure;
+using System.Security.Claims;
 
 namespace MusicShop.Controllers;
 
@@ -13,23 +14,23 @@ namespace MusicShop.Controllers;
 /// 使用三層式架構：Controller → Service → Repository
 /// </summary>
 [Authorize]
-public class CartController : Controller
+public class CartController : BaseController
 {
     private readonly ICartService _cartService;
     private readonly IOrderService _orderService;
+    private readonly IUserService _userService;
     private readonly IEcpayLogisticsService _ecpayLogisticsService;
-    private readonly UserManager<AppUser> _userManager;
 
     public CartController(
         ICartService cartService,
         IOrderService orderService,
-        IEcpayLogisticsService ecpayLogisticsService,
-        UserManager<AppUser> userManager)
+        IUserService userService,
+        IEcpayLogisticsService ecpayLogisticsService)
     {
         _cartService = cartService;
         _orderService = orderService;
+        _userService = userService;
         _ecpayLogisticsService = ecpayLogisticsService;
-        _userManager = userManager;
     }
 
     // GET: /Cart
@@ -54,21 +55,23 @@ public class CartController : Controller
         try
         {
             await _cartService.AddToCartAsync(userId, albumId, quantity);
-            TempData["Success"] = "已加入購物車！";
+            TempData[TempDataKeys.Success] = "已加入購物車！";
         }
         catch (InvalidOperationException ex)
         {
-            TempData["Error"] = ex.Message;
+            TempData[TempDataKeys.Error] = ex.Message;
         }
         catch (ArgumentException ex)
         {
-            TempData["Error"] = ex.Message;
+            TempData[TempDataKeys.Error] = ex.Message;
         }
 
         return RedirectToAction("Index");
     }
 
     // POST: /Cart/UpdateQuantity
+    // 傳統表單提交版本：整頁重新導向，適用於非 JS 環境的降級處理
+    // 與下方 UpdateQuantityAjax 的差異在於回傳方式（Redirect vs JSON）
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateQuantity(int cartItemId, int quantity)
@@ -81,32 +84,33 @@ public class CartController : Controller
             {
                 // 數量 <= 0 時，移除項目
                 await _cartService.RemoveFromCartAsync(cartItemId, userId);
-                TempData["Success"] = "已移除商品";
+                TempData[TempDataKeys.Success] = "已移除商品";
             }
             else
             {
                 await _cartService.UpdateCartItemQuantityAsync(cartItemId, userId, quantity);
-                TempData["Success"] = "已更新數量";
+                TempData[TempDataKeys.Success] = "已更新數量";
             }
         }
         catch (InvalidOperationException ex)
         {
-            TempData["Error"] = ex.Message;
+            TempData[TempDataKeys.Error] = ex.Message;
         }
         catch (UnauthorizedAccessException ex)
         {
-            TempData["Error"] = ex.Message;
+            TempData[TempDataKeys.Error] = ex.Message;
         }
 
         return RedirectToAction("Index");
     }
 
     // POST: /Cart/UpdateQuantityAjax
-    // AJAX 更新購物車數量（返回 JSON）
+    // AJAX 版本：回傳 JSON 供前端局部更新數量與小計，避免整頁刷新
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateQuantityAjax(int cartItemId, int quantity)
     {
-        var userId = _userManager.GetUserId(User);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId))
             return Json(new { success = false, message = "未登入" });
 
@@ -115,9 +119,9 @@ public class CartController : Controller
             var result = await _cartService.UpdateCartItemQuantityAjaxAsync(cartItemId, userId, quantity);
             return Json(result);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return Json(new { success = false, message = ex.Message });
+            return Json(new { success = false, message = "更新數量時發生錯誤，請稍後再試" });
         }
     }
 
@@ -131,15 +135,15 @@ public class CartController : Controller
         try
         {
             await _cartService.RemoveFromCartAsync(cartItemId, userId);
-            TempData["Success"] = "已移除商品";
+            TempData[TempDataKeys.Success] = "已移除商品";
         }
         catch (InvalidOperationException ex)
         {
-            TempData["Error"] = ex.Message;
+            TempData[TempDataKeys.Error] = ex.Message;
         }
         catch (UnauthorizedAccessException ex)
         {
-            TempData["Error"] = ex.Message;
+            TempData[TempDataKeys.Error] = ex.Message;
         }
 
         return RedirectToAction("Index");
@@ -155,11 +159,11 @@ public class CartController : Controller
         try
         {
             await _cartService.ClearCartAsync(userId);
-            TempData["Success"] = "已清空購物車";
+            TempData[TempDataKeys.Success] = "已清空購物車";
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            TempData["Error"] = ex.Message;
+            TempData[TempDataKeys.Error] = "清空購物車時發生錯誤，請稍後再試";
         }
 
         return RedirectToAction("Index");
@@ -174,12 +178,12 @@ public class CartController : Controller
 
         if (!cartItemViewModels.Any())
         {
-            TempData["Error"] = "購物車是空的！";
+            TempData[TempDataKeys.Error] = "購物車是空的！";
             return RedirectToAction("Index");
         }
 
-        // 取得當前使用者資訊
-        var user = await _userManager.GetUserAsync(User);
+        // 透過 Service 層取得使用者基本資訊（預填收件人）
+        var (fullName, phoneNumber) = await _userService.GetUserBasicInfoAsync(userId);
 
         // 計算總金額
         var total = cartItemViewModels.Sum(c => c.SubTotal);
@@ -188,8 +192,8 @@ public class CartController : Controller
         var viewModel = new CheckoutViewModel
         {
             // 預填收件人資訊（從個人帳戶）
-            ReceiverName = user?.FullName ?? string.Empty,
-            ReceiverPhone = user?.PhoneNumber ?? string.Empty,
+            ReceiverName = fullName,
+            ReceiverPhone = phoneNumber,
 
             // 購物車項目
             CartItems = cartItemViewModels,
@@ -224,9 +228,10 @@ public class CartController : Controller
         {
             // 使用新的服務方法建立包含完整資訊的訂單
             // Service 層會進行完整的業務驗證（門市資訊、發票資訊、庫存等）
-            var order = await _orderService.CreateOrderWithFullInfoAsync(userId, model);
-            TempData["Success"] = $"訂單成立！訂單編號：#{order.Id}";
-            return RedirectToAction("OrderComplete", new { orderId = order.Id });
+            // Service 層回傳訂單 ID，Controller 不直接接觸 Order Entity
+            var orderId = await _orderService.CreateOrderWithFullInfoAsync(userId, model);
+            TempData[TempDataKeys.Success] = $"訂單成立！訂單編號：#{orderId}";
+            return RedirectToAction("OrderComplete", new { orderId });
         }
         catch (ArgumentException ex)
         {
@@ -237,12 +242,12 @@ public class CartController : Controller
         catch (InvalidOperationException ex)
         {
             // 業務邏輯錯誤（如庫存不足）
-            TempData["Error"] = ex.Message;
+            TempData[TempDataKeys.Error] = ex.Message;
             return RedirectToAction("Index");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            TempData["Error"] = $"建立訂單時發生錯誤：{ex.Message}";
+            TempData[TempDataKeys.Error] = "建立訂單時發生錯誤，請稍後再試";
             return RedirectToAction("Index");
         }
     }
@@ -272,7 +277,8 @@ public class CartController : Controller
     [HttpGet]
     public async Task<IActionResult> GetStoreList(string type)
     {
-        // 驗證超商類型（UNIMART=7-11, FAMI=全家）
+        // 綠界 ECPay 物流 API 定義的超商代碼（不可自行修改）：
+        // UNIMART = 7-ELEVEN、FAMI = 全家、HILIFE = 萊爾富、OKMART = OK 超商
         var allowedTypes = new HashSet<string> { "UNIMART", "FAMI", "HILIFE", "OKMART" };
         if (string.IsNullOrEmpty(type) || !allowedTypes.Contains(type.ToUpper()))
             return Json(new { success = false, message = "無效的超商類型" });
@@ -282,9 +288,10 @@ public class CartController : Controller
             var stores = await _ecpayLogisticsService.GetStoreListAsync(type.ToUpper());
             return Json(new { success = true, stores });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return Json(new { success = false, message = ex.Message });
+            // 不將內部例外訊息暴露給前端，避免洩漏敏感資訊
+            return Json(new { success = false, message = "取得門市資料失敗，請稍後再試" });
         }
     }
 
@@ -308,19 +315,6 @@ public class CartController : Controller
     }
 
     // ==================== 私有輔助方法 ====================
-
-    /// <summary>
-    /// 取得已授權的使用者 ID，若未登入則拋出異常
-    /// </summary>
-    /// <returns>使用者 ID</returns>
-    /// <exception cref="UnauthorizedAccessException">使用者未登入</exception>
-    private string GetAuthorizedUserId()
-    {
-        var userId = _userManager.GetUserId(User);
-        if (string.IsNullOrEmpty(userId))
-            throw new UnauthorizedAccessException("使用者未登入");
-        return userId;
-    }
 
     /// <summary>
     /// 準備結帳視圖資料並返回（用於驗證失敗時）

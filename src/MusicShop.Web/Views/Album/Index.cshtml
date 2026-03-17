@@ -70,7 +70,8 @@
                                name="search"
                                value="@ViewBag.Search"
                                class="form-control search-input"
-                               placeholder="搜尋商品名稱或歌手..." />
+                               placeholder="搜尋商品名稱或歌手..."
+                               aria-label="搜尋商品" />
                     </div>
                 </div>
 
@@ -254,8 +255,39 @@
                         }
                     </select>
 
-                    <!-- 商品數量 -->
-                    <span class="text-muted product-count">共 @Model.Count() 件商品</span>
+                    <!-- 商品數量（含分頁資訊） -->
+                    @{
+                        var totalCount = (int)(ViewBag.TotalCount ?? Model.Count());
+                        var currentPageNum = (int)(ViewBag.CurrentPage ?? 1);
+                        var pageSize = (int)(ViewBag.PageSize ?? 12);
+                        var startItem = (currentPageNum - 1) * pageSize + 1;
+                        var endItem = Math.Min(currentPageNum * pageSize, totalCount);
+                    }
+                    <!-- 商品數量顯示：搜尋時顯示搜尋關鍵字 -->
+                    <span class="text-muted product-count">
+                        @if (!string.IsNullOrEmpty(currentSearch))
+                        {
+                            @if (totalCount > pageSize)
+                            {
+                                @:搜尋「@currentSearch」顯示第 @startItem-@endItem 筆，共找到 @totalCount 件商品
+                            }
+                            else
+                            {
+                                @:搜尋「@currentSearch」找到 @totalCount 件商品
+                            }
+                        }
+                        else
+                        {
+                            @if (totalCount > pageSize)
+                            {
+                                @:顯示第 @startItem-@endItem 筆，共 @totalCount 件商品
+                            }
+                            else
+                            {
+                                @:共 @totalCount 件商品
+                            }
+                        }
+                    </span>
 
                     <!-- 視圖切換按鈕 -->
                     <div class="btn-group view-toggle" role="group" aria-label="視圖切換">
@@ -313,6 +345,9 @@
                 }
             }
         </div>
+
+        @* 分頁導覽 *@
+        @await Html.PartialAsync("_Pagination")
     }
 </div>
 

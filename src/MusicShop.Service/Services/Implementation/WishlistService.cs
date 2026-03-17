@@ -1,3 +1,4 @@
+using AutoMapper;
 using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Library.Helpers;
@@ -12,10 +13,12 @@ namespace MusicShop.Service.Services.Implementation
     public class WishlistService : IWishlistService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public WishlistService(IUnitOfWork unitOfWork)
+        public WishlistService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<WishlistItem>> GetWishlistAsync(string userId)
@@ -29,19 +32,7 @@ namespace MusicShop.Service.Services.Implementation
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
             var items = await _unitOfWork.Wishlists.GetByUserIdAsync(userId);
 
-            return items
-                .Where(i => i.Album != null)
-                .Select(item => new WishlistItemViewModel
-                {
-                    Id = item.Id,
-                    AlbumId = item.AlbumId,
-                    AlbumTitle = item.Album!.Title,
-                    ArtistName = item.Album.Artist?.Name,
-                    CoverImageUrl = item.Album.CoverImageUrl,
-                    Price = item.Album.Price,
-                    Stock = item.Album.Stock,
-                    AddedAt = item.AddedAt
-                });
+            return _mapper.Map<IEnumerable<WishlistItemViewModel>>(items);
         }
 
         public async Task<bool> ToggleWishlistAsync(string userId, int albumId)
@@ -49,15 +40,18 @@ namespace MusicShop.Service.Services.Implementation
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
             ValidationHelper.ValidatePositive(albumId, "專輯 ID", nameof(albumId));
 
-            var existing = await _unitOfWork.Wishlists.GetByUserAndAlbumAsync(userId, albumId);
-            if (existing != null)
+            var existingWishItem = await _unitOfWork.Wishlists.GetByUserAndAlbumAsync(userId, albumId);
+            if (existingWishItem != null)
             {
-                await _unitOfWork.Wishlists.RemoveAsync(existing);
-                return false; // 已取消收藏
+                // 已收藏 → 取消收藏
+                await _unitOfWork.Wishlists.RemoveAsync(existingWishItem);
+                await _unitOfWork.SaveChangesAsync();
+                return false;
             }
 
-            var album = await _unitOfWork.Albums.GetAlbumByIdAsync(albumId);
-            ValidationHelper.ValidateEntityExists(album, "專輯", albumId);
+            // 未收藏 → 加入收藏（先確認專輯存在）
+            var targetAlbum = await _unitOfWork.Albums.GetAlbumByIdAsync(albumId);
+            ValidationHelper.ValidateEntityExists(targetAlbum, "專輯", albumId);
 
             await _unitOfWork.Wishlists.AddAsync(new WishlistItem
             {
@@ -65,6 +59,7 @@ namespace MusicShop.Service.Services.Implementation
                 AlbumId = albumId,
                 AddedAt = DateTime.UtcNow
             });
+            await _unitOfWork.SaveChangesAsync();
 
             return true; // 已加入收藏
         }

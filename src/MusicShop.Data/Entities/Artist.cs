@@ -35,6 +35,11 @@ public class Artist
     /// </summary>
     public int DisplayOrder { get; set; } = 0;
 
+    /// <summary>
+    /// 是否上架（下架後前台不顯示，但後台仍可管理）
+    /// </summary>
+    public bool IsActive { get; set; } = true;
+
     // ===== 外鍵關聯 =====
 
     /// <summary>

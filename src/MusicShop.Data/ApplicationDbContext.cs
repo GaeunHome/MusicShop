@@ -21,6 +21,9 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
     {
         base.OnModelCreating(builder);
 
+        // 以下分類關聯皆使用 Restrict：刪除分類/藝人前必須先移除或重新指派所屬商品，
+        // 避免意外串聯刪除大量專輯資料，由 Service 層在刪除前檢查並給予使用者明確提示。
+
         // Album 與 ProductType 關聯
         builder.Entity<Album>()
             .HasOne(a => a.ProductType)
@@ -50,6 +53,8 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .OnDelete(DeleteBehavior.Restrict);
 
         // Order 與 AppUser 關聯
+        // 使用 Cascade：帳號刪除時一併清除其所有訂單，
+        // 因為訂單與使用者強綁定，帳號刪除後訂單已無業務意義。
         builder.Entity<Order>()
             .HasOne(o => o.User)
             .WithMany(u => u.Orders)
@@ -87,11 +92,13 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
         // WishlistItem 與 AppUser 關聯
         builder.Entity<WishlistItem>()
             .HasOne(w => w.User)
-            .WithMany()
+            .WithMany(u => u.WishlistItems)
             .HasForeignKey(w => w.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // WishlistItem 與 Album 關聯（刪除商品時一併刪除收藏）
+        // WishlistItem 與 Album 關聯
+        // 使用 Cascade：收藏只是輕量級的「我喜歡」標記，商品下架後收藏已無意義，
+        // 與 CartItem 的 Restrict 不同——購物車需要阻止刪除以保護使用者的購買意圖。
         builder.Entity<WishlistItem>()
             .HasOne(w => w.Album)
             .WithMany()
@@ -103,7 +110,9 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .HasIndex(w => new { w.UserId, w.AlbumId })
             .IsUnique();
 
-        // Banner 與 Album 關聯（刪除商品時，幻燈片保留但連結設為 null）
+        // Banner 與 Album 關聯
+        // 使用 SetNull：幻燈片是獨立的行銷素材（含已上傳的圖片），
+        // 商品下架後幻燈片仍可作為純展示用途保留，僅清除商品連結。
         builder.Entity<Banner>()
             .HasOne(b => b.Album)
             .WithMany()

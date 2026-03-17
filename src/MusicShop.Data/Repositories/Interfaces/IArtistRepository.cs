@@ -46,4 +46,15 @@ public interface IArtistRepository
     /// 檢查藝人是否存在
     /// </summary>
     Task<bool> ArtistExistsAsync(int id);
+
+    /// <summary>
+    /// 取得目前最大的排序順序值
+    /// </summary>
+    Task<int> GetMaxDisplayOrderAsync();
+
+    /// <summary>
+    /// 分頁取得藝人列表（含分類和專輯數量）
+    /// </summary>
+    Task<(IEnumerable<Artist> Items, int TotalCount)> GetArtistsPagedAsync(
+        int page, int pageSize, int? artistCategoryId = null, bool? isActive = null);
 }

@@ -1,6 +1,9 @@
 using MusicShop.Data.Entities;
+using MusicShop.Library.Helpers;
+using MusicShop.Service.ViewModels;
 using MusicShop.Service.ViewModels.Admin;
 using MusicShop.Service.ViewModels.Album;
+using MusicShop.Service.ViewModels.Shared;
 
 namespace MusicShop.Service.Services.Interfaces
 {
@@ -11,7 +14,8 @@ namespace MusicShop.Service.Services.Interfaces
     {
         /// <summary>
         /// 取得專輯列表（支援搜尋與多重篩選）
-        /// 【內部使用，返回 Entity，供 Service 層使用】
+        /// 【返回 Entity，僅供 Service 層內部使用】
+        /// Controller 應使用 GetAlbumCardViewModelsAsync 或 GetAlbumSelectItemsAsync 取代
         /// </summary>
         Task<IEnumerable<Album>> GetAlbumsAsync(
             string? searchTerm = null,
@@ -19,7 +23,8 @@ namespace MusicShop.Service.Services.Interfaces
             int? artistId = null,
             int? productTypeId = null,
             int? parentProductTypeId = null,
-            string? sortBy = null);
+            string? sortBy = null,
+            int? excludeId = null);
 
         /// <summary>
         /// 取得專輯列表 ViewModel（支援搜尋與多重篩選）
@@ -31,10 +36,12 @@ namespace MusicShop.Service.Services.Interfaces
             int? artistId = null,
             int? productTypeId = null,
             int? parentProductTypeId = null,
-            string? sortBy = null);
+            string? sortBy = null,
+            int? excludeId = null);
 
         /// <summary>
-        /// 取得專輯詳細資訊（Entity，供 Service 層內部使用）
+        /// 取得專輯詳細資訊（返回 Entity，僅供 Service 層內部使用）
+        /// Controller 應使用 GetAlbumDetailViewModelAsync 取代
         /// </summary>
         Task<Album?> GetAlbumDetailAsync(int id);
 
@@ -45,13 +52,28 @@ namespace MusicShop.Service.Services.Interfaces
         Task<AlbumDetailViewModel?> GetAlbumDetailViewModelAsync(int id);
 
         /// <summary>
+        /// 取得專輯列表 ViewModel（支援分頁、搜尋與多重篩選）
+        /// 【公開前台使用，返回 PagedResult，供 AlbumController 使用】
+        /// </summary>
+        Task<PagedResult<AlbumCardViewModel>> GetAlbumCardViewModelsPagedAsync(
+            int page,
+            int pageSize,
+            string? searchTerm = null,
+            int? artistCategoryId = null,
+            int? artistId = null,
+            int? productTypeId = null,
+            int? parentProductTypeId = null,
+            string? sortBy = null);
+
+        /// <summary>
         /// 取得最新上架的專輯 ViewModel
         /// 【公開前台使用，返回 ViewModel，供 HomeController 使用】
         /// </summary>
         Task<IEnumerable<AlbumCardViewModel>> GetLatestAlbumCardsAsync(int count);
 
         /// <summary>
-        /// 取得最新上架的專輯（Entity，內部使用）
+        /// 取得最新上架的專輯（返回 Entity，僅供 Service 層內部使用）
+        /// Controller 應使用 GetLatestAlbumCardsAsync 取代
         /// </summary>
         Task<IEnumerable<Album>> GetLatestAlbumsAsync(int count);
 
@@ -59,6 +81,12 @@ namespace MusicShop.Service.Services.Interfaces
         /// 檢查專輯庫存是否充足
         /// </summary>
         Task<bool> IsStockAvailableAsync(int albumId, int quantity = 1);
+
+        /// <summary>
+        /// 取得專輯下拉選單項目 ViewModel（供展示層 SelectList 使用，例如幻燈片管理聯動商品）
+        /// Controller 應使用此方法取代 GetAlbumsAsync，避免直接接觸 Entity
+        /// </summary>
+        Task<IEnumerable<SelectItemViewModel>> GetAlbumSelectItemsAsync();
 
         /// <summary>
         /// 取得後台商品列表（ViewModel）

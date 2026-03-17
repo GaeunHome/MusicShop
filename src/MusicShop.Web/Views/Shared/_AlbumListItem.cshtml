@@ -4,11 +4,13 @@
     bool isInWishlist = wishlistIds.Contains(Model.Id);
 }
 
-<div class="product-list-item">
+<!-- 商品列表項目 -->
+<div class="product-list-item" role="article" aria-label="@Model.Title">
     <div class="position-relative">
         @if (Model.HasCoverImage)
         {
-            <img src="@Model.CoverImageUrl" class="product-list-image" alt="@Model.Title">
+            <!-- 商品圖片，使用延遲載入 -->
+            <img src="@Model.CoverImageUrl" class="product-list-image" alt="@Model.Title 專輯封面" loading="lazy">
         }
         else
         {
@@ -65,13 +67,16 @@
             <button type="button"
                     class="btn-wishlist wishlist-toggle @(isInWishlist ? "wishlisted" : "")"
                     data-album-id="@Model.Id"
+                    aria-pressed="@(isInWishlist ? "true" : "false")"
+                    aria-label="@(isInWishlist ? "取消收藏" : "加入收藏") @Model.Title"
                     title="@(isInWishlist ? "取消收藏" : "加入收藏")">
                 <i class="bi @(isInWishlist ? "bi-heart-fill text-danger" : "bi-heart")"></i>
             </button>
         }
         else
         {
-            <button type="button" class="btn-wishlist" data-require-auth title="登入後加入收藏">
+            <button type="button" class="btn-wishlist" data-require-auth
+                    aria-label="登入後加入收藏" title="登入後加入收藏">
                 <i class="bi bi-heart"></i>
             </button>
         }

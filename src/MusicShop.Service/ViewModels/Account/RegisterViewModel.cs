@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using MusicShop.Data.Entities;
+using MusicShop.Library.Enums;
 
 namespace MusicShop.Service.ViewModels.Account
 {

@@ -1,31 +1,26 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using MusicShop.Data.Entities;
 using MusicShop.Service.ViewModels.Account;
 using MusicShop.Service.Services.Interfaces;
+using MusicShop.Web.Infrastructure;
+using System.Security.Claims;
 
 namespace MusicShop.Controllers;
 
 /// <summary>
 /// 帳號管理控制器 - 展示層
-/// 使用三層式架構：Controller → Service (UserManager/SignInManager/IOrderService)
+/// 使用三層式架構：Controller → Service → Repository
+/// 所有 Identity 操作透過 IUserService 封裝，不直接接觸 Data 層
 /// </summary>
 public class AccountController : Controller
 {
-    private readonly UserManager<AppUser> _userManager;
-    private readonly SignInManager<AppUser> _signInManager;
     private readonly IOrderService _orderService;
     private readonly IUserService _userService;
 
     public AccountController(
-        UserManager<AppUser> userManager,
-        SignInManager<AppUser> signInManager,
         IOrderService orderService,
         IUserService userService)
     {
-        _userManager = userManager;
-        _signInManager = signInManager;
         _orderService = orderService;
         _userService = userService;
     }
@@ -39,31 +34,16 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid) return View(model);
 
-        var user = new AppUser
+        var (success, userId, errors) = await _userService.RegisterAsync(model);
+
+        if (success)
         {
-            UserName = model.Email,
-            Email = model.Email,
-            FullName = model.FullName,
-            PhoneNumber = model.PhoneNumber,
-            Birthday = model.Birthday,
-            Gender = model.Gender
-        };
-
-        var result = await _userManager.CreateAsync(user, model.Password);
-
-        if (result.Succeeded)
-        {
-            // 自動指派 User 角色給新註冊的使用者
-            await _userManager.AddToRoleAsync(user, "User");
-
-            // 登入使用者
-            await _signInManager.SignInAsync(user, isPersistent: false);
-            TempData["Success"] = $"歡迎加入 MusicShop！註冊成功，{user.FullName}。";
+            TempData[TempDataKeys.Success] = $"歡迎加入 MusicShop！註冊成功，{model.FullName}。";
             return RedirectToAction("Index", "Home");
         }
 
-        foreach (var error in result.Errors)
-            ModelState.AddModelError(string.Empty, error.Description);
+        foreach (var error in errors)
+            ModelState.AddModelError(string.Empty, error);
 
         return View(model);
     }
@@ -77,13 +57,11 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid) return View(model);
 
-        var result = await _signInManager.PasswordSignInAsync(
-            model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+        var (success, fullName) = await _userService.LoginAsync(model.Email, model.Password, model.RememberMe);
 
-        if (result.Succeeded)
+        if (success)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            TempData["Success"] = $"歡迎回來，{user?.FullName ?? ""}！登入成功。";
+            TempData[TempDataKeys.Success] = $"歡迎回來，{fullName ?? ""}！登入成功。";
             return RedirectToAction("Index", "Home");
         }
 
@@ -95,8 +73,8 @@ public class AccountController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
-        await _signInManager.SignOutAsync();
-        TempData["Success"] = "您已成功登出。";
+        await _userService.LogoutAsync();
+        TempData[TempDataKeys.Success] = "您已成功登出。";
         return RedirectToAction("Index", "Home");
     }
 
@@ -110,24 +88,26 @@ public class AccountController : Controller
     [Authorize]
     public async Task<IActionResult> Index()
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
             return RedirectToAction("Login");
 
-        // 透過 Service 層取得使用者訂單資料
-        var orders = await _orderService.GetUserOrdersAsync(user.Id);
-        var ordersList = orders.ToList();
+        // 透過 Service 層取得使用者帳戶摘要
+        var summary = await _userService.GetAccountSummaryAsync(userId);
+        if (summary == null)
+            return RedirectToAction("Login");
 
-        // 取得近期訂單 ViewModel（不含 Entity）
-        var recentOrders = await _orderService.GetRecentOrderViewModelsAsync(user.Id, 5);
+        // 透過 Service 層取得訂單統計與近期訂單
+        var (totalOrders, totalSpent) = await _orderService.GetUserOrderStatsAsync(userId);
+        var recentOrders = await _orderService.GetRecentOrderViewModelsAsync(userId, 5);
 
         var viewModel = new AccountIndexViewModel
         {
-            FullName = user.FullName ?? "訪客",
-            Email = user.Email ?? "",
-            RegisteredAt = user.RegisteredAt,
-            TotalSpent = ordersList.Where(o => o.Status != OrderStatus.Cancelled).Sum(o => o.TotalAmount),
-            TotalOrders = ordersList.Count,
+            FullName = summary.Value.FullName,
+            Email = summary.Value.Email,
+            RegisteredAt = summary.Value.RegisteredAt,
+            TotalSpent = totalSpent,
+            TotalOrders = totalOrders,
             RecentOrders = recentOrders
         };
 
@@ -139,19 +119,13 @@ public class AccountController : Controller
     [Authorize]
     public async Task<IActionResult> Edit()
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
             return RedirectToAction("Login");
 
-        var viewModel = new EditProfileViewModel
-        {
-            FullName = user.FullName ?? "",
-            Email = user.Email ?? "",
-            PhoneNumber = user.PhoneNumber ?? "",
-            Birthday = user.Birthday,
-            Gender = user.Gender,
-            RegisteredAt = user.RegisteredAt
-        };
+        var viewModel = await _userService.GetEditProfileAsync(userId);
+        if (viewModel == null)
+            return RedirectToAction("Login");
 
         return View(viewModel);
     }
@@ -166,27 +140,20 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
             return RedirectToAction("Login");
 
-        user.FullName = model.FullName;
-        user.Email = model.Email;
-        user.UserName = model.Email;
-        user.PhoneNumber = model.PhoneNumber;
-        user.Birthday = model.Birthday;
-        user.Gender = model.Gender;
+        var (success, errors) = await _userService.UpdateProfileAsync(userId, model);
 
-        var result = await _userManager.UpdateAsync(user);
-
-        if (result.Succeeded)
+        if (success)
         {
-            TempData["Success"] = "個人資料已更新";
+            TempData[TempDataKeys.Success] = "個人資料已更新";
             return RedirectToAction("Index");
         }
 
-        foreach (var error in result.Errors)
-            ModelState.AddModelError(string.Empty, error.Description);
+        foreach (var error in errors)
+            ModelState.AddModelError(string.Empty, error);
 
         return View(model);
     }
@@ -209,19 +176,19 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
             return RedirectToAction("Login");
 
         // 透過 Service 層處理密碼更新
         var (success, message) = await _userService.ChangePasswordAsync(
-            user.Id,
+            userId,
             model.CurrentPassword,
             model.NewPassword);
 
         if (success)
         {
-            TempData["Success"] = message;
+            TempData[TempDataKeys.Success] = message;
             return RedirectToAction("Index");
         }
 

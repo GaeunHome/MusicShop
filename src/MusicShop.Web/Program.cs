@@ -6,11 +6,16 @@ using MusicShop.Data.UnitOfWork;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.Services.Implementation;
 using MusicShop.Web.Infrastructure;
-using MusicShop.Web.Infrastructure.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+// 綁定網站全域設定（SiteSettings）至 appsettings.json 的 SiteSettings 區段
+builder.Services.Configure<SiteSettings>(builder.Configuration.GetSection("SiteSettings"));
+
+// 註冊記憶體快取
+builder.Services.AddMemoryCache();
+
 // 註冊 DbContext（Scoped）- 每個 HTTP 請求共用一個 DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -19,8 +24,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // 管理所有 Repository 並提供統一的交易控制
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+// 註冊快取服務（Singleton，跨請求共享快取資料）
+builder.Services.AddSingleton<ICacheService, CacheService>();
+
 // 註冊 AutoMapper
-builder.Services.AddAutoMapper(typeof(MusicShop.Service.Mapper.MapperProfile));
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<MusicShop.Service.Mapper.MapperProfile>();
+});
 
 // 註冊 Service（商業邏輯層）
 builder.Services.AddScoped<IAlbumService, AlbumService>();
@@ -39,8 +50,11 @@ builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IAlbumImageService, AlbumImageService>();
 builder.Services.AddScoped<IBannerImageService, BannerImageService>();
 
-// 註冊 ECPay 物流服務（含 HttpClient）
-builder.Services.AddHttpClient<IEcpayLogisticsService, EcpayLogisticsService>();
+// 註冊 ECPay 物流服務（含 HttpClient，設定 30 秒逾時避免請求掛起）
+builder.Services.AddHttpClient<IEcpayLogisticsService, EcpayLogisticsService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 // 加入 Identity
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
@@ -66,14 +80,16 @@ builder.Services.AddControllersWithViews();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseGlobalExceptionHandler();
+app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
+
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-// app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
@@ -99,10 +115,10 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<ApplicationDbContext>();
 
         // 執行資料庫初始化
-        await MusicShop.Data.DbInitializer.InitializeAsync(roleManager, userManager, configuration, context);
+        await DbInitializer.InitializeAsync(roleManager, userManager, configuration, context);
 
         // 插入藝人資料（如果資料庫中沒有的話）
-        await MusicShop.Data.SeedArtists.SeedAsync(context);
+        await SeedArtists.SeedAsync(context);
     }
     catch (Exception ex)
     {

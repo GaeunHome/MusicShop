@@ -98,11 +98,11 @@
                                 <label class="form-label required">性別</label>
                                 <div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="Gender" value="1" id="genderMale" checked="@(Model.Gender == MusicShop.Data.Entities.Gender.Male)" />
+                                        <input class="form-check-input" type="radio" name="Gender" value="1" id="genderMale" checked="@Model.IsMale" />
                                         <label class="form-check-label" for="genderMale">男性</label>
                                     </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="Gender" value="2" id="genderFemale" checked="@(Model.Gender == MusicShop.Data.Entities.Gender.Female)" />
+                                        <input class="form-check-input" type="radio" name="Gender" value="2" id="genderFemale" checked="@Model.IsFemale" />
                                         <label class="form-check-label" for="genderFemale">女性</label>
                                     </div>
                                 </div>

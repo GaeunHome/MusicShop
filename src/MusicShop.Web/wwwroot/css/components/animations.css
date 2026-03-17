@@ -1,0 +1,129 @@
+/* ============================================================
+   微互動動畫 - 提升使用者操作回饋與視覺體驗
+   ============================================================ */
+
+/* --- 收藏愛心彈跳動畫 --- */
+/* 點擊收藏按鈕時的 scale bounce 效果 */
+@keyframes heart-bounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.3); }
+    50% { transform: scale(0.9); }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.wishlist-btn.animate {
+    animation: heart-bounce 0.4s ease-in-out;
+}
+
+/* --- 圖片淡入效果 --- */
+/* 圖片載入完成時的 fade-in 過渡 */
+.fade-in-image {
+    opacity: 0;
+    transition: opacity 0.3s ease-in;
+}
+
+.fade-in-image.loaded {
+    opacity: 1;
+}
+
+/* --- 商品卡片懸停效果 --- */
+/* 滑鼠移入時輕微上移並加深陰影 */
+.album-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.album-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* --- 按鈕點擊波紋效果 --- */
+.btn-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
+    opacity: 0;
+}
+
+.btn-ripple:active::after {
+    width: 200px;
+    height: 200px;
+    opacity: 1;
+    transition: 0s;
+}
+
+/* --- 購物車徽章跳動 --- */
+/* 數量變更時的注意力引導動畫 */
+@keyframes badge-bounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
+.cart-badge.updated {
+    animation: badge-bounce 0.3s ease;
+}
+
+/* --- 商品移除滑出動畫 --- */
+.slide-out-right {
+    animation: slideOutRight 0.3s ease forwards;
+}
+
+@keyframes slideOutRight {
+    0% { opacity: 1; transform: translateX(0); max-height: 200px; }
+    70% { opacity: 0; transform: translateX(50px); max-height: 200px; }
+    100% { opacity: 0; transform: translateX(50px); max-height: 0; padding: 0; margin: 0; overflow: hidden; }
+}
+
+/* --- 價格數字變更過渡 --- */
+.price-transition {
+    transition: opacity 0.2s ease;
+}
+
+.price-transition.updating {
+    opacity: 0.4;
+}
+
+/* --- 通知提示滑入動畫 --- */
+@keyframes slideInDown {
+    0% { transform: translateY(-20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+.notification-animate {
+    animation: slideInDown 0.3s ease;
+}
+
+/* --- 載入旋轉動畫 --- */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e0e0e0;
+    border-top-color: #b19cd9;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+/* --- 數量按鈕按壓回饋 --- */
+.qty-btn:active {
+    transform: scale(0.9);
+    transition: transform 0.1s ease;
+}

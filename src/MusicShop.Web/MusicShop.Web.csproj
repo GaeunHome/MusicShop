@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MusicShop.Service\MusicShop.Service.csproj" />
-    <ProjectReference Include="..\MusicShop.Data\MusicShop.Data.csproj" />
     <ProjectReference Include="..\MusicShop.Library\MusicShop.Library.csproj" />
   </ItemGroup>
   

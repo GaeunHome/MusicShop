@@ -1,0 +1,112 @@
+/* ============================================
+   骨架載入動畫 - 用於內容載入前的占位顯示
+   提供視覺上的載入反饋，提升使用者體驗
+   ============================================ */
+
+/* 骨架基底樣式 - 漸層動畫效果 */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite ease-in-out;
+    border-radius: 4px;
+}
+
+/* 骨架載入動畫關鍵影格 */
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ============================================
+   商品卡片骨架
+   模擬 AlbumCard 的版面結構
+   ============================================ */
+
+/* 卡片骨架容器 */
+.skeleton-card {
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+}
+
+/* 商品圖片占位區塊 */
+.skeleton-card .skeleton-image {
+    height: 200px;
+    border-radius: 0;
+}
+
+/* 商品標題占位 */
+.skeleton-card .skeleton-title {
+    height: 20px;
+    width: 70%;
+    margin: 12px 0 8px;
+}
+
+/* 商品描述文字占位 */
+.skeleton-card .skeleton-text {
+    height: 14px;
+    width: 50%;
+}
+
+/* 商品價格占位 */
+.skeleton-card .skeleton-price {
+    height: 24px;
+    width: 40%;
+    margin-top: 12px;
+}
+
+/* ============================================
+   文字行骨架
+   適用於段落文字、清單等內容的占位顯示
+   ============================================ */
+
+/* 文字行基底樣式 */
+.skeleton-line {
+    height: 16px;
+    margin-bottom: 8px;
+}
+
+/* 短文字行（約 40% 寬度） */
+.skeleton-line.short {
+    width: 40%;
+}
+
+/* 中等文字行（約 65% 寬度） */
+.skeleton-line.medium {
+    width: 65%;
+}
+
+/* 長文字行（約 90% 寬度） */
+.skeleton-line.long {
+    width: 90%;
+}
+
+/* ============================================
+   圓形骨架（大頭貼、圖示等）
+   ============================================ */
+
+/* 圓形占位元素 */
+.skeleton-circle {
+    border-radius: 50%;
+}
+
+/* 小型圓形（32x32） */
+.skeleton-circle.small {
+    width: 32px;
+    height: 32px;
+}
+
+/* 中型圓形（48x48） */
+.skeleton-circle.medium {
+    width: 48px;
+    height: 48px;
+}
+
+/* 大型圓形（64x64） */
+.skeleton-circle.large {
+    width: 64px;
+    height: 64px;
+}

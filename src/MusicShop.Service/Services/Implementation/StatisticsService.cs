@@ -9,6 +9,19 @@ namespace MusicShop.Service.Services.Implementation
     /// </summary>
     public class StatisticsService : IStatisticsService
     {
+        /// <summary>
+        /// 使用者數量低於此值時記錄提示。
+        /// 門檻值 5 代表系統仍處於初始或測試階段，提醒管理員注意推廣。
+        /// </summary>
+        private const int LowUserCountThreshold = 5;
+
+        /// <summary>
+        /// 待處理訂單超過此值時記錄警告。
+        /// 門檻值 10 是基於人工處理訂單的合理上限——超過此數量表示出貨流程可能積壓，
+        /// 需要管理員及時介入處理，避免客戶等待過久。
+        /// </summary>
+        private const int HighPendingOrderThreshold = 10;
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<StatisticsService> _logger;
 
@@ -76,7 +89,7 @@ namespace MusicShop.Service.Services.Implementation
             var count = await _unitOfWork.Statistics.GetUserCountAsync();
 
             // 商業邏輯：記錄使用者數量，少於 5 人時提示
-            if (count < 5)
+            if (count < LowUserCountThreshold)
             {
                 _logger.LogInformation("系統中有 {UserCount} 位使用者（使用者數量較少）", count);
             }
@@ -110,7 +123,7 @@ namespace MusicShop.Service.Services.Implementation
             var count = await _unitOfWork.Statistics.GetPendingOrderCountAsync();
 
             // 商業邏輯：如果待處理訂單過多（超過 10 筆），記錄警告
-            if (count > 10)
+            if (count > HighPendingOrderThreshold)
             {
                 _logger.LogWarning("待處理訂單數量過多：{PendingOrderCount} 筆，請盡快處理", count);
             }

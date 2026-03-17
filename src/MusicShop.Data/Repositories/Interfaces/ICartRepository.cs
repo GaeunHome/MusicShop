@@ -46,5 +46,15 @@ namespace MusicShop.Data.Repositories.Interfaces
         /// 檢查購物車項目是否存在
         /// </summary>
         Task<bool> CartItemExistsAsync(int id);
+
+        /// <summary>
+        /// 取得使用者購物車總金額
+        /// </summary>
+        Task<decimal> GetCartTotalAsync(string userId);
+
+        /// <summary>
+        /// 取得使用者購物車商品總數量
+        /// </summary>
+        Task<int> GetCartItemCountAsync(string userId);
     }
 }

@@ -70,7 +70,7 @@
                         <div class="delivery-options">
                             <div class="form-check delivery-option">
                                 <input class="form-check-input" type="radio" asp-for="DeliveryMethod"
-                                       value="@((int)MusicShop.Data.Entities.DeliveryMethod.HomeDelivery)"
+                                       value="@CheckoutViewModel.DeliveryMethodHomeDelivery"
                                        id="delivery-home" checked />
                                 <label class="form-check-label" for="delivery-home">
                                     <div class="option-content">
@@ -84,7 +84,7 @@
                             </div>
                             <div class="form-check delivery-option">
                                 <input class="form-check-input" type="radio" asp-for="DeliveryMethod"
-                                       value="@((int)MusicShop.Data.Entities.DeliveryMethod.SevenEleven)"
+                                       value="@CheckoutViewModel.DeliveryMethodSevenEleven"
                                        id="delivery-711" />
                                 <label class="form-check-label" for="delivery-711">
                                     <div class="option-content">
@@ -98,7 +98,7 @@
                             </div>
                             <div class="form-check delivery-option">
                                 <input class="form-check-input" type="radio" asp-for="DeliveryMethod"
-                                       value="@((int)MusicShop.Data.Entities.DeliveryMethod.FamilyMart)"
+                                       value="@CheckoutViewModel.DeliveryMethodFamilyMart"
                                        id="delivery-family" />
                                 <label class="form-check-label" for="delivery-family">
                                     <div class="option-content">
@@ -219,7 +219,7 @@
                         <div class="payment-options">
                             <div class="form-check payment-option">
                                 <input class="form-check-input" type="radio" asp-for="PaymentMethod"
-                                       value="@((int)MusicShop.Data.Entities.PaymentMethod.CashOnDelivery)"
+                                       value="@CheckoutViewModel.PaymentMethodCashOnDelivery"
                                        id="payment-cod" checked />
                                 <label class="form-check-label" for="payment-cod">
                                     <div class="option-content">
@@ -233,7 +233,7 @@
                             </div>
                             <div class="form-check payment-option">
                                 <input class="form-check-input" type="radio" asp-for="PaymentMethod"
-                                       value="@((int)MusicShop.Data.Entities.PaymentMethod.CreditCard)"
+                                       value="@CheckoutViewModel.PaymentMethodCreditCard"
                                        id="payment-card" />
                                 <label class="form-check-label" for="payment-card">
                                     <div class="option-content">
@@ -301,7 +301,7 @@
                         <div class="invoice-options">
                             <div class="form-check invoice-option">
                                 <input class="form-check-input" type="radio" asp-for="InvoiceType"
-                                       value="@((int)MusicShop.Data.Entities.InvoiceType.Duplicate)"
+                                       value="@CheckoutViewModel.InvoiceTypeDuplicate"
                                        id="invoice-duplicate" checked />
                                 <label class="form-check-label" for="invoice-duplicate">
                                     <div class="option-content">
@@ -315,7 +315,7 @@
                             </div>
                             <div class="form-check invoice-option">
                                 <input class="form-check-input" type="radio" asp-for="InvoiceType"
-                                       value="@((int)MusicShop.Data.Entities.InvoiceType.Triplicate)"
+                                       value="@CheckoutViewModel.InvoiceTypeTriplicate"
                                        id="invoice-triplicate" />
                                 <label class="form-check-label" for="invoice-triplicate">
                                     <div class="option-content">
@@ -329,7 +329,7 @@
                             </div>
                             <div class="form-check invoice-option">
                                 <input class="form-check-input" type="radio" asp-for="InvoiceType"
-                                       value="@((int)MusicShop.Data.Entities.InvoiceType.EInvoice)"
+                                       value="@CheckoutViewModel.InvoiceTypeEInvoice"
                                        id="invoice-einvoice" />
                                 <label class="form-check-label" for="invoice-einvoice">
                                     <div class="option-content">
@@ -407,7 +407,8 @@
                                         <div class="item-image me-3">
                                             @if (!string.IsNullOrEmpty(item.CoverImageUrl))
                                             {
-                                                <img src="@item.CoverImageUrl" alt="@item.AlbumTitle" class="img-thumbnail">
+                                                <!-- 結帳商品圖片，使用延遲載入 -->
+                                                <img src="@item.CoverImageUrl" alt="@item.AlbumTitle 專輯封面" class="img-thumbnail" loading="lazy">
                                             }
                                             else
                                             {
@@ -526,6 +527,9 @@
 @section Scripts {
     <!-- jQuery Validation -->
     <partial name="_ValidationScriptsPartial" />
+
+    <!-- 結帳表單即時驗證（blur 事件驗證，提升使用者體驗） -->
+    <script src="~/js/features/checkout/checkout-validation.js" asp-append-version="true"></script>
 
     <!-- 購物車模組會自動處理結帳頁面的動態功能 -->
 

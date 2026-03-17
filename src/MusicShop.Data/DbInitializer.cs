@@ -12,6 +12,13 @@ public static class DbInitializer
     /// <summary>
     /// 初始化角色、管理員帳戶和預設分類資料
     /// </summary>
+    /// <remarks>
+    /// TODO: 目前各初始化步驟（角色、管理員、分類、藝人）各自獨立 SaveChanges，
+    /// 並未包裝在同一個資料庫交易中。若中途失敗（例如藝人建立失敗），
+    /// 已完成的步驟不會回滾，可能導致資料不一致。
+    /// 由於此方法僅在應用程式首次啟動時執行，且每步都有「已存在則跳過」的防護，
+    /// 重新啟動即可自動補齊，因此目前影響有限。
+    /// </remarks>
     public static async Task InitializeAsync(
         RoleManager<IdentityRole> roleManager,
         UserManager<AppUser> userManager,
@@ -87,7 +94,9 @@ public static class DbInitializer
                 UserName = adminEmail,
                 Email = adminEmail,
                 FullName = adminFullName,
-                EmailConfirmed = true // 預設管理員帳戶已驗證
+                // 預設管理員跳過 Email 驗證流程：系統初始化時尚無郵件服務，
+                // 且管理員帳號由設定檔直接提供，可信度等同於環境設定。
+                EmailConfirmed = true
             };
 
             var result = await userManager.CreateAsync(adminUser, adminPassword);
@@ -213,9 +222,12 @@ public static class DbInitializer
         if (!context.Artists.Any())
         {
             var artistCategories = context.ArtistCategories.ToList();
-            var boyGroup = artistCategories.First(c => c.Name == "BOY GROUP");
-            var girlGroup = artistCategories.First(c => c.Name == "GIRL GROUP");
-            var solo = artistCategories.First(c => c.Name == "SOLO");
+            var boyGroup = artistCategories.FirstOrDefault(c => c.Name == "BOY GROUP")
+                ?? throw new InvalidOperationException("找不到藝人分類 'BOY GROUP'，請先建立預設分類");
+            var girlGroup = artistCategories.FirstOrDefault(c => c.Name == "GIRL GROUP")
+                ?? throw new InvalidOperationException("找不到藝人分類 'GIRL GROUP'，請先建立預設分類");
+            var solo = artistCategories.FirstOrDefault(c => c.Name == "SOLO")
+                ?? throw new InvalidOperationException("找不到藝人分類 'SOLO'，請先建立預設分類");
 
             var artists = new List<Artist>
             {

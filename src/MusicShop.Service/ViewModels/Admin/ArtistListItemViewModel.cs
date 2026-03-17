@@ -11,5 +11,7 @@ namespace MusicShop.Service.ViewModels.Admin
         public string Name { get; set; } = string.Empty;
         public string? ArtistCategoryName { get; set; }
         public int DisplayOrder { get; set; }
+        public bool IsActive { get; set; }
+        public int AlbumCount { get; set; }
     }
 }

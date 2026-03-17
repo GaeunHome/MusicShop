@@ -1,4 +1,3 @@
-using MusicShop.Data.Entities;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -26,16 +25,13 @@ namespace MusicShop.Service.ViewModels.Album
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // 關聯
+        // 關聯 ID
         public int? ArtistCategoryId { get; set; }
-        public ArtistCategory? ArtistCategory { get; set; }
+        public string? ArtistCategoryName { get; set; }
 
         public int? ProductTypeId { get; set; }
-        public ProductType? ProductType { get; set; }
-
-        public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public string? ProductTypeName { get; set; }
 
         public string? Search { get; set; }
-
     }
 }

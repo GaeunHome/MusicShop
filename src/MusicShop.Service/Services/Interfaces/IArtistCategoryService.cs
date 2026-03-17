@@ -1,6 +1,7 @@
 using MusicShop.Data.Entities;
 using MusicShop.Service.ViewModels;
 using MusicShop.Service.ViewModels.Admin;
+using MusicShop.Service.ViewModels.Shared;
 
 namespace MusicShop.Service.Services.Interfaces;
 
@@ -10,7 +11,8 @@ namespace MusicShop.Service.Services.Interfaces;
 public interface IArtistCategoryService
 {
     /// <summary>
-    /// 取得所有藝人分類（Entity，內部使用）
+    /// 取得所有藝人分類（返回 Entity，僅供 Service 層內部使用）
+    /// Controller 應使用 GetArtistCategorySelectItemsAsync 取代
     /// </summary>
     Task<IEnumerable<ArtistCategory>> GetAllArtistCategoriesAsync();
 
@@ -41,4 +43,9 @@ public interface IArtistCategoryService
     /// 刪除藝人分類
     /// </summary>
     Task DeleteArtistCategoryAsync(int id);
+
+    /// <summary>
+    /// 取得藝人分類列表 ViewModel（後台分類管理頁使用）
+    /// </summary>
+    Task<List<ArtistCategoryListItemViewModel>> GetArtistCategoryListItemsAsync();
 }

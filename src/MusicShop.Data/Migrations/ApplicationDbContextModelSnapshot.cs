@@ -307,6 +307,9 @@ namespace MusicShop.Migrations
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -487,6 +490,9 @@ namespace MusicShop.Migrations
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -747,7 +753,7 @@ namespace MusicShop.Migrations
                         .IsRequired();
 
                     b.HasOne("MusicShop.Data.Entities.AppUser", "User")
-                        .WithMany()
+                        .WithMany("WishlistItems")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -767,6 +773,8 @@ namespace MusicShop.Migrations
                     b.Navigation("CartItems");
 
                     b.Navigation("Orders");
+
+                    b.Navigation("WishlistItems");
                 });
 
             modelBuilder.Entity("MusicShop.Data.Entities.Artist", b =>

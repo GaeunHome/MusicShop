@@ -27,7 +27,8 @@ namespace MusicShop.Data.Repositories.Interfaces
             int? artistId = null,
             int? productTypeId = null,
             int? parentProductTypeId = null,
-            string? sortBy = null);
+            string? sortBy = null,
+            int? excludeId = null);
 
         /// <summary>
         /// 根據 ID 取得單一專輯（含分類資訊）
@@ -58,5 +59,32 @@ namespace MusicShop.Data.Repositories.Interfaces
         /// 檢查專輯是否存在
         /// </summary>
         Task<bool> AlbumExistsAsync(int id);
+
+        /// <summary>
+        /// 依條件篩選專輯（支援分頁）
+        /// </summary>
+        /// <param name="page">頁碼（從 1 開始）</param>
+        /// <param name="pageSize">每頁筆數</param>
+        /// <returns>分頁結果（Items：該頁專輯, TotalCount：符合條件的總筆數）</returns>
+        Task<(IEnumerable<Album> Items, int TotalCount)> GetAlbumsPagedAsync(
+            int page,
+            int pageSize,
+            string? searchTerm = null,
+            int? artistCategoryId = null,
+            int? artistId = null,
+            int? productTypeId = null,
+            int? parentProductTypeId = null,
+            string? sortBy = null,
+            int? excludeId = null);
+
+        /// <summary>
+        /// 計算指定藝人分類下的專輯數量
+        /// </summary>
+        Task<int> CountByArtistCategoryAsync(int artistCategoryId);
+
+        /// <summary>
+        /// 計算指定商品類型下的專輯數量
+        /// </summary>
+        Task<int> CountByProductTypeAsync(int productTypeId);
     }
 }

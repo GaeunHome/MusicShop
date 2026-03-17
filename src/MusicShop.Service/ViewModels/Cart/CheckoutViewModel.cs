@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using MusicShop.Data.Entities;
+using MusicShop.Library.Enums;
 using MusicShop.Library.Helpers;
 using CartItemVm = MusicShop.Service.ViewModels.Cart.CartItemViewModel;
 
@@ -102,6 +102,16 @@ namespace MusicShop.Service.ViewModels.Cart
         [Display(Name = "訂單備註")]
         public string? OrderNote { get; set; }
 
+        // ==================== Enum 值常數（避免 View 直接引用 Data 層 Enum）====================
+        public static int DeliveryMethodHomeDelivery => (int)DeliveryMethod.HomeDelivery;
+        public static int DeliveryMethodSevenEleven => (int)DeliveryMethod.SevenEleven;
+        public static int DeliveryMethodFamilyMart => (int)DeliveryMethod.FamilyMart;
+        public static int PaymentMethodCashOnDelivery => (int)PaymentMethod.CashOnDelivery;
+        public static int PaymentMethodCreditCard => (int)PaymentMethod.CreditCard;
+        public static int InvoiceTypeDuplicate => (int)InvoiceType.Duplicate;
+        public static int InvoiceTypeTriplicate => (int)InvoiceType.Triplicate;
+        public static int InvoiceTypeEInvoice => (int)InvoiceType.EInvoice;
+
         // ==================== 購物車項目（用於顯示訂單摘要）====================
         public List<CartItemVm> CartItems { get; set; } = new();
 
@@ -160,7 +170,7 @@ namespace MusicShop.Service.ViewModels.Cart
         /// </summary>
         public string GetDeliveryMethodText()
         {
-            return EnumHelper.GetDeliveryMethodText(DeliveryMethod);
+            return OrderHelper.GetDeliveryMethodText(DeliveryMethod);
         }
 
         /// <summary>
@@ -168,7 +178,7 @@ namespace MusicShop.Service.ViewModels.Cart
         /// </summary>
         public string GetPaymentMethodText()
         {
-            return EnumHelper.GetPaymentMethodText(PaymentMethod);
+            return OrderHelper.GetPaymentMethodText(PaymentMethod);
         }
 
         /// <summary>
@@ -176,7 +186,7 @@ namespace MusicShop.Service.ViewModels.Cart
         /// </summary>
         public string GetInvoiceTypeText()
         {
-            return EnumHelper.GetInvoiceTypeText(InvoiceType);
+            return OrderHelper.GetInvoiceTypeText(InvoiceType);
         }
 
         // ==================== IValidatableObject 實作：條件驗證邏輯 ====================

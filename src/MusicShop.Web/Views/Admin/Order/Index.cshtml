@@ -1,4 +1,4 @@
-@model IEnumerable<MusicShop.Data.Entities.Order>
+@model IEnumerable<MusicShop.Service.ViewModels.Admin.AdminOrderListItemViewModel>
 @{
     ViewData["Title"] = "訂單管理";
     ViewData["PageId"] = "admin-orders";
@@ -31,21 +31,17 @@
                 {
                     <tr>
                         <td class="fw-bold">#@order.Id</td>
-                        <td>@order.User?.Email</td>
-                        <td>@order.OrderDate.ToString("yyyy/MM/dd HH:mm")</td>
-                        <td>NT$ @order.TotalAmount.ToString("N0")</td>
+                        <td>@order.UserEmail</td>
+                        <td>@order.FormattedOrderDate</td>
+                        <td>NT$ @order.FormattedTotalAmount</td>
                         <td>
-                            @{
-                                var paymentBadgeClass = order.PaymentMethod == MusicShop.Data.Entities.PaymentMethod.CashOnDelivery
-                                    ? "bg-warning text-dark" : "bg-info";
-                            }
-                            <span class="badge @paymentBadgeClass">
-                                @MusicShop.Library.Helpers.OrderHelper.GetPaymentMethodText(order.PaymentMethod)
+                            <span class="badge @order.PaymentBadgeClass">
+                                @order.PaymentMethodText
                             </span>
                         </td>
                         <td>
-                            <span class="badge @MusicShop.Library.Helpers.OrderHelper.GetOrderStatusBadgeClass(order.Status)">
-                                @MusicShop.Library.Helpers.OrderHelper.GetOrderStatusText(order.Status)
+                            <span class="badge @order.StatusBadgeClass">
+                                @order.StatusText
                             </span>
                         </td>
                         <td>

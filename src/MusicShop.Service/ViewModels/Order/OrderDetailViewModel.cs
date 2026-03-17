@@ -1,3 +1,5 @@
+using MusicShop.Library.Enums;
+
 namespace MusicShop.Service.ViewModels.Order;
 
 /// <summary>
@@ -11,6 +13,10 @@ public class OrderDetailViewModel
     public decimal TotalAmount { get; set; }
 
     // 狀態相關
+    /// <summary>
+    /// 訂單狀態列舉值（供時間軸元件使用）
+    /// </summary>
+    public OrderStatus Status { get; set; }
     public string StatusText { get; set; } = string.Empty;
     public string StatusBadgeClass { get; set; } = string.Empty;
     public string StatusDescription { get; set; } = string.Empty;

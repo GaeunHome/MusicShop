@@ -1,13 +1,50 @@
+using Microsoft.AspNetCore.Identity;
+using MusicShop.Service.ViewModels.Account;
 using MusicShop.Service.ViewModels.Admin;
 
 namespace MusicShop.Service.Services.Interfaces;
 
 /// <summary>
 /// 使用者服務介面
-/// 負責使用者相關的商業邏輯
+/// 負責使用者相關的商業邏輯（包含 Identity 操作的封裝）
 /// </summary>
 public interface IUserService
 {
+    /// <summary>
+    /// 取得使用者基本資訊（姓名、電話）
+    /// </summary>
+    Task<(string FullName, string PhoneNumber)> GetUserBasicInfoAsync(string userId);
+
+    /// <summary>
+    /// 註冊新使用者
+    /// </summary>
+    Task<(bool Success, string UserId, IEnumerable<string> Errors)> RegisterAsync(RegisterViewModel model);
+
+    /// <summary>
+    /// 登入使用者
+    /// </summary>
+    Task<(bool Success, string? FullName)> LoginAsync(string email, string password, bool rememberMe);
+
+    /// <summary>
+    /// 登出使用者
+    /// </summary>
+    Task LogoutAsync();
+
+    /// <summary>
+    /// 取得使用者個人資料（用於編輯頁面）
+    /// </summary>
+    Task<EditProfileViewModel?> GetEditProfileAsync(string userId);
+
+    /// <summary>
+    /// 更新使用者個人資料
+    /// </summary>
+    Task<(bool Success, IEnumerable<string> Errors)> UpdateProfileAsync(string userId, EditProfileViewModel model);
+
+    /// <summary>
+    /// 取得使用者帳戶摘要資訊（姓名、Email、註冊日期）
+    /// </summary>
+    Task<(string FullName, string Email, DateTime RegisteredAt)?> GetAccountSummaryAsync(string userId);
+
     /// <summary>
     /// 取得所有使用者及其角色資訊
     /// </summary>

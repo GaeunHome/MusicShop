@@ -4,14 +4,17 @@
     bool isInWishlist = wishlistIds.Contains(Model.Id);
 }
 
-<div class="col">
+<!-- 商品卡片 -->
+<div class="col" role="article" aria-label="@Model.Title">
     <div class="product-item">
         <div class="product-image-wrapper">
-            <a asp-controller="Album" asp-action="Detail" asp-route-id="@Model.Id" class="product-image-link"></a>
+            <a asp-controller="Album" asp-action="Detail" asp-route-id="@Model.Id"
+               class="product-image-link" aria-label="查看 @Model.Title 詳細資訊"></a>
 
             @if (Model.HasCoverImage)
             {
-                <img src="@Model.CoverImageUrl" class="product-image" alt="@Model.Title">
+                <!-- 商品圖片，使用延遲載入 -->
+                <img src="@Model.CoverImageUrl" class="product-image" alt="@Model.Title 專輯封面" loading="lazy">
             }
             else
             {
@@ -23,10 +26,15 @@
 
             @if (Model.IsSoldOut)
             {
-                <span class="position-absolute top-0 end-0 badge bg-danger m-2" style="z-index: 10;">已售完</span>
+                <!-- 已售完遮罩覆蓋 -->
+                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                     style="z-index: 5; background: rgba(0,0,0,0.45); pointer-events: none;">
+                    <span class="badge bg-danger fs-6 px-3 py-2">已售完</span>
+                </div>
             }
             else if (Model.IsLowStock)
             {
+                <!-- 低庫存警示標籤 -->
                 <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2" style="z-index: 10;">@Model.StockStatusText</span>
             }
 
@@ -69,18 +77,22 @@
                     }
 
                     <!-- 加入收藏 -->
+                    <!-- 收藏按鈕 -->
                     @if (User.Identity!.IsAuthenticated)
                     {
                         <button type="button"
                                 class="btn btn-white overlay-btn wishlist-toggle @(isInWishlist ? "wishlisted" : "")"
                                 data-album-id="@Model.Id"
+                                aria-pressed="@(isInWishlist ? "true" : "false")"
+                                aria-label="@(isInWishlist ? "取消收藏" : "加入收藏") @Model.Title"
                                 title="@(isInWishlist ? "取消收藏" : "加入收藏")">
                             <i class="bi @(isInWishlist ? "bi-heart-fill text-danger" : "bi-heart")"></i>
                         </button>
                     }
                     else
                     {
-                        <button type="button" class="btn btn-white overlay-btn" data-require-auth title="登入後加入收藏">
+                        <button type="button" class="btn btn-white overlay-btn" data-require-auth
+                                aria-label="登入後加入收藏" title="登入後加入收藏">
                             <i class="bi bi-heart"></i>
                         </button>
                     }

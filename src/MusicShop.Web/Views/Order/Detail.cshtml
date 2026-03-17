@@ -26,6 +26,9 @@
 
     <h1 class="page-title mb-4">訂單詳情</h1>
 
+    <!-- 訂單狀態時間軸 -->
+    @await Html.PartialAsync("_OrderTimeline", Model.Status)
+
     <div class="row">
         <!-- 訂單資訊 -->
         <div class="col-lg-8 mb-4">

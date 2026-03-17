@@ -29,5 +29,8 @@ namespace MusicShop.Service.ViewModels.Admin
 
         [Display(Name = "排序順序")]
         public int DisplayOrder { get; set; }
+
+        [Display(Name = "上架狀態")]
+        public bool IsActive { get; set; } = true;
     }
 }

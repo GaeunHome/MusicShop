@@ -75,25 +75,28 @@ namespace MusicShop.Service.Services.Implementation
 
         /// <summary>
         /// 產生 CheckMacValue（MD5）
-        /// 演算法：排序參數 → URL encode（小寫）→ MD5 → 大寫
+        /// 此為綠界 ECPay 官方規範的驗證碼產生演算法，每一步驟順序與格式皆不可更動。
+        /// 參考文件：https://www.ecpay.com.tw/Content/files/ecpay_030.pdf
         /// </summary>
         private string GenerateCheckMacValue(Dictionary<string, string> parameters)
         {
-            // 1. 依 Key 字母排序（不分大小寫）
+            // 1. 依 Key 字母排序（不分大小寫）— ECPay 規範要求參數必須按字母序排列
             var sortedParams = parameters
                 .OrderBy(p => p.Key, StringComparer.OrdinalIgnoreCase)
                 .Select(p => $"{p.Key}={p.Value}");
 
-            // 2. 前後加上 HashKey / HashIV
+            // 2. 前後加上 HashKey / HashIV — 這是 ECPay 核發給商家的密鑰，
+            //    用於確保請求來源的合法性，格式固定為 "HashKey=...&參數&HashIV=..."
             var raw = $"HashKey={_hashKey}&{string.Join("&", sortedParams)}&HashIV={_hashIV}";
 
-            // 3. URL encode（.NET HttpUtility.UrlEncode，與 ECPay 規範相符）
+            // 3. URL encode 後轉小寫 — ECPay 規範要求使用 .NET 的 UrlEncode 並統一轉小寫，
+            //    這與一般 URL encoding 保留大寫的慣例不同，是 ECPay 特有的要求
             var encoded = HttpUtility.UrlEncode(raw).ToLower();
 
-            // 4. MD5 雜湊（ECPay 規範使用 MD5，非 SHA-256）
+            // 4. MD5 雜湊 — ECPay 物流 API 指定使用 MD5（金流 API 則使用 SHA-256，勿混淆）
             var hashBytes = MD5.HashData(Encoding.UTF8.GetBytes(encoded));
 
-            // 5. 轉成大寫十六進位字串
+            // 5. 轉成大寫十六進位字串 — ECPay 規範要求最終結果為大寫
             var checkMacValue = Convert.ToHexString(hashBytes).ToUpper();
 
             return checkMacValue;

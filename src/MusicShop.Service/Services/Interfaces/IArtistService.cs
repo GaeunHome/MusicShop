@@ -1,5 +1,8 @@
 using MusicShop.Data.Entities;
+using MusicShop.Library.Helpers;
+using MusicShop.Service.ViewModels;
 using MusicShop.Service.ViewModels.Admin;
+using MusicShop.Service.ViewModels.Shared;
 
 namespace MusicShop.Service.Services.Interfaces;
 
@@ -9,32 +12,63 @@ namespace MusicShop.Service.Services.Interfaces;
 public interface IArtistService
 {
     /// <summary>
-    /// 取得所有藝人
-    /// 【公開前台使用，返回 Entity，供下拉選單使用】
+    /// 取得所有藝人（返回 Entity，僅供 Service 層內部使用）
+    /// Controller 應使用 GetArtistSelectItemsAsync 取代
     /// </summary>
     Task<IEnumerable<Artist>> GetAllArtistsAsync();
 
     /// <summary>
-    /// 根據藝人分類 ID 取得藝人列表（用於級聯下拉選單）
-    /// 【公開前台使用，返回 Entity，供 API 端點使用】
+    /// 根據藝人分類 ID 取得藝人列表（返回 Entity，僅供 Service 層內部使用）
+    /// Controller 應使用 GetArtistSelectItemsByCategoryIdAsync 取代
     /// </summary>
     Task<IEnumerable<Artist>> GetArtistsByCategoryIdAsync(int artistCategoryId);
 
     /// <summary>
-    /// 取得藝人分組資料（依藝人分類分組，用於 Mega Menu 和側邊欄）
+    /// 取得藝人分組資料（返回 Entity，僅供 Service 層內部使用）
+    /// Controller 應使用 GetNavArtistGroupsAsync 取代
     /// </summary>
     Task<Dictionary<ArtistCategory, IEnumerable<Artist>>> GetArtistsGroupedByCategoryAsync();
 
     /// <summary>
-    /// 根據 ID 取得單一藝人（返回 Entity）
+    /// 根據 ID 取得單一藝人（返回 Entity，僅供 Service 層內部使用）
+    /// Controller 應使用 GetArtistNameByIdAsync 或 GetArtistCategoryIdByArtistIdAsync 取代
     /// </summary>
     Task<Artist?> GetArtistByIdAsync(int id);
+
+    /// <summary>
+    /// 取得所有藝人下拉選單項目 ViewModel（供展示層 SelectList 使用）
+    /// Controller 應使用此方法取代 GetAllArtistsAsync，避免直接接觸 Entity
+    /// </summary>
+    Task<IEnumerable<SelectItemViewModel>> GetArtistSelectItemsAsync();
+
+    /// <summary>
+    /// 根據藝人分類 ID 取得藝人下拉選單項目 ViewModel（供級聯下拉選單 API 使用）
+    /// Controller 應使用此方法取代 GetArtistsByCategoryIdAsync，避免直接接觸 Entity
+    /// </summary>
+    Task<IEnumerable<SelectItemViewModel>> GetArtistSelectItemsByCategoryIdAsync(int artistCategoryId);
+
+    /// <summary>
+    /// 根據藝人 ID 取得藝人名稱（供展示層標題顯示使用）
+    /// Controller 應使用此方法取代 GetArtistByIdAsync，避免直接接觸 Entity
+    /// </summary>
+    Task<string?> GetArtistNameByIdAsync(int id);
+
+    /// <summary>
+    /// 根據藝人 ID 取得其所屬藝人分類 ID（供後台編輯頁面初始化級聯下拉選單使用）
+    /// </summary>
+    Task<int?> GetArtistCategoryIdByArtistIdAsync(int artistId);
 
     /// <summary>
     /// 取得後台藝人列表（ViewModel）
     /// 【架構說明】服務層負責 Entity → ViewModel 轉換，Controller 與 View 只使用 ViewModel
     /// </summary>
     Task<IEnumerable<ArtistListItemViewModel>> GetArtistListItemsAsync();
+
+    /// <summary>
+    /// 分頁取得後台藝人列表（支援依分類及上架狀態篩選）
+    /// </summary>
+    Task<PagedResult<ArtistListItemViewModel>> GetArtistListItemsPagedAsync(
+        int page, int pageSize, int? artistCategoryId = null, bool? isActive = null);
 
     /// <summary>
     /// 根據 ID 取得後台藝人表單 ViewModel（用於編輯頁面預填資料）
@@ -58,4 +92,20 @@ public interface IArtistService
     /// 刪除藝人
     /// </summary>
     Task DeleteArtistAsync(int id);
+
+    /// <summary>
+    /// 切換藝人上架/下架狀態
+    /// </summary>
+    Task ToggleArtistActiveAsync(int id);
+
+    /// <summary>
+    /// 取得目前最大的排序順序值（供新增藝人時參考）
+    /// </summary>
+    Task<int> GetMaxDisplayOrderAsync();
+
+    /// <summary>
+    /// 取得導覽列藝人分組 ViewModel（_Layout.cshtml K-ARTIST Mega Menu 使用）
+    /// 取代直接使用 Dictionary&lt;ArtistCategory, IEnumerable&lt;Artist&gt;&gt;
+    /// </summary>
+    Task<List<NavArtistGroupViewModel>> GetNavArtistGroupsAsync();
 }

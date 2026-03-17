@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using MusicShop.Data.Entities;
 using MusicShop.Service.Services.Interfaces;
-using MusicShop.Service.ViewModels.Album;
+using System.Security.Claims;
 
 namespace MusicShop.Controllers;
 
@@ -17,23 +15,25 @@ public class AlbumController : Controller
     private readonly IArtistCategoryService _artistCategoryService;
     private readonly IProductTypeService _productTypeService;
     private readonly IWishlistService _wishlistService;
-    private readonly UserManager<AppUser> _userManager;
 
     public AlbumController(
         IAlbumService albumService,
         IArtistService artistService,
         IArtistCategoryService artistCategoryService,
         IProductTypeService productTypeService,
-        IWishlistService wishlistService,
-        UserManager<AppUser> userManager)
+        IWishlistService wishlistService)
     {
         _albumService = albumService;
         _artistService = artistService;
         _artistCategoryService = artistCategoryService;
         _productTypeService = productTypeService;
         _wishlistService = wishlistService;
-        _userManager = userManager;
     }
+
+    /// <summary>
+    /// 每頁顯示的商品數量
+    /// </summary>
+    private const int PageSize = 12;
 
     // GET: /Album
     public async Task<IActionResult> Index(
@@ -42,31 +42,34 @@ public class AlbumController : Controller
         int? artistId,
         int? productTypeId,
         int? parentProductTypeId,
-        string? sortBy)
+        string? sortBy,
+        int page = 1)
     {
-        // 從服務層取得專輯 ViewModel（支援多重篩選與排序）
-        var albums = await _albumService.GetAlbumCardViewModelsAsync(search, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy);
+        // 確保頁碼至少為 1
+        if (page < 1) page = 1;
+
+        // 從服務層取得分頁專輯 ViewModel（支援多重篩選與排序）
+        var pagedResult = await _albumService.GetAlbumCardViewModelsPagedAsync(
+            page, PageSize, search, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy);
 
         // 從服務層取得分類清單 ViewModel（不包含 Entity）
         var artistCategories = await _artistCategoryService.GetArtistCategorySelectItemsAsync();
         var childCategories = await _productTypeService.GetChildCategorySelectItemsAsync();
 
-        // 如果有父分類 ID，取得父分類資訊以供顯示
+        // 使用 ViewModel 方法取得名稱，避免直接接觸 Entity
         if (parentProductTypeId.HasValue)
         {
-            var parentCategory = await _productTypeService.GetProductTypeByIdAsync(parentProductTypeId.Value);
-            ViewBag.ParentCategoryName = parentCategory?.Name;
+            ViewBag.ParentCategoryName = await _productTypeService.GetProductTypeNameByIdAsync(parentProductTypeId.Value);
         }
 
-        // 如果有藝人 ID，取得藝人名稱以供顯示標題
+        // 使用 ViewModel 方法取得藝人名稱，避免直接接觸 Entity
         if (artistId.HasValue)
         {
-            var artist = await _artistService.GetArtistByIdAsync(artistId.Value);
-            ViewBag.SelectedArtistName = artist?.Name;
+            ViewBag.SelectedArtistName = await _artistService.GetArtistNameByIdAsync(artistId.Value);
         }
 
         // 傳遞資料給 View
-        var userId = _userManager.GetUserId(User);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         ViewBag.WishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId ?? string.Empty);
 
         ViewBag.Search = search;
@@ -78,7 +81,15 @@ public class AlbumController : Controller
         ViewBag.ArtistCategories = artistCategories;
         ViewBag.ChildCategories = childCategories;
 
-        return View(albums);
+        // 分頁資訊
+        ViewBag.CurrentPage = pagedResult.CurrentPage;
+        ViewBag.TotalPages = pagedResult.TotalPages;
+        ViewBag.HasPreviousPage = pagedResult.HasPreviousPage;
+        ViewBag.HasNextPage = pagedResult.HasNextPage;
+        ViewBag.TotalCount = pagedResult.TotalCount;
+        ViewBag.PageSize = PageSize;
+
+        return View(pagedResult.Items);
     }
 
     // GET: /Album/Detail/5
@@ -90,8 +101,14 @@ public class AlbumController : Controller
         if (viewModel == null)
             return NotFound();
 
+        // 設定 SEO Meta 標籤與 Open Graph 資訊
+        ViewBag.MetaDescription = $"{viewModel.Title} - {viewModel.ArtistName} | MusicShop";
+        ViewBag.OgTitle = viewModel.Title;
+        ViewBag.OgType = "product";
+        ViewBag.OgImage = viewModel.FirstImageUrl;
+
         // 傳遞收藏狀態（已登入才需查詢）
-        var userId = _userManager.GetUserId(User);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var wishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId ?? string.Empty);
         ViewBag.IsInWishlist = wishlistIds.Contains(id);
 

@@ -241,8 +241,11 @@ namespace MusicShop.Library.Helpers
         /// </summary>
         public static List<(string District, string PostalCode)> GetDistrictsByCity(string city)
         {
-            return CityDistrictMap.ContainsKey(city)
-                ? CityDistrictMap[city]
+            if (string.IsNullOrEmpty(city))
+                return new List<(string, string)>();
+
+            return CityDistrictMap.TryGetValue(city, out var districts)
+                ? districts
                 : new List<(string, string)>();
         }
 
@@ -251,9 +254,13 @@ namespace MusicShop.Library.Helpers
         /// </summary>
         public static string GetPostalCode(string city, string district)
         {
-            if (CityDistrictMap.ContainsKey(city))
+            if (string.IsNullOrEmpty(city) || string.IsNullOrEmpty(district))
+                return string.Empty;
+
+            if (CityDistrictMap.TryGetValue(city, out var districts))
             {
-                var item = CityDistrictMap[city].FirstOrDefault(d => d.District == district);
+                var item = districts.FirstOrDefault(d => d.District == district);
+                // FirstOrDefault 對 ValueTuple 返回 default (null, null)，需檢查
                 return item.PostalCode ?? string.Empty;
             }
             return string.Empty;
@@ -264,6 +271,9 @@ namespace MusicShop.Library.Helpers
         /// </summary>
         public static bool IsValidCity(string city)
         {
+            if (string.IsNullOrEmpty(city))
+                return false;
+
             return Cities.Contains(city);
         }
 
@@ -272,10 +282,13 @@ namespace MusicShop.Library.Helpers
         /// </summary>
         public static bool IsValidDistrict(string city, string district)
         {
-            if (!CityDistrictMap.ContainsKey(city))
+            if (string.IsNullOrEmpty(city) || string.IsNullOrEmpty(district))
                 return false;
 
-            return CityDistrictMap[city].Any(d => d.District == district);
+            if (CityDistrictMap.TryGetValue(city, out var districts))
+                return districts.Any(d => d.District == district);
+
+            return false;
         }
     }
 }

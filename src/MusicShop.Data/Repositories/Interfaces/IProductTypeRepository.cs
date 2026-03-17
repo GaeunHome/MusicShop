@@ -56,4 +56,14 @@ public interface IProductTypeRepository
     /// 取得所有子分類（只有實際可用於商品的分類）
     /// </summary>
     Task<IEnumerable<ProductType>> GetAllChildCategoriesAsync();
+
+    /// <summary>
+    /// 檢查指定商品類型是否有子分類
+    /// </summary>
+    Task<bool> HasChildrenAsync(int id);
+
+    /// <summary>
+    /// 取得所有父分類（包含子分類），避免 N+1 查詢
+    /// </summary>
+    Task<IEnumerable<ProductType>> GetParentCategoriesWithChildrenAsync();
 }

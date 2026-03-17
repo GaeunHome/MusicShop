@@ -1,10 +1,12 @@
+using AutoMapper;
 using MusicShop.Data.Entities;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Data.UnitOfWork;
-using MusicShop.Library.Extensions;
 using MusicShop.Library.Helpers;
+using MusicShop.Service.ViewModels;
 using MusicShop.Service.ViewModels.Admin;
 using MusicShop.Service.ViewModels.Album;
+using MusicShop.Service.ViewModels.Shared;
 
 namespace MusicShop.Service.Services.Implementation
 {
@@ -14,10 +16,12 @@ namespace MusicShop.Service.Services.Implementation
     public class AlbumService : IAlbumService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public AlbumService(IUnitOfWork unitOfWork)
+        public AlbumService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<Album>> GetAlbumsAsync(
@@ -26,9 +30,10 @@ namespace MusicShop.Service.Services.Implementation
             int? artistId = null,
             int? productTypeId = null,
             int? parentProductTypeId = null,
-            string? sortBy = null)
+            string? sortBy = null,
+            int? excludeId = null)
         {
-            return await _unitOfWork.Albums.GetAlbumsAsync(searchTerm, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy);
+            return await _unitOfWork.Albums.GetAlbumsAsync(searchTerm, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy, excludeId);
         }
 
         public async Task<IEnumerable<AlbumCardViewModel>> GetAlbumCardViewModelsAsync(
@@ -37,10 +42,31 @@ namespace MusicShop.Service.Services.Implementation
             int? artistId = null,
             int? productTypeId = null,
             int? parentProductTypeId = null,
+            string? sortBy = null,
+            int? excludeId = null)
+        {
+            var albums = await _unitOfWork.Albums.GetAlbumsAsync(searchTerm, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy, excludeId);
+            return _mapper.Map<IEnumerable<AlbumCardViewModel>>(albums);
+        }
+
+        public async Task<PagedResult<AlbumCardViewModel>> GetAlbumCardViewModelsPagedAsync(
+            int page,
+            int pageSize,
+            string? searchTerm = null,
+            int? artistCategoryId = null,
+            int? artistId = null,
+            int? productTypeId = null,
+            int? parentProductTypeId = null,
             string? sortBy = null)
         {
-            var albums = await _unitOfWork.Albums.GetAlbumsAsync(searchTerm, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy);
-            return albums.Select(MapToAlbumCardViewModel);
+            ValidationHelper.ValidatePositive(page, "頁碼", nameof(page));
+            ValidationHelper.ValidatePositive(pageSize, "每頁筆數", nameof(pageSize));
+
+            var (albums, totalCount) = await _unitOfWork.Albums.GetAlbumsPagedAsync(
+                page, pageSize, searchTerm, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy);
+
+            var viewModels = _mapper.Map<IEnumerable<AlbumCardViewModel>>(albums);
+            return new PagedResult<AlbumCardViewModel>(viewModels, totalCount, page, pageSize);
         }
 
         public async Task<Album?> GetAlbumDetailAsync(int id)
@@ -53,38 +79,27 @@ namespace MusicShop.Service.Services.Implementation
             var album = await _unitOfWork.Albums.GetAlbumByIdAsync(id);
             if (album == null) return null;
 
-            // 取得相關商品（同藝人或同商品類型，排除當前商品）
+            // 相關商品查詢策略：使用「藝人分類 + 藝人 + 商品類型」做聯合篩選，
+            // 而非僅以完全相同的藝人做精確匹配。這樣做的好處是：
+            // 當同一藝人的商品不足時，仍能透過同分類（如同為 GIRL GROUP）
+            // 或同商品類型（如同為 ALBUM）推薦相關商品，提升推薦的覆蓋率。
             var relatedAlbums = await _unitOfWork.Albums.GetAlbumsAsync(
                 null,
                 album.Artist?.ArtistCategoryId,
                 album.ArtistId,
                 album.ProductTypeId,
-                null);
+                null,
+                null,
+                excludeId: id);
 
-            var imageUrls = !string.IsNullOrEmpty(album.CoverImageUrl)
-                ? album.CoverImageUrl.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
-                : new List<string>();
+            var vm = _mapper.Map<AlbumDetailViewModel>(album);
 
-            return new AlbumDetailViewModel
-            {
-                Id = album.Id,
-                Title = album.Title,
-                Description = album.Description,
-                DescriptionImageUrl = album.DescriptionImageUrl,
-                Price = album.Price,
-                Stock = album.Stock,
-                CoverImageUrl = album.CoverImageUrl,
-                ArtistName = album.Artist?.Name,
-                ArtistId = album.ArtistId,
-                ArtistCategoryId = album.Artist?.ArtistCategoryId,
-                ProductTypeId = album.ProductTypeId,
-                ImageUrls = imageUrls,
-                RelatedAlbums = relatedAlbums
-                    .Where(a => a.Id != id)
-                    .Take(8)
-                    .Select(MapToAlbumCardViewModel)
-                    .ToList()
-            };
+            // RelatedAlbums 在 MapperProfile 中設為 Ignore（因為需要額外查詢，無法在單次映射中完成），
+            // 因此必須手動賦值。Take(8) 限制最多顯示 8 筆，對應前端一行 4 張卡片、最多兩行的版面配置。
+            vm.RelatedAlbums = _mapper.Map<List<AlbumCardViewModel>>(
+                relatedAlbums.Take(8).ToList());
+
+            return vm;
         }
 
         public async Task<IEnumerable<AlbumCardViewModel>> GetLatestAlbumCardsAsync(int count)
@@ -92,7 +107,7 @@ namespace MusicShop.Service.Services.Implementation
             ValidationHelper.ValidatePositive(count, "數量", nameof(count));
 
             var albums = await _unitOfWork.Albums.GetLatestAlbumsAsync(count);
-            return albums.Select(MapToAlbumCardViewModel);
+            return _mapper.Map<IEnumerable<AlbumCardViewModel>>(albums);
         }
 
         public async Task<IEnumerable<Album>> GetLatestAlbumsAsync(int count)
@@ -100,33 +115,6 @@ namespace MusicShop.Service.Services.Implementation
             ValidationHelper.ValidatePositive(count, "數量", nameof(count));
 
             return await _unitOfWork.Albums.GetLatestAlbumsAsync(count);
-        }
-
-        /// <summary>
-        /// 將 Album Entity 映射為 AlbumCardViewModel
-        /// </summary>
-        private static AlbumCardViewModel MapToAlbumCardViewModel(Album album)
-        {
-            // 取第一張圖片 URL
-            string? firstCoverUrl = null;
-            if (!string.IsNullOrEmpty(album.CoverImageUrl))
-            {
-                var urls = album.CoverImageUrl.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                firstCoverUrl = urls.Length > 0 ? urls[0] : null;
-            }
-
-            return new AlbumCardViewModel
-            {
-                Id = album.Id,
-                Title = album.Title,
-                Price = album.Price,
-                Stock = album.Stock,
-                CoverImageUrl = firstCoverUrl,
-                ArtistName = album.Artist?.Name,
-                ArtistId = album.ArtistId,
-                ArtistCategoryName = album.Artist?.ArtistCategory?.Name,
-                ProductTypeName = album.ProductType?.Name
-            };
         }
 
         public async Task<bool> IsStockAvailableAsync(int albumId, int quantity = 1)
@@ -143,19 +131,20 @@ namespace MusicShop.Service.Services.Implementation
             return album.Stock >= quantity;
         }
 
+        public async Task<IEnumerable<SelectItemViewModel>> GetAlbumSelectItemsAsync()
+        {
+            var albums = await _unitOfWork.Albums.GetAllAlbumsAsync();
+            return albums.Select(a => new SelectItemViewModel
+            {
+                Id = a.Id,
+                Name = a.Title
+            });
+        }
+
         public async Task<IEnumerable<AlbumListItemViewModel>> GetAlbumListItemsAsync()
         {
             var albums = await _unitOfWork.Albums.GetAllAlbumsAsync();
-            return albums.Select(a => new AlbumListItemViewModel
-            {
-                Id = a.Id,
-                Title = a.Title,
-                ArtistName = a.Artist?.Name,
-                ArtistCategoryName = a.Artist?.ArtistCategory?.Name,
-                ProductTypeName = a.ProductType?.Name,
-                Price = a.Price,
-                Stock = a.Stock
-            });
+            return _mapper.Map<IEnumerable<AlbumListItemViewModel>>(albums);
         }
 
         public async Task<AlbumFormViewModel?> GetAlbumFormByIdAsync(int id)
@@ -163,20 +152,7 @@ namespace MusicShop.Service.Services.Implementation
             var album = await _unitOfWork.Albums.GetAlbumByIdAsync(id);
             if (album == null) return null;
 
-            return new AlbumFormViewModel
-            {
-                Id = album.Id,
-                Title = album.Title,
-                Description = album.Description,
-                Price = album.Price,
-                Stock = album.Stock,
-                ArtistId = album.ArtistId,
-                ProductTypeId = album.ProductTypeId,
-                CoverImageUrl = album.CoverImageUrl,
-                DescriptionImageUrl = album.DescriptionImageUrl,
-                RowVersion = album.RowVersion,
-                CreatedAt = album.CreatedAt
-            };
+            return _mapper.Map<AlbumFormViewModel>(album);
         }
 
         public async Task<AlbumFormViewModel> CreateAlbumAsync(AlbumFormViewModel vm)
@@ -185,23 +161,16 @@ namespace MusicShop.Service.Services.Implementation
             ValidationHelper.ValidateNotEmpty(vm.Title, "專輯標題", nameof(vm.Title));
             ValidationHelper.ValidatePositive(vm.Price, "價格", nameof(vm.Price));
 
-            var album = new Album
-            {
-                Title = vm.Title,
-                Description = vm.Description,
-                Price = vm.Price,
-                Stock = vm.Stock,
-                ArtistId = vm.ArtistId,
-                ProductTypeId = vm.ProductTypeId,
-                CoverImageUrl = vm.CoverImageUrl,
-                DescriptionImageUrl = vm.DescriptionImageUrl,
-                CreatedAt = DateTime.UtcNow
-            };
+            var newAlbum = _mapper.Map<Album>(vm);
+            newAlbum.CreatedAt = DateTime.UtcNow;
 
-            var created = await _unitOfWork.Albums.AddAlbumAsync(album);
-            vm.Id = created.Id;
-            vm.CreatedAt = created.CreatedAt;
-            vm.RowVersion = created.RowVersion;
+            var savedAlbum = await _unitOfWork.Albums.AddAlbumAsync(newAlbum);
+            await _unitOfWork.SaveChangesAsync();
+
+            // 回寫資料庫產生的欄位到 ViewModel
+            vm.Id = savedAlbum.Id;
+            vm.CreatedAt = savedAlbum.CreatedAt;
+            vm.RowVersion = savedAlbum.RowVersion;
             return vm;
         }
 
@@ -211,22 +180,23 @@ namespace MusicShop.Service.Services.Implementation
             ValidationHelper.ValidateNotEmpty(vm.Title, "專輯標題", nameof(vm.Title));
             ValidationHelper.ValidatePositive(vm.Price, "價格", nameof(vm.Price));
 
-            var exists = await _unitOfWork.Albums.AlbumExistsAsync(vm.Id);
-            ValidationHelper.ValidateCondition(exists, $"找不到 ID 為 {vm.Id} 的專輯");
+            var albumExists = await _unitOfWork.Albums.AlbumExistsAsync(vm.Id);
+            ValidationHelper.ValidateCondition(albumExists, $"找不到 ID 為 {vm.Id} 的專輯");
 
-            // 取得現有實體並更新欄位
-            var album = await _unitOfWork.Albums.GetAlbumByIdAsync(vm.Id);
-            album!.Title = vm.Title;
-            album.Description = vm.Description;
-            album.Price = vm.Price;
-            album.Stock = vm.Stock;
-            album.ArtistId = vm.ArtistId;
-            album.ProductTypeId = vm.ProductTypeId;
-            album.CoverImageUrl = vm.CoverImageUrl;
-            album.DescriptionImageUrl = vm.DescriptionImageUrl;
-            album.RowVersion = vm.RowVersion;
+            // 取得現有實體並逐欄更新（需保留 RowVersion 做樂觀並發控制）
+            var existingAlbum = await _unitOfWork.Albums.GetAlbumByIdAsync(vm.Id);
+            existingAlbum!.Title = vm.Title;
+            existingAlbum.Description = vm.Description;
+            existingAlbum.Price = vm.Price;
+            existingAlbum.Stock = vm.Stock;
+            existingAlbum.ArtistId = vm.ArtistId;
+            existingAlbum.ProductTypeId = vm.ProductTypeId;
+            existingAlbum.CoverImageUrl = vm.CoverImageUrl;
+            existingAlbum.DescriptionImageUrl = vm.DescriptionImageUrl;
+            existingAlbum.RowVersion = vm.RowVersion;
 
-            await _unitOfWork.Albums.UpdateAlbumAsync(album);
+            await _unitOfWork.Albums.UpdateAlbumAsync(existingAlbum);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteAlbumAsync(int id)
@@ -235,6 +205,7 @@ namespace MusicShop.Service.Services.Implementation
             ValidationHelper.ValidateCondition(exists, $"找不到 ID 為 {id} 的專輯");
 
             await _unitOfWork.Albums.DeleteAlbumAsync(id);
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

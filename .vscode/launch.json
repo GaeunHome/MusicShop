@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "MusicShop.Web",
+      "type": "dotnet",
+      "request": "launch",
+      "projectPath": "${workspaceFolder}/src/MusicShop.Web/MusicShop.Web.csproj"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+using AutoMapper;
 using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Service.Services.Interfaces;
@@ -12,37 +13,28 @@ namespace MusicShop.Service.Services.Implementation
     public class CartService : ICartService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public CartService(IUnitOfWork unitOfWork)
+        public CartService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<CartItem>> GetUserCartAsync(string userId)
         {
-            if (string.IsNullOrEmpty(userId))
-                throw new ArgumentException("使用者 ID 不能為空", nameof(userId));
+            ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
 
             return await _unitOfWork.Cart.GetCartItemsByUserIdAsync(userId);
         }
 
         public async Task<List<CartItemViewModel>> GetCartItemViewModelsAsync(string userId)
         {
-            if (string.IsNullOrEmpty(userId))
-                throw new ArgumentException("使用者 ID 不能為空", nameof(userId));
+            ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
 
             var cartItems = await _unitOfWork.Cart.GetCartItemsByUserIdAsync(userId);
 
-            return cartItems.Select(item => new CartItemViewModel
-            {
-                Id = item.Id,
-                AlbumId = item.AlbumId,
-                AlbumTitle = item.Album?.Title ?? "未知商品",
-                CoverImageUrl = item.Album?.CoverImageUrl,
-                Price = item.Album?.Price ?? 0,
-                Quantity = item.Quantity,
-                MaxStock = item.Album?.Stock ?? 0
-            }).ToList();
+            return _mapper.Map<List<CartItemViewModel>>(cartItems);
         }
 
         public async Task<CartItem> AddToCartAsync(string userId, int albumId, int quantity = 1)
@@ -51,14 +43,15 @@ namespace MusicShop.Service.Services.Implementation
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
             ValidationHelper.ValidatePositive(quantity, "數量", nameof(quantity));
 
-            // 檢查專輯是否存在
-            var album = await _unitOfWork.Albums.GetAlbumByIdAsync(albumId);
-            ValidationHelper.ValidateEntityExists(album, "專輯", albumId);
+            // 檢查目標專輯是否存在
+            var targetAlbum = await _unitOfWork.Albums.GetAlbumByIdAsync(albumId);
+            ValidationHelper.ValidateEntityExists(targetAlbum, "專輯", albumId);
 
-            // 檢查庫存
+            // 第一次庫存檢查：快速攔截明顯超量的請求（例如庫存 0 時直接拒絕），
+            // 避免不必要的資料庫查詢（查購物車現有項目）。
             ValidationHelper.ValidateCondition(
-                album!.Stock >= quantity,
-                $"庫存不足，目前庫存: {album.Stock}"
+                targetAlbum!.Stock >= quantity,
+                $"庫存不足，目前庫存: {targetAlbum.Stock}"
             );
 
             // 檢查購物車中是否已有該專輯
@@ -69,14 +62,17 @@ namespace MusicShop.Service.Services.Implementation
                 // 已存在，增加數量
                 var newQuantity = existingCartItem.Quantity + quantity;
 
-                // 再次檢查庫存
+                // 第二次庫存檢查：購物車已有此商品時，需驗證「累計數量」是否超過庫存。
+                // 例如庫存 3、購物車已有 2、本次加 2 → 總計 4 超過庫存，需在此攔截。
+                // 這是第一次檢查無法涵蓋的情境，因為第一次只檢查本次新增的數量。
                 ValidationHelper.ValidateCondition(
-                    album.Stock >= newQuantity,
-                    $"庫存不足，目前庫存: {album.Stock}，購物車已有: {existingCartItem.Quantity}"
+                    targetAlbum.Stock >= newQuantity,
+                    $"庫存不足，目前庫存: {targetAlbum.Stock}，購物車已有: {existingCartItem.Quantity}"
                 );
 
                 existingCartItem.Quantity = newQuantity;
                 await _unitOfWork.Cart.UpdateCartItemAsync(existingCartItem);
+                await _unitOfWork.SaveChangesAsync();
                 return existingCartItem;
             }
             else
@@ -90,7 +86,9 @@ namespace MusicShop.Service.Services.Implementation
                     AddedAt = DateTime.UtcNow
                 };
 
-                return await _unitOfWork.Cart.AddToCartAsync(cartItem);
+                var added = await _unitOfWork.Cart.AddToCartAsync(cartItem);
+                await _unitOfWork.SaveChangesAsync();
+                return added;
             }
         }
 
@@ -111,30 +109,31 @@ namespace MusicShop.Service.Services.Implementation
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
             ValidationHelper.ValidatePositive(quantity, "數量", nameof(quantity));
 
-            // 取得購物車項目
-            var cartItem = await _unitOfWork.Cart.GetCartItemByIdAsync(cartItemId);
-            ValidationHelper.ValidateEntityExists(cartItem, "購物車項目", cartItemId);
+            // 取得要更新的購物車項目
+            var targetCartItem = await _unitOfWork.Cart.GetCartItemByIdAsync(cartItemId);
+            ValidationHelper.ValidateEntityExists(targetCartItem, "購物車項目", cartItemId);
 
-            // 驗證是否為該使用者的購物車項目
+            // 驗證是否為該使用者的購物車項目（防止跨使用者操作）
             ValidationHelper.ValidateCondition(
-                cartItem!.UserId == userId,
+                targetCartItem!.UserId == userId,
                 "無權限修改此購物車項目"
             );
 
-            // 檢查庫存
-            var album = await _unitOfWork.Albums.GetAlbumByIdAsync(cartItem.AlbumId);
-            ValidationHelper.ValidateEntityExists(album, "專輯", cartItem.AlbumId);
+            // 檢查該專輯的庫存是否足夠
+            var relatedAlbum = await _unitOfWork.Albums.GetAlbumByIdAsync(targetCartItem.AlbumId);
+            ValidationHelper.ValidateEntityExists(relatedAlbum, "專輯", targetCartItem.AlbumId);
 
             ValidationHelper.ValidateCondition(
-                album!.Stock >= quantity,
-                $"庫存不足，目前庫存: {album.Stock}"
+                relatedAlbum!.Stock >= quantity,
+                $"庫存不足，目前庫存: {relatedAlbum.Stock}"
             );
 
-            // 更新數量
-            cartItem.Quantity = quantity;
-            await _unitOfWork.Cart.UpdateCartItemAsync(cartItem);
+            // 更新數量並儲存
+            targetCartItem.Quantity = quantity;
+            await _unitOfWork.Cart.UpdateCartItemAsync(targetCartItem);
+            await _unitOfWork.SaveChangesAsync();
 
-            return (cartItem, album);
+            return (targetCartItem, relatedAlbum);
         }
 
         public async Task<CartUpdateResult> UpdateCartItemQuantityAjaxAsync(int cartItemId, string userId, int quantity)
@@ -142,40 +141,65 @@ namespace MusicShop.Service.Services.Implementation
             try
             {
                 // 使用私有方法統一驗證和更新邏輯（避免重複程式碼）
-                var (cartItem, album) = await ValidateAndUpdateCartItemAsync(cartItemId, userId, quantity);
+                var (updatedCartItem, updatedAlbum) = await ValidateAndUpdateCartItemAsync(cartItemId, userId, quantity);
 
-                // 計算小計（該商品）
-                decimal subtotal = album.Price * quantity;
+                // 計算該商品的小計
+                decimal itemSubtotal = updatedAlbum.Price * quantity;
 
                 // ===== 效能優化：一次查詢取得所有購物車資料 =====
                 // 避免分別呼叫 GetCartTotalAsync 和 GetCartItemCountAsync
                 // 減少從 3 次資料庫查詢降低至 2 次
                 var allCartItems = await _unitOfWork.Cart.GetCartItemsByUserIdAsync(userId);
 
-                // 計算購物車總金額（從已查詢的資料計算）
-                decimal cartTotal = allCartItems.Sum(item => item.Album!.Price * item.Quantity);
+                // 計算購物車總金額（從已查詢的資料在記憶體中計算）
+                decimal totalCartAmount = allCartItems.Sum(item => (item.Album?.Price ?? 0) * item.Quantity);
 
-                // 計算購物車商品總數量（從已查詢的資料計算）
-                int cartItemCount = allCartItems.Sum(item => item.Quantity);
+                // 計算購物車商品總數量
+                int totalCartQuantity = allCartItems.Sum(item => item.Quantity);
 
-                // 返回成功結果（使用 PriceFormatter 統一格式化）
                 return new CartUpdateResult
                 {
                     Success = true,
                     Message = "數量已更新",
                     Quantity = quantity,
-                    Subtotal = PriceFormatter.Format(subtotal),
-                    CartTotal = PriceFormatter.Format(cartTotal),
-                    CartItemCount = cartItemCount
+                    Subtotal = itemSubtotal.ToTaiwanPrice(),
+                    CartTotal = totalCartAmount.ToTaiwanPrice(),
+                    CartItemCount = totalCartQuantity
                 };
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                // 返回失敗結果
+                // 驗證錯誤（參數無效）- 回傳使用者友善訊息
                 return new CartUpdateResult
                 {
                     Success = false,
                     Message = ex.Message,
+                    Quantity = 0,
+                    Subtotal = "0",
+                    CartTotal = "0",
+                    CartItemCount = 0
+                };
+            }
+            catch (InvalidOperationException ex)
+            {
+                // 業務邏輯錯誤（庫存不足等）- 回傳使用者友善訊息
+                return new CartUpdateResult
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Quantity = 0,
+                    Subtotal = "0",
+                    CartTotal = "0",
+                    CartItemCount = 0
+                };
+            }
+            catch (Exception)
+            {
+                // 非預期錯誤 - 不洩漏內部訊息
+                return new CartUpdateResult
+                {
+                    Success = false,
+                    Message = "更新數量時發生錯誤，請稍後再試",
                     Quantity = 0,
                     Subtotal = "0",
                     CartTotal = "0",
@@ -188,16 +212,17 @@ namespace MusicShop.Service.Services.Implementation
         {
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
 
-            var cartItem = await _unitOfWork.Cart.GetCartItemByIdAsync(cartItemId);
-            ValidationHelper.ValidateEntityExists(cartItem, "購物車項目", cartItemId);
+            var targetCartItem = await _unitOfWork.Cart.GetCartItemByIdAsync(cartItemId);
+            ValidationHelper.ValidateEntityExists(targetCartItem, "購物車項目", cartItemId);
 
-            // 驗證是否為該使用者的購物車項目
+            // 驗證是否為該使用者的購物車項目（防止跨使用者操作）
             ValidationHelper.ValidateCondition(
-                cartItem!.UserId == userId,
+                targetCartItem!.UserId == userId,
                 "無權限刪除此購物車項目"
             );
 
             await _unitOfWork.Cart.RemoveCartItemAsync(cartItemId);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task ClearCartAsync(string userId)
@@ -205,25 +230,21 @@ namespace MusicShop.Service.Services.Implementation
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
 
             await _unitOfWork.Cart.ClearCartAsync(userId);
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<decimal> GetCartTotalAsync(string userId)
         {
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
 
-            var cartItems = await _unitOfWork.Cart.GetCartItemsByUserIdAsync(userId);
-
-            return cartItems.Sum(item => item.Album!.Price * item.Quantity);
+            return await _unitOfWork.Cart.GetCartTotalAsync(userId);
         }
 
         public async Task<int> GetCartItemCountAsync(string userId)
         {
-            if (string.IsNullOrEmpty(userId))
-                throw new ArgumentException("使用者 ID 不能為空", nameof(userId));
+            ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
 
-            var cartItems = await _unitOfWork.Cart.GetCartItemsByUserIdAsync(userId);
-
-            return cartItems.Sum(item => item.Quantity);
+            return await _unitOfWork.Cart.GetCartItemCountAsync(userId);
         }
     }
 }

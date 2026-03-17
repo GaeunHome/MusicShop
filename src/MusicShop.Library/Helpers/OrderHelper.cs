@@ -1,5 +1,4 @@
-using MusicShop.Data.Entities;
-using MusicShop.Data.Entities;
+using MusicShop.Library.Enums;
 
 namespace MusicShop.Library.Helpers
 {
@@ -13,19 +12,19 @@ namespace MusicShop.Library.Helpers
         /// 取得付款狀態的顯示文字
         /// 根據付款方式和訂單狀態共同判斷
         /// </summary>
-        public static string GetPaymentStatusText(Order order)
+        public static string GetPaymentStatusText(PaymentMethod paymentMethod, OrderStatus status)
         {
-            return order.PaymentMethod switch
+            return paymentMethod switch
             {
                 // 信用卡：付款後即算已付款
-                PaymentMethod.CreditCard => order.Status switch
+                PaymentMethod.CreditCard => status switch
                 {
                     OrderStatus.Pending => "未付款",
                     OrderStatus.Cancelled => "已取消",
                     _ => "已收到款項"
                 },
                 // 貨到付款：完成訂單後才算收到款項
-                PaymentMethod.CashOnDelivery => order.Status switch
+                PaymentMethod.CashOnDelivery => status switch
                 {
                     OrderStatus.Completed => "已收到款項",
                     OrderStatus.Cancelled => "已取消",
@@ -38,9 +37,9 @@ namespace MusicShop.Library.Helpers
         /// <summary>
         /// 取得配送狀態的顯示文字
         /// </summary>
-        public static string GetDeliveryStatusText(Order order)
+        public static string GetDeliveryStatusText(OrderStatus status)
         {
-            return order.Status switch
+            return status switch
             {
                 OrderStatus.Pending => "未出貨",
                 OrderStatus.Paid => "未出貨",
@@ -127,30 +126,51 @@ namespace MusicShop.Library.Helpers
         }
 
         /// <summary>
+        /// 取得發票類型的顯示文字
+        /// </summary>
+        public static string GetInvoiceTypeText(InvoiceType type)
+        {
+            return type switch
+            {
+                InvoiceType.Duplicate => "二聯式發票（個人）",
+                InvoiceType.Triplicate => "三聯式發票（公司）",
+                InvoiceType.EInvoice => "電子發票",
+                _ => "未知"
+            };
+        }
+
+        /// <summary>
         /// 取得訂單的有效下一步狀態選項
         /// 根據當前狀態和付款方式，返回合理的下一步選項
         /// </summary>
-        public static List<OrderStatusOption> GetValidNextStatuses(Order order)
+        public static List<OrderStatusOption> GetValidNextStatuses(OrderStatus status, PaymentMethod paymentMethod)
         {
             var options = new List<OrderStatusOption>();
-            var isCashOnDelivery = order.PaymentMethod == PaymentMethod.CashOnDelivery;
+            var isCashOnDelivery = paymentMethod == PaymentMethod.CashOnDelivery;
 
-            switch (order.Status)
+            // 狀態轉換規則說明：
+            // 正常流程（信用卡）：Pending → Paid → Shipped → Completed
+            // 正常流程（貨到付款）：Pending → Shipped → Completed（跳過 Paid，因為付款發生在收貨時）
+            // 已完成與已取消為終態，不可再變更。
+            switch (status)
             {
                 case OrderStatus.Pending:
                     options.Add(new OrderStatusOption(OrderStatus.Pending, "保持現狀"));
                     if (!isCashOnDelivery)
                     {
+                        // 信用卡：需先確認收款才能出貨
                         options.Add(new OrderStatusOption(OrderStatus.Paid, "確認收到信用卡款項"));
                     }
                     else
                     {
+                        // 貨到付款：不存在「已付款」階段，直接跳到出貨
                         options.Add(new OrderStatusOption(OrderStatus.Shipped, "貨到付款 - 直接出貨"));
                     }
                     options.Add(new OrderStatusOption(OrderStatus.Cancelled, "取消訂單"));
                     break;
 
                 case OrderStatus.Paid:
+                    // 已付款狀態只有信用卡訂單才會進入，下一步為出貨
                     options.Add(new OrderStatusOption(OrderStatus.Paid, "保持現狀"));
                     options.Add(new OrderStatusOption(OrderStatus.Shipped, "商品已寄出"));
                     options.Add(new OrderStatusOption(OrderStatus.Cancelled, "取消訂單"));
@@ -158,12 +178,14 @@ namespace MusicShop.Library.Helpers
 
                 case OrderStatus.Shipped:
                     options.Add(new OrderStatusOption(OrderStatus.Shipped, "保持現狀"));
+                    // 貨到付款的完成代表「收貨 + 付款」同時發生，因此文字不同
                     options.Add(new OrderStatusOption(
                         OrderStatus.Completed,
                         isCashOnDelivery ? "客戶已收貨並付款" : "客戶已收貨"
                     ));
                     break;
 
+                // 終態：已完成與已取消不提供其他選項
                 case OrderStatus.Completed:
                     options.Add(new OrderStatusOption(OrderStatus.Completed, "交易完成"));
                     break;
@@ -179,9 +201,9 @@ namespace MusicShop.Library.Helpers
         /// <summary>
         /// 判斷訂單是否可以更新狀態
         /// </summary>
-        public static bool CanUpdateStatus(Order order)
+        public static bool CanUpdateStatus(OrderStatus status)
         {
-            return order.Status != OrderStatus.Completed && order.Status != OrderStatus.Cancelled;
+            return status != OrderStatus.Completed && status != OrderStatus.Cancelled;
         }
     }
 

@@ -45,7 +45,8 @@
                                     <div class="album-cover-wrapper">
                                         @if (!string.IsNullOrEmpty(item.CoverImageUrl))
                                         {
-                                            <img src="@item.CoverImageUrl" alt="@item.AlbumTitle" class="album-cover">
+                                            <!-- 購物車商品圖片，使用延遲載入 -->
+                                            <img src="@item.CoverImageUrl" alt="@item.AlbumTitle 專輯封面" class="album-cover" loading="lazy">
                                         }
                                         else
                                         {

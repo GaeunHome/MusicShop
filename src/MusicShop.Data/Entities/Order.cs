@@ -1,49 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using MusicShop.Library.Enums;
 
 namespace MusicShop.Data.Entities
 {
-    /// <summary>
-    /// 訂單狀態
-    /// </summary>
-    public enum OrderStatus
-    {
-        Pending,    // 待處理
-        Paid,       // 已付款
-        Shipped,    // 已出貨
-        Completed,  // 已完成
-        Cancelled   // 已取消
-    }
-
-    /// <summary>
-    /// 配送方式
-    /// </summary>
-    public enum DeliveryMethod
-    {
-        HomeDelivery,   // 宅配到府
-        SevenEleven,    // 7-11 超商取貨
-        FamilyMart      // 全家超商取貨
-    }
-
-    /// <summary>
-    /// 付款方式
-    /// </summary>
-    public enum PaymentMethod
-    {
-        CashOnDelivery, // 貨到付款
-        CreditCard      // 信用卡
-    }
-
-    /// <summary>
-    /// 發票類型
-    /// </summary>
-    public enum InvoiceType
-    {
-        Duplicate,      // 二聯式發票（個人）
-        Triplicate,     // 三聯式發票（公司）
-        EInvoice        // 電子發票
-    }
-
     /// <summary>
     /// 訂單主檔
     /// </summary>
@@ -57,6 +17,8 @@ namespace MusicShop.Data.Entities
         public AppUser? User { get; set; }
 
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+
+        public DateTime? UpdatedAt { get; set; }
 
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
 

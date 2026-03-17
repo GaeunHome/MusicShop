@@ -28,13 +28,6 @@ namespace MusicShop.Data.Repositories.Interfaces
         Task<Order> CreateOrderAsync(Order order);
 
         /// <summary>
-        /// 建立訂單並在交易中扣除庫存、清空購物車（確保原子性）
-        /// </summary>
-        /// <param name="order">訂單物件</param>
-        /// <param name="userId">使用者 ID（用於清空購物車）</param>
-        Task<Order> CreateOrderWithTransactionAsync(Order order, string userId);
-
-        /// <summary>
         /// 更新訂單
         /// </summary>
         Task UpdateOrderAsync(Order order);
@@ -53,5 +46,10 @@ namespace MusicShop.Data.Repositories.Interfaces
         /// 檢查訂單是否屬於該使用者
         /// </summary>
         Task<bool> IsOrderOwnedByUserAsync(int orderId, string userId);
+
+        /// <summary>
+        /// 取得使用者訂單統計（總訂單數、總消費金額）
+        /// </summary>
+        Task<(int TotalOrders, decimal TotalSpent)> GetUserOrderStatsAsync(string userId);
     }
 }

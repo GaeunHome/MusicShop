@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using MusicShop.Library.Enums;
 
 namespace MusicShop.Data.Entities
 {
@@ -14,11 +15,6 @@ namespace MusicShop.Data.Entities
 
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
-    }
-
-    public enum Gender
-    {
-        Male = 1,
-        Female = 2
+        public ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();
     }
 }

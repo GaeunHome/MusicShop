@@ -28,9 +28,9 @@ public static class ValidationHelper
     /// <param name="maxLength">最大長度</param>
     /// <param name="paramName">參數名稱（用於 ArgumentException）</param>
     /// <exception cref="ArgumentException">當字串長度超過 maxLength 時拋出</exception>
-    public static void ValidateMaxLength(string value, string fieldName, int maxLength, string paramName)
+    public static void ValidateMaxLength(string? value, string fieldName, int maxLength, string paramName)
     {
-        if (value.Length > maxLength)
+        if (value != null && value.Length > maxLength)
         {
             throw new ArgumentException($"{fieldName}不能超過 {maxLength} 個字元", paramName);
         }

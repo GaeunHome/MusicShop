@@ -1,9 +1,7 @@
+@model MusicShop.Service.ViewModels.Admin.CategoryManagementViewModel
 @{
     ViewData["Title"] = "分類管理";
     ViewData["PageId"] = "admin-categories";
-    var artistCategories = ViewBag.ArtistCategories as IEnumerable<MusicShop.Data.Entities.ArtistCategory>;
-    var parentCategories = ViewBag.ParentCategories as IEnumerable<MusicShop.Data.Entities.ProductType>;
-    var categoryTree = ViewBag.CategoryTree as Dictionary<MusicShop.Data.Entities.ProductType, IEnumerable<MusicShop.Data.Entities.ProductType>>;
 }
 
 <!-- 引用共用的 TempData 通知元件 -->
@@ -31,9 +29,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (artistCategories != null && artistCategories.Any())
+                        @if (Model.ArtistCategories.Any())
                         {
-                            @foreach (var category in artistCategories.OrderBy(c => c.DisplayOrder))
+                            @foreach (var category in Model.ArtistCategories)
                             {
                                 <tr>
                                     <td>@category.Id</td>
@@ -73,10 +71,10 @@
             <a asp-action="ProductTypeCreate" class="btn btn-light btn-sm">➕ 新增商品類型</a>
         </div>
         <div class="card-body p-4">
-            @if (categoryTree != null && categoryTree.Any())
+            @if (Model.CategoryTree.Any())
             {
                 <div class="row g-4">
-                    @foreach (var parent in categoryTree.Keys.OrderBy(k => k.DisplayOrder))
+                    @foreach (var parent in Model.CategoryTree)
                     {
                         <div class="col-md-6">
                             <div class="card border-success h-100">
@@ -127,10 +125,10 @@
 
                                 <!-- 子分類列表 -->
                                 <div class="card-body p-0">
-                                    @if (categoryTree[parent].Any())
+                                    @if (parent.Children.Any())
                                     {
                                         <div class="list-group list-group-flush">
-                                            @foreach (var child in categoryTree[parent].OrderBy(c => c.DisplayOrder))
+                                            @foreach (var child in parent.Children)
                                             {
                                                 <div class="list-group-item d-flex justify-content-between align-items-center py-3">
                                                     <div class="flex-grow-1 me-3">

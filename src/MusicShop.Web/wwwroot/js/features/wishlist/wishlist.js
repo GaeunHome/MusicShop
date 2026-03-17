@@ -21,10 +21,9 @@
             const res = await fetch('/Wishlist/Toggle', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'RequestVerificationToken': token
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: `albumId=${albumId}`
+                body: `albumId=${albumId}&__RequestVerificationToken=${encodeURIComponent(token)}`
             });
 
             if (!res.ok) return;
@@ -45,6 +44,12 @@
                 const label = btn.querySelector('.wishlist-label');
                 if (label) label.textContent = '加入最愛';
             }
+
+            /* 觸發愛心彈跳動畫 */
+            btn.classList.add('animate');
+            setTimeout(function () {
+                btn.classList.remove('animate');
+            }, 400);
         } catch (err) {
             console.error('收藏切換失敗', err);
         }

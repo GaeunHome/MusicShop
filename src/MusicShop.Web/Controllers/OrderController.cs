@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using MusicShop.Data.Entities;
+using MusicShop.Library.Enums;
 using MusicShop.Service.Services.Interfaces;
+using MusicShop.Web.Infrastructure;
 
 namespace MusicShop.Controllers;
 
@@ -11,24 +11,20 @@ namespace MusicShop.Controllers;
 /// 使用三層式架構：Controller → Service → Repository
 /// </summary>
 [Authorize]
-public class OrderController : Controller
+public class OrderController : BaseController
 {
     private readonly IOrderService _orderService;
-    private readonly UserManager<AppUser> _userManager;
 
-    public OrderController(IOrderService orderService, UserManager<AppUser> userManager)
+    public OrderController(IOrderService orderService)
     {
         _orderService = orderService;
-        _userManager = userManager;
     }
 
     // GET: /Order
     // 顯示使用者的訂單列表
     public async Task<IActionResult> Index()
     {
-        var userId = _userManager.GetUserId(User);
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
+        var userId = GetAuthorizedUserId();
 
         var orders = await _orderService.GetOrderListViewModelsByUserAsync(userId);
         return View(orders);
@@ -38,9 +34,7 @@ public class OrderController : Controller
     // 顯示訂單詳細資訊
     public async Task<IActionResult> Detail(int id)
     {
-        var userId = _userManager.GetUserId(User);
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
+        var userId = GetAuthorizedUserId();
 
         try
         {
@@ -53,7 +47,7 @@ public class OrderController : Controller
         }
         catch (UnauthorizedAccessException)
         {
-            TempData["Error"] = "無權限查看此訂單";
+            TempData[TempDataKeys.Error] = "無權限查看此訂單";
             return RedirectToAction("Index");
         }
     }
@@ -64,22 +58,20 @@ public class OrderController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Cancel(int id)
     {
-        var userId = _userManager.GetUserId(User);
-        if (string.IsNullOrEmpty(userId))
-            return Unauthorized();
+        var userId = GetAuthorizedUserId();
 
         try
         {
             await _orderService.CancelOrderAsync(id, userId);
-            TempData["Success"] = "訂單已取消";
+            TempData[TempDataKeys.Success] = "訂單已取消";
         }
         catch (InvalidOperationException ex)
         {
-            TempData["Error"] = ex.Message;
+            TempData[TempDataKeys.Error] = ex.Message;
         }
-        catch (UnauthorizedAccessException ex)
+        catch (UnauthorizedAccessException)
         {
-            TempData["Error"] = ex.Message;
+            TempData[TempDataKeys.Error] = "無權限取消此訂單";
         }
 
         return RedirectToAction("Detail", new { id });
@@ -89,10 +81,11 @@ public class OrderController : Controller
 
     // GET: /Order/Manage
     // 管理所有訂單（管理員專用）
+    // 使用 ViewModel 取代直接回傳 Order Entity，確保展示層不接觸資料層實體
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Manage()
     {
-        var orders = await _orderService.GetAllOrdersAsync();
+        var orders = await _orderService.GetAdminOrderListViewModelsAsync();
         return View(orders);
     }
 
@@ -106,11 +99,11 @@ public class OrderController : Controller
         try
         {
             await _orderService.UpdateOrderStatusAsync(orderId, status);
-            TempData["Success"] = "訂單狀態已更新";
+            TempData[TempDataKeys.Success] = "訂單狀態已更新";
         }
         catch (InvalidOperationException ex)
         {
-            TempData["Error"] = ex.Message;
+            TempData[TempDataKeys.Error] = ex.Message;
         }
 
         return RedirectToAction("Manage");

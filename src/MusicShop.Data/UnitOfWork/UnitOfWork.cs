@@ -29,7 +29,9 @@ namespace MusicShop.Data.UnitOfWork
             _context = context;
         }
 
-        // Repository 屬性（第一次存取時才建立實例，共用同一個 DbContext）
+        // 延遲初始化（??=）：Repository 在首次存取時才建立，且所有 Repository 共用
+        // 同一個 _context 實例，確保同一個 Request 內的多個 Repository 操作
+        // 都在同一個 DbContext / ChangeTracker 中執行，SaveChangesAsync 才能一次提交。
         public IAlbumRepository Albums => _albums ??= new AlbumRepository(_context);
         public IArtistRepository Artists => _artists ??= new ArtistRepository(_context);
         public IArtistCategoryRepository ArtistCategories => _artistCategories ??= new ArtistCategoryRepository(_context);
@@ -43,6 +45,11 @@ namespace MusicShop.Data.UnitOfWork
         /// <summary>
         /// 開始資料庫交易
         /// </summary>
+        /// <remarks>
+        /// 注意：同一時間僅支援一個活躍交易。若在未 Commit/Rollback 前再次呼叫，
+        /// 舊的 _transaction 參考會被覆蓋且無法回滾，可能導致連線洩漏。
+        /// 呼叫端應確保交易生命週期完整（BeginTransaction → Commit 或 Rollback）。
+        /// </remarks>
         public async Task BeginTransactionAsync()
         {
             _transaction = await _context.Database.BeginTransactionAsync();

@@ -39,7 +39,8 @@
 
                             @if (!string.IsNullOrEmpty(item.CoverImageUrl))
                             {
-                                <img src="@item.CoverImageUrl" class="product-image" alt="@item.AlbumTitle">
+                                <!-- 收藏商品圖片，使用延遲載入 -->
+                                <img src="@item.CoverImageUrl" class="product-image" alt="@item.AlbumTitle 專輯封面" loading="lazy">
                             }
                             else
                             {

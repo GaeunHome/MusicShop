@@ -1,9 +1,8 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using MusicShop.Data.Entities;
 using MusicShop.Service.Services.Interfaces;
-using MusicShop.Web.Models;
+using MusicShop.Web.Infrastructure;
+using System.Security.Claims;
 
 namespace MusicShop.Controllers;
 
@@ -15,15 +14,13 @@ public class HomeController : Controller
     private readonly IAlbumService _albumService;
     private readonly IBannerService _bannerService;
     private readonly IWishlistService _wishlistService;
-    private readonly UserManager<AppUser> _userManager;
 
     public HomeController(IAlbumService albumService, IBannerService bannerService,
-        IWishlistService wishlistService, UserManager<AppUser> userManager)
+        IWishlistService wishlistService)
     {
         _albumService = albumService;
         _bannerService = bannerService;
         _wishlistService = wishlistService;
-        _userManager = userManager;
     }
 
     public async Task<IActionResult> Index()
@@ -32,7 +29,7 @@ public class HomeController : Controller
         ViewBag.Banners = await _bannerService.GetActiveBannerDisplaysAsync();
 
         // 傳遞使用者收藏清單 ID（供商品卡片判斷愛心狀態）
-        var userId = _userManager.GetUserId(User);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         ViewBag.WishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId ?? string.Empty);
 
         // 從服務層取得最新上架的 8 個專輯 ViewModel（首頁展示用）
@@ -46,9 +43,34 @@ public class HomeController : Controller
         return View();
     }
 
+    /// <summary>
+    /// 錯誤頁面 - 根據狀態碼顯示對應的錯誤訊息
+    /// </summary>
+    /// <param name="statusCode">HTTP 狀態碼（可選，預設為 500）</param>
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
+    public IActionResult Error(int? statusCode = null)
     {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        var model = new ErrorViewModel
+        {
+            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+        };
+
+        ViewBag.StatusCode = statusCode ?? 500;
+        ViewBag.ErrorTitle = statusCode switch
+        {
+            400 => "操作無效",
+            403 => "存取被拒絕",
+            404 => "找不到頁面",
+            _ => "系統發生錯誤"
+        };
+        ViewBag.ErrorMessage = statusCode switch
+        {
+            400 => "您的請求無法處理，請檢查輸入內容後重試。",
+            403 => "您沒有權限存取此頁面。",
+            404 => "您要找的頁面不存在或已被移除。",
+            _ => "很抱歉，系統發生未預期的錯誤，請稍後再試。"
+        };
+
+        return View(model);
     }
 }

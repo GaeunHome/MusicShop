@@ -1,9 +1,12 @@
+using AutoMapper;
 using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
+using MusicShop.Service.Constants;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Library.Helpers;
 using MusicShop.Service.ViewModels;
 using MusicShop.Service.ViewModels.Admin;
+using MusicShop.Service.ViewModels.Shared;
 
 namespace MusicShop.Service.Services.Implementation;
 
@@ -13,10 +16,14 @@ namespace MusicShop.Service.Services.Implementation;
 public class ProductTypeService : IProductTypeService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    private readonly ICacheService _cacheService;
 
-    public ProductTypeService(IUnitOfWork unitOfWork)
+    public ProductTypeService(IUnitOfWork unitOfWork, IMapper mapper, ICacheService cacheService)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _cacheService = cacheService;
     }
 
     public async Task<IEnumerable<ProductType>> GetAllProductTypesAsync()
@@ -31,77 +38,74 @@ public class ProductTypeService : IProductTypeService
 
     public async Task<ProductTypeFormViewModel?> GetProductTypeFormByIdAsync(int id)
     {
-        var entity = await _unitOfWork.ProductTypes.GetByIdAsync(id);
-        if (entity == null) return null;
+        var productType = await _unitOfWork.ProductTypes.GetByIdAsync(id);
+        if (productType == null) return null;
 
-        return new ProductTypeFormViewModel
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            Description = entity.Description,
-            ParentId = entity.ParentId,
-            DisplayOrder = entity.DisplayOrder
-        };
+        return _mapper.Map<ProductTypeFormViewModel>(productType);
     }
 
     public async Task<ProductTypeFormViewModel> CreateProductTypeAsync(ProductTypeFormViewModel vm)
     {
-        // 商業邏輯驗證
         ValidationHelper.ValidateString(vm.Name, "商品類型名稱", 50, nameof(vm.Name));
 
-        var entity = new ProductType
-        {
-            Name = vm.Name,
-            Description = vm.Description,
-            ParentId = vm.ParentId,
-            DisplayOrder = vm.DisplayOrder
-        };
+        var newType = _mapper.Map<ProductType>(vm);
 
-        var created = await _unitOfWork.ProductTypes.CreateAsync(entity);
-        vm.Id = created.Id;
+        var savedType = await _unitOfWork.ProductTypes.CreateAsync(newType);
+        await _unitOfWork.SaveChangesAsync();
+        vm.Id = savedType.Id;
+
+        _cacheService.RemoveByPrefix(CacheKeys.CategoriesPrefix);
         return vm;
     }
 
     public async Task UpdateProductTypeAsync(ProductTypeFormViewModel vm)
     {
-        // 商業邏輯驗證
         ValidationHelper.ValidateString(vm.Name, "商品類型名稱", 50, nameof(vm.Name));
 
-        var existing = await _unitOfWork.ProductTypes.GetByIdAsync(vm.Id);
-        ValidationHelper.ValidateEntityExists(existing, "商品類型", vm.Id);
+        var existingType = await _unitOfWork.ProductTypes.GetByIdAsync(vm.Id);
+        ValidationHelper.ValidateEntityExists(existingType, "商品類型", vm.Id);
 
-        existing!.Name = vm.Name;
-        existing.Description = vm.Description;
-        existing.ParentId = vm.ParentId;
-        existing.DisplayOrder = vm.DisplayOrder;
+        existingType!.Name = vm.Name;
+        existingType.Description = vm.Description;
+        existingType.ParentId = vm.ParentId;
+        existingType.DisplayOrder = vm.DisplayOrder;
 
-        await _unitOfWork.ProductTypes.UpdateAsync(existing);
+        await _unitOfWork.ProductTypes.UpdateAsync(existingType);
+        await _unitOfWork.SaveChangesAsync();
+
+        _cacheService.RemoveByPrefix(CacheKeys.CategoriesPrefix);
     }
 
     public async Task DeleteProductTypeAsync(int id)
     {
-        var exists = await _unitOfWork.ProductTypes.GetByIdWithChildrenAsync(id);
-        ValidationHelper.ValidateEntityExists(exists, "商品類型", id);
+        var targetType = await _unitOfWork.ProductTypes.GetByIdWithChildrenAsync(id);
+        ValidationHelper.ValidateEntityExists(targetType, "商品類型", id);
 
-        // 檢查是否有子分類
+        // 檢查是否有子分類（有的話不能刪除）
+        var hasChildTypes = await _unitOfWork.ProductTypes.HasChildrenAsync(id);
         ValidationHelper.ValidateCondition(
-            !exists!.Children.Any(),
-            $"無法刪除「{exists.Name}」，因為還有 {exists.Children.Count} 個子分類"
+            !hasChildTypes,
+            $"無法刪除「{targetType!.Name}」，因為還有子分類"
         );
 
         // 檢查是否有商品使用此類型
-        var albums = await _unitOfWork.Albums.GetAlbumsAsync(null, null, null, id);
+        var linkedAlbumCount = await _unitOfWork.Albums.CountByProductTypeAsync(id);
         ValidationHelper.ValidateCondition(
-            !albums.Any(),
-            $"無法刪除「{exists.Name}」，因為還有 {albums.Count()} 個商品使用此類型"
+            linkedAlbumCount == 0,
+            $"無法刪除「{targetType.Name}」，因為還有 {linkedAlbumCount} 個商品使用此類型"
         );
 
         await _unitOfWork.ProductTypes.DeleteAsync(id);
+        await _unitOfWork.SaveChangesAsync();
+
+        _cacheService.RemoveByPrefix(CacheKeys.CategoriesPrefix);
     }
 
     public async Task<IEnumerable<ProductType>> GetParentCategoriesAsync()
     {
-        return await _unitOfWork.ProductTypes.GetParentCategoriesAsync();
+        return await _cacheService.GetOrCreateAsync(
+            CacheKeys.ProductTypeParents,
+            () => _unitOfWork.ProductTypes.GetParentCategoriesAsync());
     }
 
     public async Task<IEnumerable<ProductType>> GetChildrenByParentIdAsync(int parentId)
@@ -116,7 +120,44 @@ public class ProductTypeService : IProductTypeService
 
     public async Task<IEnumerable<ProductType>> GetAllChildCategoriesAsync()
     {
-        return await _unitOfWork.ProductTypes.GetAllChildCategoriesAsync();
+        return await _cacheService.GetOrCreateAsync(
+            CacheKeys.ProductTypeChildren,
+            () => _unitOfWork.ProductTypes.GetAllChildCategoriesAsync());
+    }
+
+    public async Task<IEnumerable<SelectItemViewModel>> GetParentCategorySelectItemsAsync()
+    {
+        var parents = await _unitOfWork.ProductTypes.GetParentCategoriesAsync();
+        return parents.Select(p => new SelectItemViewModel
+        {
+            Id = p.Id,
+            Name = p.Name,
+            DisplayOrder = p.DisplayOrder
+        });
+    }
+
+    public async Task<IEnumerable<SelectItemViewModel>> GetChildCategorySelectItemsByParentIdAsync(int parentId)
+    {
+        var children = await _unitOfWork.ProductTypes.GetChildrenByParentIdAsync(parentId);
+        return children.Select(c => new SelectItemViewModel
+        {
+            Id = c.Id,
+            Name = c.Name,
+            ParentId = c.ParentId,
+            DisplayOrder = c.DisplayOrder
+        });
+    }
+
+    public async Task<string?> GetProductTypeNameByIdAsync(int id)
+    {
+        var productType = await _unitOfWork.ProductTypes.GetByIdAsync(id);
+        return productType?.Name;
+    }
+
+    public async Task<int?> GetParentIdByProductTypeIdAsync(int productTypeId)
+    {
+        var productType = await _unitOfWork.ProductTypes.GetByIdWithChildrenAsync(productTypeId);
+        return productType?.ParentId;
     }
 
     public async Task<IEnumerable<SelectItemViewModel>> GetChildCategorySelectItemsAsync()
@@ -130,5 +171,42 @@ public class ProductTypeService : IProductTypeService
             ParentName = c.Parent?.Name,
             DisplayOrder = c.DisplayOrder
         });
+    }
+
+    public async Task<List<ProductTypeCategoryTreeViewModel>> GetCategoryTreeViewModelsAsync()
+    {
+        var parents = await _unitOfWork.ProductTypes.GetParentCategoriesWithChildrenAsync();
+
+        return parents.Select(parent => new ProductTypeCategoryTreeViewModel
+        {
+            Id = parent.Id,
+            Name = parent.Name,
+            Description = parent.Description,
+            DisplayOrder = parent.DisplayOrder,
+            Children = _mapper.Map<List<ProductTypeChildItemViewModel>>(parent.Children)
+        }).ToList();
+    }
+
+    public async Task<List<NavCategoryItemViewModel>> GetNavCategoryTreeAsync()
+    {
+        return await _cacheService.GetOrCreateAsync(
+            CacheKeys.ProductTypeNavTree,
+            async () =>
+            {
+                var parents = await _unitOfWork.ProductTypes.GetParentCategoriesWithChildrenAsync();
+
+                return parents.Select(parent => new NavCategoryItemViewModel
+                {
+                    Id = parent.Id,
+                    Name = parent.Name,
+                    DisplayOrder = parent.DisplayOrder,
+                    Children = parent.Children.Select(c => new NavCategoryItemViewModel
+                    {
+                        Id = c.Id,
+                        Name = c.Name,
+                        DisplayOrder = c.DisplayOrder
+                    }).ToList()
+                }).ToList();
+            });
     }
 }

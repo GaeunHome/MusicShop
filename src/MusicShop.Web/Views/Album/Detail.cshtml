@@ -26,7 +26,8 @@
                 <div class="main-image-wrapper">
                     @if (Model.HasImages)
                     {
-                        <img id="mainImage" src="@Model.FirstImageUrl" class="img-fluid main-image" alt="@Model.Title" />
+                        <!-- 商品主圖，使用延遲載入 -->
+                        <img id="mainImage" src="@Model.FirstImageUrl" class="img-fluid main-image" alt="@Model.Title 商品圖片" loading="lazy" />
 
                         @if (Model.HasMultipleImages)
                         {
@@ -57,7 +58,8 @@
                             @for (int i = 0; i < Model.ImageUrls.Count; i++)
                             {
                                 <div class="thumbnail-item @(i == 0 ? "active" : "")" onclick="selectImage(@i)">
-                                    <img src="@Model.ImageUrls[i]" alt="圖片 @(i + 1)" />
+                                    <!-- 縮圖，使用延遲載入 -->
+                                    <img src="@Model.ImageUrls[i]" alt="@Model.Title 圖片 @(i + 1)" loading="lazy" />
                                 </div>
                             }
                         </div>
@@ -151,6 +153,8 @@
                         <button type="button"
                                 class="btn btn-outline-secondary btn-wishlist wishlist-toggle @(isInWishlist ? "wishlisted" : "")"
                                 data-album-id="@Model.Id"
+                                aria-pressed="@(isInWishlist ? "true" : "false")"
+                                aria-label="@(isInWishlist ? "取消收藏" : "加入收藏") @Model.Title"
                                 title="@(isInWishlist ? "取消收藏" : "加入收藏")">
                             <i class="bi @(isInWishlist ? "bi-heart-fill text-danger" : "bi-heart")"></i>
                             <span class="wishlist-label">@(isInWishlist ? "已收藏" : "加入最愛")</span>
@@ -198,7 +202,8 @@
                     @if (Model.HasDescriptionImage)
                     {
                         <div class="description-image-container">
-                            <img src="@Model.DescriptionImageUrl" alt="@Model.Title 商品介紹" class="description-image" />
+                            <!-- 商品介紹圖片，使用延遲載入 -->
+                            <img src="@Model.DescriptionImageUrl" alt="@Model.Title 商品介紹" class="description-image" loading="lazy" />
                         </div>
                     }
 
@@ -309,7 +314,8 @@
 
                                 @if (card.HasCoverImage)
                                 {
-                                    <img src="@card.CoverImageUrl" class="product-image" alt="@card.Title">
+                                    <!-- 相關商品圖片，使用延遲載入 -->
+                                    <img src="@card.CoverImageUrl" class="product-image" alt="@card.Title 專輯封面" loading="lazy">
                                 }
                                 else
                                 {
@@ -369,5 +375,26 @@
         // 將商品圖片傳遞給 JavaScript
         const imageUrls = @Html.Raw(Json.Serialize(Model.ImageUrls));
         const maxStock = @Model.Stock;
+    </script>
+
+    <!-- Schema.org 結構化資料（SEO 商品資訊） -->
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "Product",
+        "name": "@Model.Title",
+        "description": "@(Model.Description?.Replace("\"", "\\\"") ?? "")",
+        "image": "@(Model.FirstImageUrl ?? "")",
+        "brand": {
+            "@@type": "Brand",
+            "name": "@(Model.ArtistName ?? "")"
+        },
+        "offers": {
+            "@@type": "Offer",
+            "price": "@Model.Price",
+            "priceCurrency": "TWD",
+            "availability": "@(Model.IsInStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock")"
+        }
+    }
     </script>
 }

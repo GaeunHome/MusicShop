@@ -1,0 +1,123 @@
+@*
+    分頁元件（Pagination Partial View）
+    透過 ViewBag 接收分頁資訊：CurrentPage, TotalPages, HasPreviousPage, HasNextPage
+    自動保留目前所有 QueryString 參數（搜尋、篩選、排序等）
+*@
+@{
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var hasPreviousPage = (bool)(ViewBag.HasPreviousPage ?? false);
+    var hasNextPage = (bool)(ViewBag.HasNextPage ?? false);
+
+    // 取得目前所有 QueryString 參數（用於保留篩選條件）
+    var queryParams = Context.Request.Query
+        .Where(q => q.Key != "page")
+        .ToDictionary(q => q.Key, q => q.Value.ToString());
+
+    // 建立帶有分頁參數的 URL
+    string BuildPageUrl(int page)
+    {
+        var allParams = new Dictionary<string, string>(queryParams)
+        {
+            ["page"] = page.ToString()
+        };
+        var queryString = string.Join("&", allParams.Select(kv =>
+            $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value)}"));
+        return $"{Context.Request.Path}?{queryString}";
+    }
+
+    // 計算要顯示的頁碼範圍（最多顯示 5 個頁碼按鈕）
+    const int maxVisiblePages = 5;
+    int startPage = Math.Max(1, currentPage - maxVisiblePages / 2);
+    int endPage = Math.Min(totalPages, startPage + maxVisiblePages - 1);
+
+    // 確保顯示足夠的頁碼數（往前補足）
+    if (endPage - startPage + 1 < maxVisiblePages && startPage > 1)
+    {
+        startPage = Math.Max(1, endPage - maxVisiblePages + 1);
+    }
+}
+
+@if (totalPages > 1)
+{
+    <nav aria-label="分頁導覽" class="mt-4 mb-3">
+        <ul class="pagination justify-content-center pagination-custom">
+            @* 上一頁按鈕 *@
+            <li class="page-item @(!hasPreviousPage ? "disabled" : "")">
+                <a class="page-link" href="@(hasPreviousPage ? BuildPageUrl(currentPage - 1) : "#")"
+                   aria-label="上一頁" tabindex="@(!hasPreviousPage ? "-1" : null)">
+                    <span aria-hidden="true">&laquo;</span>
+                    <span class="d-none d-sm-inline ms-1">上一頁</span>
+                </a>
+            </li>
+
+            @* 第一頁 + 省略號 *@
+            @if (startPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@BuildPageUrl(1)">1</a>
+                </li>
+                @if (startPage > 2)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">&hellip;</span>
+                    </li>
+                }
+            }
+
+            @* 頁碼按鈕 *@
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                <li class="page-item @(i == currentPage ? "active" : "")">
+                    <a class="page-link" href="@BuildPageUrl(i)">@i</a>
+                </li>
+            }
+
+            @* 省略號 + 最後一頁 *@
+            @if (endPage < totalPages)
+            {
+                @if (endPage < totalPages - 1)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">&hellip;</span>
+                    </li>
+                }
+                <li class="page-item">
+                    <a class="page-link" href="@BuildPageUrl(totalPages)">@totalPages</a>
+                </li>
+            }
+
+            @* 下一頁按鈕 *@
+            <li class="page-item @(!hasNextPage ? "disabled" : "")">
+                <a class="page-link" href="@(hasNextPage ? BuildPageUrl(currentPage + 1) : "#")"
+                   aria-label="下一頁" tabindex="@(!hasNextPage ? "-1" : null)">
+                    <span class="d-none d-sm-inline me-1">下一頁</span>
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+}
+
+@* 分頁元件樣式（使用專案主題色 #b19cd9） *@
+<style>
+    .pagination-custom .page-link {
+        color: #7c6ba0;
+        border-color: #e0d6f0;
+        transition: all 0.2s ease;
+    }
+    .pagination-custom .page-link:hover {
+        color: #fff;
+        background-color: #b19cd9;
+        border-color: #b19cd9;
+    }
+    .pagination-custom .page-item.active .page-link {
+        color: #fff;
+        background-color: #b19cd9;
+        border-color: #b19cd9;
+    }
+    .pagination-custom .page-item.disabled .page-link {
+        color: #ccc;
+        border-color: #e0d6f0;
+    }
+</style>

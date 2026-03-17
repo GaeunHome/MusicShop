@@ -37,12 +37,15 @@
                     @if (banner.HasLinkedAlbum)
                     {
                         <a asp-controller="Album" asp-action="Detail" asp-route-id="@banner.AlbumId">
-                            <img src="@banner.ImageUrl" class="d-block w-100" alt="幻燈片 @(i + 1)">
+                            @* 第一張幻燈片為首屏內容，不加延遲載入；其餘使用 lazy loading *@
+                            <img src="@banner.ImageUrl" class="d-block w-100" alt="幻燈片 @(i + 1)"
+                                 @(i > 0 ? "loading=lazy" : "")>
                         </a>
                     }
                     else
                     {
-                        <img src="@banner.ImageUrl" class="d-block w-100" alt="幻燈片 @(i + 1)">
+                        <img src="@banner.ImageUrl" class="d-block w-100" alt="幻燈片 @(i + 1)"
+                             @(i > 0 ? "loading=lazy" : "")>
                     }
                 </div>
             }

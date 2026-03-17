@@ -1,0 +1,271 @@
+/* ============================================================
+   訂單狀態時間軸元件 (Order Status Timeline Component)
+   用於訂單詳情頁面，以視覺化方式呈現訂單進度
+   ============================================================ */
+
+/* 時間軸容器 */
+.order-timeline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    position: relative;
+    padding: 1.5rem 1rem;
+}
+
+/* 時間軸連線（水平） */
+.order-timeline::before {
+    content: "";
+    position: absolute;
+    top: 2.75rem;
+    left: calc(12.5% + 1rem);
+    right: calc(12.5% + 1rem);
+    height: 3px;
+    background-color: #e0e0e0;
+    z-index: 0;
+}
+
+/* 時間軸進度條（已完成的連線） */
+.order-timeline .timeline-progress {
+    position: absolute;
+    top: 2.75rem;
+    left: calc(12.5% + 1rem);
+    height: 3px;
+    background-color: #b19cd9;
+    z-index: 1;
+    transition: width 0.6s ease;
+}
+
+/* 單一步驟 */
+.timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    min-width: 0;
+}
+
+/* 步驟圖示圓圈 */
+.timeline-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    border: 3px solid #e0e0e0;
+    background-color: #fff;
+    color: #aaa;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+/* 步驟標籤 */
+.timeline-label {
+    margin-top: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #aaa;
+    text-align: center;
+    transition: color 0.3s ease;
+}
+
+/* 步驟說明文字 */
+.timeline-desc {
+    font-size: 0.7rem;
+    color: #bbb;
+    text-align: center;
+    margin-top: 0.2rem;
+}
+
+/* ============================================================
+   狀態樣式：已完成步驟
+   ============================================================ */
+.timeline-step.completed .timeline-icon {
+    background-color: #b19cd9;
+    border-color: #b19cd9;
+    color: #fff;
+}
+
+.timeline-step.completed .timeline-label {
+    color: #7a6ba0;
+    font-weight: 600;
+}
+
+.timeline-step.completed .timeline-desc {
+    color: #9a8cbf;
+}
+
+/* ============================================================
+   狀態樣式：當前步驟（含脈動動畫）
+   ============================================================ */
+.timeline-step.current .timeline-icon {
+    background-color: #fff;
+    border-color: #b19cd9;
+    color: #b19cd9;
+    box-shadow: 0 0 0 0 rgba(177, 156, 217, 0.5);
+    animation: timeline-pulse 2s ease-in-out infinite;
+}
+
+.timeline-step.current .timeline-label {
+    color: #7a6ba0;
+    font-weight: 700;
+}
+
+.timeline-step.current .timeline-desc {
+    color: #7a6ba0;
+}
+
+/* ============================================================
+   狀態樣式：未來步驟（灰色）
+   ============================================================ */
+.timeline-step.future .timeline-icon {
+    background-color: #f8f8f8;
+    border-color: #e0e0e0;
+    color: #ccc;
+}
+
+.timeline-step.future .timeline-label {
+    color: #bbb;
+}
+
+/* ============================================================
+   狀態樣式：已取消步驟（紅色 X）
+   ============================================================ */
+.timeline-step.cancelled .timeline-icon {
+    background-color: #fff;
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.timeline-step.cancelled .timeline-label {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.timeline-step.cancelled .timeline-desc {
+    color: #e57383;
+}
+
+/* 取消時的進度條樣式 */
+.order-timeline.is-cancelled .timeline-progress {
+    background-color: #dc3545;
+}
+
+.order-timeline.is-cancelled .timeline-step.completed .timeline-icon {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.order-timeline.is-cancelled .timeline-step.completed .timeline-label {
+    color: #a02533;
+}
+
+/* ============================================================
+   脈動動畫
+   ============================================================ */
+@keyframes timeline-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(177, 156, 217, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(177, 156, 217, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(177, 156, 217, 0);
+    }
+}
+
+/* ============================================================
+   時間軸卡片包裝
+   ============================================================ */
+.order-timeline-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+.order-timeline-card .card-body {
+    padding: 0.5rem 0;
+}
+
+/* ============================================================
+   響應式設計：行動裝置改為垂直時間軸
+   ============================================================ */
+@media (max-width: 575.98px) {
+    /* 垂直排列 */
+    .order-timeline {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1rem 0.5rem 1rem 2rem;
+    }
+
+    /* 垂直連線 */
+    .order-timeline::before {
+        top: 2rem;
+        bottom: 2rem;
+        left: 2.05rem;
+        right: auto;
+        width: 3px;
+        height: auto;
+    }
+
+    /* 垂直進度條 */
+    .order-timeline .timeline-progress {
+        top: 2rem;
+        left: 2.05rem;
+        width: 3px !important;
+        height: auto;
+    }
+
+    /* 步驟水平排列 */
+    .timeline-step {
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        padding: 0.6rem 0;
+    }
+
+    /* 圓圈縮小 */
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        font-size: 1rem;
+    }
+
+    /* 標籤靠左 */
+    .timeline-label {
+        margin-top: 0;
+        margin-left: 1rem;
+        text-align: left;
+        font-size: 0.85rem;
+    }
+
+    /* 說明文字隱藏（行動裝置空間有限） */
+    .timeline-desc {
+        display: none;
+    }
+}
+
+/* ============================================================
+   平板裝置微調
+   ============================================================ */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .timeline-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+    }
+
+    .timeline-label {
+        font-size: 0.75rem;
+    }
+
+    .timeline-desc {
+        font-size: 0.65rem;
+    }
+}

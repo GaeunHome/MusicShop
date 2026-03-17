@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MusicShop.Data;
 using MusicShop.Data.Entities;
 using MusicShop.Data.Repositories.Interfaces;
+using MusicShop.Library.Enums;
 
 namespace MusicShop.Data.Repositories.Implementation;
 
@@ -42,11 +43,9 @@ public class StatisticsRepository : IStatisticsRepository
 
     public async Task<decimal> GetTotalSalesAsync()
     {
-        var completedOrders = await _context.Orders
+        return await _context.Orders
             .Where(o => o.Status == OrderStatus.Completed || o.Status == OrderStatus.Paid)
-            .ToListAsync();
-
-        return completedOrders.Sum(o => o.TotalAmount);
+            .SumAsync(o => o.TotalAmount);
     }
 
     public async Task<int> GetPendingOrderCountAsync()

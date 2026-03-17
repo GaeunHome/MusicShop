@@ -1,4 +1,4 @@
-using MusicShop.Library.Extensions;
+using MusicShop.Library.Helpers;
 
 namespace MusicShop.Service.ViewModels.Album;
 

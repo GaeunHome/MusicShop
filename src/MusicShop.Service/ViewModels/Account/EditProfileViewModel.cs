@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using MusicShop.Data.Entities;
+using MusicShop.Library.Enums;
 
 namespace MusicShop.Service.ViewModels.Account;
 
@@ -33,4 +33,8 @@ public class EditProfileViewModel
 
     [Display(Name = "註冊日期")]
     public DateTime RegisteredAt { get; set; }
+
+    // View 層 helper 屬性
+    public bool IsMale => Gender == Library.Enums.Gender.Male;
+    public bool IsFemale => Gender == Library.Enums.Gender.Female;
 }
