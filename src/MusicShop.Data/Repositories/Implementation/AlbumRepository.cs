@@ -147,16 +147,37 @@ namespace MusicShop.Data.Repositories.Implementation
             }
 
             // 排序邏輯
-            query = sortBy switch
+            if (sortBy == "weekly-hot")
             {
-                "price-high-low" => query.OrderByDescending(album => album.Price),
-                "price-low-high" => query.OrderBy(album => album.Price),
-                "date-old-new" => query.OrderBy(album => album.CreatedAt),
-                "date-new-old" => query.OrderByDescending(album => album.CreatedAt),
-                // TODO: 「本週熱門」目前以 Id 倒序替代，待實作 OrderItem 銷售量統計後改用實際銷量排序
-                "weekly-hot" => query.OrderByDescending(album => album.Id),
-                _ => query.OrderByDescending(album => album.CreatedAt) // 預設：最新上架
-            };
+                // 本週熱賣：依本週（過去 7 天）內未取消訂單的銷售數量降序排列，
+                // 無銷量的專輯排在最後，再依建立時間降序作為次要排序
+                var oneWeekAgo = DateTime.UtcNow.AddDays(-7);
+
+                query = query
+                    .GroupJoin(
+                        _context.OrderItems
+                            .Where(oi => oi.Order != null
+                                && oi.Order.OrderDate >= oneWeekAgo
+                                && oi.Order.Status != Library.Enums.OrderStatus.Cancelled),
+                        album => album.Id,
+                        oi => oi.AlbumId,
+                        (album, orderItems) => new { Album = album, WeeklySales = orderItems.Sum(oi => oi.Quantity) })
+                    .Where(x => x.WeeklySales > 0)
+                    .OrderByDescending(x => x.WeeklySales)
+                    .ThenByDescending(x => x.Album.CreatedAt)
+                    .Select(x => x.Album);
+            }
+            else
+            {
+                query = sortBy switch
+                {
+                    "price-high-low" => query.OrderByDescending(album => album.Price),
+                    "price-low-high" => query.OrderBy(album => album.Price),
+                    "date-old-new" => query.OrderBy(album => album.CreatedAt),
+                    "date-new-old" => query.OrderByDescending(album => album.CreatedAt),
+                    _ => query.OrderByDescending(album => album.CreatedAt) // 預設：最新上架
+                };
+            }
 
             return query;
         }

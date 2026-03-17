@@ -25,6 +25,8 @@ namespace MusicShop.Data.Repositories.Interfaces
         /// <summary>
         /// 加入商品到購物車
         /// </summary>
+        // Entity 的 CartItem.cs 定義了 CartItem 類別
+        // 這裡的 AddToCartAsync 方法簽名應該接受一個 CartItem 物件，並回傳新增後的 CartItem
         Task<CartItem> AddToCartAsync(CartItem cartItem);
 
         /// <summary>

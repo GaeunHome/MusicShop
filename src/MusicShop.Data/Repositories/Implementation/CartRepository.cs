@@ -24,15 +24,15 @@ namespace MusicShop.Data.Repositories.Implementation
         public async Task<IEnumerable<CartItem>> GetCartItemsByUserIdAsync(string userId)
         {
             return await _context.CartItems
-                .AsNoTracking()
-                .Include(item => item.Album)
-                    .ThenInclude(album => album!.Artist)
-                        .ThenInclude(artist => artist!.ArtistCategory)
+                .AsNoTracking()    // 讀取操作使用 AsNoTracking 提升效能，因為不需要追蹤實體狀態
+                .Include(item => item.Album) // 包含專輯資訊
+                    .ThenInclude(album => album!.Artist) // 包含專輯的藝人資訊
+                        .ThenInclude(artist => artist!.ArtistCategory) // 包含藝人分類資訊
                 .Include(item => item.Album)
                     .ThenInclude(album => album!.ProductType)
                 .Where(item => item.UserId == userId)
-                .OrderByDescending(item => item.AddedAt)
-                .ToListAsync();
+                .OrderByDescending(item => item.AddedAt) // 預設按照加入購物車的時間倒序排列，最新加入的項目顯示在最前面
+                .ToListAsync(); // 執行查詢並返回結果
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace MusicShop.Data.Repositories.Implementation
             return await _context.CartItems
                 .FirstOrDefaultAsync(item => item.UserId == userId && item.AlbumId == albumId);
         }
-
+        // 看 Entity 的 CartItemRepository 介面定義，新增方法簽名
         public async Task<CartItem> AddToCartAsync(CartItem cartItem)
         {
             await _context.CartItems.AddAsync(cartItem);

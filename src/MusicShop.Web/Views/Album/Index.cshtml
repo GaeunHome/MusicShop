@@ -167,12 +167,21 @@
                 <div class="d-flex gap-2 align-items-center flex-wrap">
                     <!-- 排序下拉選單 -->
                     <div class="dropdown">
-                        <button class="btn btn-sort dropdown-toggle @(string.IsNullOrEmpty(currentSortBy) ? "active" : "")"
+                        @{
+                            var sortLabel = currentSortBy switch
+                            {
+                                "date-new-old" => "最新上架",
+                                "date-old-new" => "最舊上架",
+                                "weekly-hot" => "本週熱賣",
+                                _ => "預設排序"
+                            };
+                        }
+                        <button class="btn btn-sort dropdown-toggle @(string.IsNullOrEmpty(currentSortBy) || currentSortBy == "date-new-old" || currentSortBy == "date-old-new" || currentSortBy == "weekly-hot" ? "active" : "")"
                                 type="button"
                                 id="sortDropdown"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false">
-                            預設排序
+                            @sortLabel
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="sortDropdown">
                             <li><a class="dropdown-item @(string.IsNullOrEmpty(currentSortBy) ? "active" : "")"
@@ -197,12 +206,20 @@
 
                     <!-- 價格排序下拉選單 -->
                     <div class="dropdown">
+                        @{
+                            var priceLabel = currentSortBy switch
+                            {
+                                "price-low-high" => "價格由低到高",
+                                "price-high-low" => "價格由高到低",
+                                _ => "價格"
+                            };
+                        }
                         <button class="btn btn-sort dropdown-toggle @(currentSortBy?.Contains("price") == true ? "active" : "")"
                                 type="button"
                                 id="priceDropdown"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false">
-                            價格
+                            @priceLabel
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="priceDropdown">
                             <li><a class="dropdown-item @(currentSortBy == "price-low-high" ? "active" : "")"

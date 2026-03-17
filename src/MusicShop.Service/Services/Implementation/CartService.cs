@@ -36,14 +36,18 @@ namespace MusicShop.Service.Services.Implementation
 
             return _mapper.Map<List<CartItemViewModel>>(cartItems);
         }
-
+        // async 標記在方法上，表示「這個方法裡面有 await」
         public async Task<CartItem> AddToCartAsync(string userId, int albumId, int quantity = 1)
         {
             // 驗證參數
+            // 一開始就驗證參數，不合法就直接拋出例外，避免進入後續邏輯造成不必要的資料庫查詢和運算
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
             ValidationHelper.ValidatePositive(quantity, "數量", nameof(quantity));
 
             // 檢查目標專輯是否存在
+            // 如果直接注入，一個 Service 可能需要注入 5 個 Repository，構造函數超長
+            // UnitOfWork 提供統一入口
+            // 所有 Repository 共用同一個 DbContext，SaveChangesAsync() 才能一次提交所有變更
             var targetAlbum = await _unitOfWork.Albums.GetAlbumByIdAsync(albumId);
             ValidationHelper.ValidateEntityExists(targetAlbum, "專輯", albumId);
 
@@ -72,6 +76,7 @@ namespace MusicShop.Service.Services.Implementation
 
                 existingCartItem.Quantity = newQuantity;
                 await _unitOfWork.Cart.UpdateCartItemAsync(existingCartItem);
+                // 統一由 Service 層呼叫 SaveChangesAsync() 決定什麼時候存
                 await _unitOfWork.SaveChangesAsync();
                 return existingCartItem;
             }
@@ -87,6 +92,7 @@ namespace MusicShop.Service.Services.Implementation
                 };
 
                 var added = await _unitOfWork.Cart.AddToCartAsync(cartItem);
+                // 統一由 Service 層呼叫 SaveChangesAsync() 決定什麼時候存
                 await _unitOfWork.SaveChangesAsync();
                 return added;
             }

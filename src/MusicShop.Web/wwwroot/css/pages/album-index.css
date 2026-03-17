@@ -338,7 +338,8 @@
 
 /* 隱藏/顯示視圖 */
 .grid-view {
-    display: block;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .list-view {
