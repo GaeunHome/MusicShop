@@ -66,7 +66,7 @@ function updateMainImage() {
  */
 function decreaseQuantity() {
     const quantityInput = document.getElementById('quantity');
-    const hiddenInput = document.getElementById('quantityInput');
+    const hiddenInput = document.getElementById('detailQuantityInput');
 
     let currentValue = parseInt(quantityInput.value);
     if (currentValue > 1) {
@@ -83,7 +83,7 @@ function decreaseQuantity() {
  */
 function increaseQuantity() {
     const quantityInput = document.getElementById('quantity');
-    const hiddenInput = document.getElementById('quantityInput');
+    const hiddenInput = document.getElementById('detailQuantityInput');
 
     let currentValue = parseInt(quantityInput.value);
     if (currentValue < maxStock) {
@@ -100,7 +100,7 @@ function increaseQuantity() {
  */
 function validateQuantityInput() {
     const quantityInput = document.getElementById('quantity');
-    const hiddenInput = document.getElementById('quantityInput');
+    const hiddenInput = document.getElementById('detailQuantityInput');
 
     let value = parseInt(quantityInput.value);
 
@@ -154,24 +154,5 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 加入最愛按鈕（目前只是樣式，未來可以實作）
-    const wishlistBtn = document.querySelector('.btn-wishlist');
-    if (wishlistBtn) {
-        wishlistBtn.addEventListener('click', function () {
-            this.classList.toggle('active');
-            const icon = this.querySelector('i');
-            if (this.classList.contains('active')) {
-                icon.classList.remove('bi-heart');
-                icon.classList.add('bi-heart-fill');
-                // TODO: 實作加入最愛功能
-                console.log('已加入最愛');
-            } else {
-                icon.classList.remove('bi-heart-fill');
-                icon.classList.add('bi-heart');
-                // TODO: 實作移除最愛功能
-                console.log('已移除最愛');
-            }
-        });
-    }
 });
 

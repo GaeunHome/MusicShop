@@ -13,8 +13,9 @@ namespace MusicShop.Controllers;
 /// 購物車控制器 - 展示層
 /// 使用三層式架構：Controller → Service → Repository
 /// </summary>
+// [Authorize] 屬性確保只有登入使用者才能存取購物車相關功能
 [Authorize]
-public class CartController : BaseController
+public class CartController : BaseController // 繼承自 BaseController，提供共用的 GetAuthorizedUserId 方法
 {
     private readonly ICartService _cartService;
     private readonly IOrderService _orderService;
@@ -43,30 +44,6 @@ public class CartController : BaseController
 
         ViewBag.Total = total;
         return View(cartItems);
-    }
-
-    // POST: /Cart/Add
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Add(int albumId, int quantity = 1)
-    {
-        var userId = GetAuthorizedUserId();
-
-        try
-        {
-            await _cartService.AddToCartAsync(userId, albumId, quantity);
-            TempData[TempDataKeys.Success] = "已加入購物車！";
-        }
-        catch (InvalidOperationException ex)
-        {
-            TempData[TempDataKeys.Error] = ex.Message;
-        }
-        catch (ArgumentException ex)
-        {
-            TempData[TempDataKeys.Error] = ex.Message;
-        }
-
-        return RedirectToAction("Index");
     }
 
     // POST: /Cart/UpdateQuantity

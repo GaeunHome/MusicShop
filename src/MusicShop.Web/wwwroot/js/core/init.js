@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const page = document.body.dataset.page;
 
     if (!page) {
-        console.warn('未設定 data-page 屬性，部分功能可能無法正常運作');
         return;
     }
 
@@ -33,10 +32,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             break;
 
-        // 後台管理 - 專輯
+        // 後台管理 - 專輯（AlbumAdmin 沒有 init()，列表頁用 initList()）
         case 'admin-albums':
             if (typeof AdminAlbum !== 'undefined') {
-                AdminAlbum.init();
+                AdminAlbum.initList();
+            }
+            break;
+
+        // 後台管理 - 藝人（ArtistAdmin 沒有 init()，列表頁用 initList()）
+        case 'admin-artists':
+            if (typeof ArtistAdmin !== 'undefined') {
+                ArtistAdmin.initList();
             }
             break;
 
@@ -53,11 +59,5 @@ document.addEventListener('DOMContentLoaded', function () {
                 AdminUser.init();
             }
             break;
-
-        default:
-            // 其他頁面，僅執行通用功能
-            console.log(`頁面 "${page}" 沒有專屬模組`);
     }
-
-    console.log(`MusicShop 初始化完成 - 頁面: ${page}`);
 });

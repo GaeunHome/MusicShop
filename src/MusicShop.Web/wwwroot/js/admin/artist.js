@@ -7,7 +7,6 @@ const ArtistAdmin = {
      * 初始化（列表頁面）
      */
     initList: function() {
-        console.log('藝人列表頁面已初始化');
         // 未來可加入：搜尋、排序、篩選等功能
     },
 
@@ -15,7 +14,6 @@ const ArtistAdmin = {
      * 初始化新增頁面
      */
     initCreate: function() {
-        console.log('藝人新增頁面已初始化');
         this.initFormValidation();
     },
 
@@ -23,7 +21,6 @@ const ArtistAdmin = {
      * 初始化編輯頁面
      */
     initEdit: function() {
-        console.log('藝人編輯頁面已初始化');
         this.initFormValidation();
     },
 

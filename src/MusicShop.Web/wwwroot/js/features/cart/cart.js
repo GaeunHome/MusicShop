@@ -123,26 +123,8 @@ const Cart = {
             finalTotalDisplay.textContent = data.cartTotal;
         }
 
-        // 4. 更新購物車徽章數量（header 的購物車圖示）
-        this.updateCartBadge(data.cartItemCount);
-    },
-
-    /**
-     * 更新購物車徽章數量
-     * @param {number} count - 商品總數量
-     */
-    updateCartBadge(count) {
-        const badge = document.querySelector('.cart-badge');
-        if (badge) {
-            badge.textContent = count;
-
-            // 如果數量為 0，可以隱藏徽章
-            if (count === 0) {
-                badge.style.display = 'none';
-            } else {
-                badge.style.display = 'inline';
-            }
-        }
+        // 4. 更新購物車徽章數量（使用全域 cart-badge.js 的 updateCartBadge）
+        updateCartBadge(data.cartItemCount);
     },
 
     /**

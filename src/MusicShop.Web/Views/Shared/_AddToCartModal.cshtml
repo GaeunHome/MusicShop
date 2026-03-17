@@ -45,10 +45,10 @@
                         </div>
 
                         <!-- 加入購物車按鈕 -->
-                        <form asp-controller="Cart" asp-action="Add" method="post" id="addToCartForm">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="albumId" id="modalAlbumId">
-                            <input type="hidden" name="quantity" id="modalQuantityInput" value="1">
+                        <!-- 表單由 add-modal.js 攔截 submit 事件，透過 AJAX 呼叫 API -->
+                        <form id="addToCartForm">
+                            <input type="hidden" id="modalAlbumId">
+                            <input type="hidden" id="modalQuantityInput" value="1">
                             <button type="submit" class="btn btn-purple btn-lg w-100 mb-3">
                                 加入購物車
                             </button>

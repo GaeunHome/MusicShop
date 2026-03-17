@@ -49,9 +49,9 @@
 | | 關鍵字搜尋 | ✅ | 標題、演出者 |
 | | 排序功能 | ✅ | 預設/最新/價格（升/降） |
 | | 分頁瀏覽 | ✅ | 伺服器端分頁（v1.6.1） |
-| **購物車** | 加入商品 | ✅ | Ajax + Modal 彈窗 |
+| **購物車** | 加入商品 | ✅ | API Controller + AJAX（不跳轉）（v1.6.3） |
 | | 數量管理 | ✅ | 含庫存驗證 |
-| | 購物車徽章 | ✅ | View Component 即時更新 |
+| | 購物車徽章 | ✅ | API 即時更新 + 彈跳動畫（v1.6.3） |
 | **訂單系統** | 建立訂單 | ✅ | 資料庫交易保護 |
 | | 庫存扣除 | ✅ | 樂觀並發控制 |
 | | 訂單追蹤 | ✅ | 5 種狀態（待處理→已完成） |
@@ -191,7 +191,8 @@ MusicShop/
 │   │
 │   └── MusicShop.Web/                   # 展示層
 │       ├── Controllers/                 # MVC 控制器
-│       │   └── Admin/                   # 後台管理 partial class 控制器
+│       │   ├── Admin/                   # 後台管理 partial class 控制器
+│       │   └── Api/                     # RESTful API 控制器
 │       ├── Infrastructure/              # Web 基礎設施（圖片服務、ViewComponent、中間件、設定模型、常數）
 │       ├── Views/
 │       │   ├── Admin/                   # 後台管理 Views
@@ -243,6 +244,22 @@ MusicShop/
 ---
 
 ## 版本歷史
+
+### v1.6.3 (2026-03-17) - 購物車 API 化、前端程式碼審查與清理
+
+- 新增 `CartApiController`（RESTful API）：`POST /api/cart/add`、`GET /api/cart/count`
+- 加入購物車改為 AJAX（不再整頁跳轉），購物車 Badge 即時更新 + 彈跳動畫
+- `AjaxHelper` 新增 `postJson()` 方法支援 JSON API 呼叫
+- 全面前端程式碼審查與清理：
+  - 修復 `detail.js` 引用錯誤 DOM ID 的 Bug（數量 +/- 按鈕未同步 AJAX 提交值）
+  - 修復 `init.js` 呼叫不存在的 `.init()` 方法（改為正確的 `.initList()`）
+  - 修復 `admin/artist.js` 從未載入也未初始化的問題
+  - 刪除 `detail.js` 中被 `wishlist.js` 取代的死代碼
+  - 刪除 `common.js` 中從未觸發的 `bindLogoutHandler`
+  - 刪除未被引用的 `_SkeletonCard.cshtml` 局部視圖
+  - 移除 `Admin/Album/Create.cshtml` 與 `Edit.cshtml` 重複載入的 `admin/album.js`
+  - 移除 `Album/Index.cshtml` 與 `init.js` 重複的初始化呼叫
+  - 清除 `carousel.js`、`admin/album.js`、`admin/artist.js`、`init.js` 中的除錯 `console.log`
 
 ### v1.6.2 (2026-03-17) - 藝人管理強化與 Bug 修復
 

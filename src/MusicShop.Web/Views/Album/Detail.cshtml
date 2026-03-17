@@ -123,9 +123,9 @@
                     {
                         @if (User.Identity!.IsAuthenticated)
                         {
-                            <form asp-controller="Cart" asp-action="Add" method="post" class="d-inline-block w-100">
-                                <input type="hidden" name="albumId" value="@Model.Id" />
-                                <input type="hidden" id="quantityInput" name="quantity" value="@Model.DefaultQuantity" />
+                            <form id="detailAddToCartForm" class="d-inline-block w-100">
+                                <input type="hidden" id="detailAlbumId" value="@Model.Id" />
+                                <input type="hidden" id="detailQuantityInput" value="@Model.DefaultQuantity" />
 
                                 <button type="submit" class="btn btn-primary btn-lg w-100">
                                     加入購物車
@@ -370,6 +370,7 @@
 
 @section Scripts {
     <script src="~/js/features/album/detail.js" asp-append-version="true"></script>
+    <script src="~/js/features/cart/add-detail.js" asp-append-version="true"></script>
     <script src="~/js/features/wishlist/wishlist.js" asp-append-version="true"></script>
     <script>
         // 將商品圖片傳遞給 JavaScript

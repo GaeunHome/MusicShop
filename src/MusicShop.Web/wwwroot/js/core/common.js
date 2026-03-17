@@ -6,7 +6,6 @@ const Common = {
      * 初始化通用功能
      */
     init() {
-        this.bindLogoutHandler();
         this.bindGenericDeleteHandlers();
         this.bindGenericConfirmHandlers();
         this.bindAuthGuard();
@@ -23,28 +22,6 @@ const Common = {
             e.preventDefault();
             e.stopPropagation();
             showLoginRequired();
-        });
-    },
-
-    /**
-     * 綁定登出按鈕處理
-     */
-    bindLogoutHandler() {
-        const logoutBtn = document.querySelector('[data-action="logout"]');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.handleLogout();
-            });
-        }
-    },
-
-    /**
-     * 處理登出確認
-     */
-    handleLogout() {
-        showLogoutConfirm(() => {
-            document.getElementById('logoutForm').submit();
         });
     },
 

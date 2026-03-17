@@ -16,7 +16,6 @@ const AlbumAdmin = {
      * 初始化列表頁面
      */
     initList: function() {
-        console.log('專輯列表頁面已初始化');
         this.bindDeleteHandlers();
     },
 
@@ -24,7 +23,6 @@ const AlbumAdmin = {
      * 初始化新增頁面
      */
     initCreate: function() {
-        console.log('專輯新增頁面已初始化');
         this.initArtistCascade();
         this.initProductTypeCascade();
     },
@@ -37,7 +35,6 @@ const AlbumAdmin = {
      * @param {number} selectedProductTypeId - 已選擇的商品類型 ID
      */
     initEdit: function(selectedArtistCategoryId, selectedArtistId, selectedParentCategoryId, selectedProductTypeId) {
-        console.log('專輯編輯頁面已初始化');
 
         // 初始化藝人級聯選擇
         this.initArtistCascade();

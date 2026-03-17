@@ -64,6 +64,48 @@ const AjaxHelper = {
     },
 
     /**
+     * 發送 JSON POST 請求（供 API Controller 使用）
+     * 與 post() 的差異：Content-Type 為 application/json，不需要 CSRF Token
+     * @param {string} url - 請求 URL
+     * @param {object} data - 請求資料（會轉換為 JSON 格式）
+     * @param {object} options - 額外選項
+     */
+    async postJson(url, data = {}, options = {}) {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (options.onSuccess && typeof options.onSuccess === 'function') {
+                options.onSuccess(result);
+            }
+
+            return result;
+        } catch (error) {
+            console.error('AJAX 錯誤:', error);
+
+            if (options.onError && typeof options.onError === 'function') {
+                options.onError(error);
+            } else {
+                this.handleDefaultError(error);
+            }
+
+            return { success: false, message: error.message };
+        } finally {
+            if (options.onComplete && typeof options.onComplete === 'function') {
+                options.onComplete();
+            }
+        }
+    },
+
+    /**
      * 發送 GET 請求
      * @param {string} url - 請求 URL
      * @param {object} params - 查詢參數
