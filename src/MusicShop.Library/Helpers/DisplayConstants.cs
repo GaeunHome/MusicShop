@@ -24,4 +24,14 @@ public static class DisplayConstants
     /// 「最近訂單」預設顯示筆數
     /// </summary>
     public const int RecentOrdersDefaultCount = 5;
+
+    /// <summary>
+    /// 前台商品列表每頁顯示筆數
+    /// </summary>
+    public const int AlbumPageSize = 12;
+
+    /// <summary>
+    /// 後台藝人列表每頁顯示筆數
+    /// </summary>
+    public const int AdminArtistPageSize = 10;
 }

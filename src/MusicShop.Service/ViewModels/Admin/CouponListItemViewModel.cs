@@ -25,6 +25,6 @@ public class CouponListItemViewModel
     public string DiscountText => DiscountType == DiscountType.FixedAmount
         ? $"折 NT$ {DiscountValue:N0}"
         : MaxDiscountAmount.HasValue
-            ? $"打 {100 - DiscountValue} 折（上限 NT$ {MaxDiscountAmount:N0}）"
-            : $"打 {100 - DiscountValue} 折";
+            ? $"打 {(100 - DiscountValue) / 10m:G} 折（上限 NT$ {MaxDiscountAmount:N0}）"
+            : $"打 {(100 - DiscountValue) / 10m:G} 折";
 }

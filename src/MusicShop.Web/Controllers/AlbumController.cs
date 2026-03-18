@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using MusicShop.Library.Helpers;
 using MusicShop.Service.Services.Interfaces;
+using MusicShop.Service.ViewModels.Album;
 
 namespace MusicShop.Controllers;
 
@@ -29,10 +31,7 @@ public class AlbumController : BaseController
         _wishlistService = wishlistService;
     }
 
-    /// <summary>
-    /// 每頁顯示的商品數量
-    /// </summary>
-    private const int PageSize = 12;
+    private const int PageSize = DisplayConstants.AlbumPageSize;
 
     // GET: /Album
     public async Task<IActionResult> Index(
@@ -44,51 +43,49 @@ public class AlbumController : BaseController
         string? sortBy,
         int page = 1)
     {
-        // 確保頁碼至少為 1
         if (page < 1) page = 1;
 
-        // 從服務層取得分頁專輯 ViewModel（支援多重篩選與排序）
         var pagedResult = await _albumService.GetAlbumCardViewModelsPagedAsync(
             page, PageSize, search, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy);
 
-        // 從服務層取得分類清單 ViewModel（不包含 Entity）
-        var artistCategories = await _artistCategoryService.GetArtistCategorySelectItemsAsync();
-        var childCategories = await _productTypeService.GetChildCategorySelectItemsAsync();
-
-        // 使用 ViewModel 方法取得名稱，避免直接接觸 Entity
-        if (parentProductTypeId.HasValue)
-        {
-            ViewBag.ParentCategoryName = await _productTypeService.GetProductTypeNameByIdAsync(parentProductTypeId.Value);
-        }
-
-        // 使用 ViewModel 方法取得藝人名稱，避免直接接觸 Entity
-        if (artistId.HasValue)
-        {
-            ViewBag.SelectedArtistName = await _artistService.GetArtistNameByIdAsync(artistId.Value);
-        }
-
-        // 傳遞資料給 View
         var userId = GetCurrentUserId();
-        ViewBag.WishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId ?? string.Empty);
 
-        ViewBag.Search = search;
-        ViewBag.ArtistCategoryId = artistCategoryId;
-        ViewBag.ArtistId = artistId;
-        ViewBag.ProductTypeId = productTypeId;
-        ViewBag.ParentProductTypeId = parentProductTypeId;
-        ViewBag.SortBy = sortBy;
-        ViewBag.ArtistCategories = artistCategories;
-        ViewBag.ChildCategories = childCategories;
+        var viewModel = new AlbumIndexViewModel
+        {
+            PagedResult = pagedResult,
+            Search = search,
+            ArtistCategoryId = artistCategoryId,
+            ArtistId = artistId,
+            ProductTypeId = productTypeId,
+            ParentProductTypeId = parentProductTypeId,
+            SortBy = sortBy,
+            ArtistCategories = await _artistCategoryService.GetArtistCategorySelectItemsAsync(),
+            ChildCategories = await _productTypeService.GetChildCategorySelectItemsAsync(),
+            WishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId ?? string.Empty),
+            ParentCategoryName = parentProductTypeId.HasValue
+                ? await _productTypeService.GetProductTypeNameByIdAsync(parentProductTypeId.Value)
+                : null,
+            SelectedArtistName = artistId.HasValue
+                ? await _artistService.GetArtistNameByIdAsync(artistId.Value)
+                : null
+        };
 
-        // 分頁資訊
+        // 供共用 Partial View 使用的 ViewBag（_AlbumCard 讀取 WishlistIds、_Pagination 讀取分頁資訊）
+        ViewBag.WishlistIds = viewModel.WishlistIds;
+        SetPaginationViewBag(pagedResult);
+
+        return View(viewModel);
+    }
+
+    /// <summary>
+    /// 設定分頁 ViewBag（供共用 _Pagination Partial View 使用）
+    /// </summary>
+    private void SetPaginationViewBag<T>(PagedResult<T> pagedResult)
+    {
         ViewBag.CurrentPage = pagedResult.CurrentPage;
         ViewBag.TotalPages = pagedResult.TotalPages;
         ViewBag.HasPreviousPage = pagedResult.HasPreviousPage;
         ViewBag.HasNextPage = pagedResult.HasNextPage;
-        ViewBag.TotalCount = pagedResult.TotalCount;
-        ViewBag.PageSize = PageSize;
-
-        return View(pagedResult.Items);
     }
 
     // GET: /Album/Detail/5

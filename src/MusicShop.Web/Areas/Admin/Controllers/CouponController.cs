@@ -1,4 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
+// ─────────────────────────────────────────────────────────────
+// CouponController.cs - 後台優惠券管理
+// Area: Admin
+// ─────────────────────────────────────────────────────────────
+
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.ViewModels.Admin;
@@ -9,9 +13,7 @@ namespace MusicShop.Web.Areas.Admin.Controllers;
 /// <summary>
 /// 後台優惠券管理控制器
 /// </summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class CouponController : Controller
+public class CouponController : AdminBaseController
 {
     private readonly ICouponService _couponService;
 

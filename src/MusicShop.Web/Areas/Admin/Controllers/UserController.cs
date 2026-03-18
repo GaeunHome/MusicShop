@@ -3,7 +3,6 @@
 // Area: Admin
 // ─────────────────────────────────────────────────────────────
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Web.Infrastructure;
@@ -14,9 +13,7 @@ namespace MusicShop.Web.Areas.Admin.Controllers;
 /// <summary>
 /// 後台使用者管理控制器，負責使用者列表與角色管理
 /// </summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class UserController : Controller
+public class UserController : AdminBaseController
 {
     private readonly IUserService _userService;
 
@@ -54,6 +51,20 @@ public class UserController : Controller
         {
             TempData[TempDataKeys.Error] = message;
         }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    // ─── 手動確認使用者 Email ─────────────────────────────
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ConfirmEmail(string userId)
+    {
+        var (success, message) = await _userService.AdminConfirmEmailAsync(userId);
+
+        if (success)
+            TempData[TempDataKeys.Success] = message;
+        else
+            TempData[TempDataKeys.Error] = message;
 
         return RedirectToAction(nameof(Index));
     }

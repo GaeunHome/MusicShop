@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Library.Enums;
@@ -18,12 +19,18 @@ public class CouponService : ICouponService
     private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<AppUser> _userManager;
     private readonly IMapper _mapper;
+    private readonly ILogger<CouponService> _logger;
 
-    public CouponService(IUnitOfWork unitOfWork, UserManager<AppUser> userManager, IMapper mapper)
+    public CouponService(
+        IUnitOfWork unitOfWork,
+        UserManager<AppUser> userManager,
+        IMapper mapper,
+        ILogger<CouponService> logger)
     {
         _unitOfWork = unitOfWork;
         _userManager = userManager;
         _mapper = mapper;
+        _logger = logger;
     }
 
     // ==================== Admin CRUD ====================
@@ -65,6 +72,7 @@ public class CouponService : ICouponService
         await _unitOfWork.SaveChangesAsync();
 
         vm.Id = coupon.Id;
+        _logger.LogInformation("優惠券新增：CouponId={CouponId}, Code={Code}, Name={Name}", coupon.Id, coupon.Code, coupon.Name);
     }
 
     public async Task UpdateCouponAsync(CouponFormViewModel vm)
@@ -96,7 +104,8 @@ public class CouponService : ICouponService
         var coupon = await _unitOfWork.Coupons.GetByIdAsync(id);
         ValidationHelper.ValidateEntityExists(coupon, "優惠券", id);
 
-        await _unitOfWork.Coupons.DeleteAsync(coupon!);
+        _logger.LogInformation("優惠券刪除：CouponId={CouponId}, Code={Code}", coupon!.Code, id);
+        await _unitOfWork.Coupons.DeleteAsync(coupon);
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -180,6 +189,7 @@ public class CouponService : ICouponService
         await _unitOfWork.Coupons.AddUserCouponAsync(userCoupon);
         await _unitOfWork.SaveChangesAsync();
 
+        _logger.LogInformation("優惠券兌換成功：UserId={UserId}, CouponCode={Code}, CouponName={Name}", userId, code, coupon.Name);
         return (true, $"兌換成功！獲得「{coupon.Name}」，有效期 {coupon.ValidDays} 天");
     }
 
@@ -207,6 +217,7 @@ public class CouponService : ICouponService
         await _unitOfWork.Coupons.AddUserCouponAsync(userCoupon);
         await _unitOfWork.SaveChangesAsync();
 
+        _logger.LogInformation("優惠券發放：CouponId={CouponId}, 發放給={UserEmail}", couponId, userEmail);
         return (true, $"已成功發放「{coupon.Name}」給 {userEmail}");
     }
 
@@ -247,6 +258,7 @@ public class CouponService : ICouponService
             await _unitOfWork.SaveChangesAsync();
         }
 
+        _logger.LogInformation("統一發放優惠券：CouponId={CouponId}, 發放人數={Count}", couponId, userCouponsToAdd.Count);
         return userCouponsToAdd.Count;
     }
 
@@ -290,6 +302,7 @@ public class CouponService : ICouponService
         if (issuedCount > 0)
             await _unitOfWork.SaveChangesAsync();
 
+        _logger.LogInformation("生日優惠券發放：CouponId={CouponId}, 當月壽星={Count}", couponId, issuedCount);
         return issuedCount;
     }
 

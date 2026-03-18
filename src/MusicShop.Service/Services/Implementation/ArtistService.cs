@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using MusicShop.Data.Entities;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Data.UnitOfWork;
@@ -15,21 +16,19 @@ public class ArtistService : IArtistService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ILogger<ArtistService> _logger;
 
-    public ArtistService(IUnitOfWork unitOfWork, IMapper mapper)
+    public ArtistService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<ArtistService> logger)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<SelectItemViewModel>> GetArtistSelectItemsAsync()
     {
         var artists = await _unitOfWork.Artists.GetAllArtistsAsync();
-        return artists.Select(a => new SelectItemViewModel
-        {
-            Id = a.Id,
-            Name = a.Name
-        });
+        return _mapper.Map<IEnumerable<SelectItemViewModel>>(artists);
     }
 
     public async Task<IEnumerable<SelectItemViewModel>> GetArtistSelectItemsByCategoryIdAsync(int artistCategoryId)
@@ -37,11 +36,7 @@ public class ArtistService : IArtistService
         ValidationHelper.ValidateId(artistCategoryId, "藝人分類 ID", nameof(artistCategoryId));
 
         var artists = await _unitOfWork.Artists.GetArtistsByCategoryIdAsync(artistCategoryId);
-        return artists.Select(a => new SelectItemViewModel
-        {
-            Id = a.Id,
-            Name = a.Name
-        });
+        return _mapper.Map<IEnumerable<SelectItemViewModel>>(artists);
     }
 
     public async Task<string?> GetArtistNameByIdAsync(int id)

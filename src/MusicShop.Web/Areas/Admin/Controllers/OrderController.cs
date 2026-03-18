@@ -3,7 +3,6 @@
 // Area: Admin
 // ─────────────────────────────────────────────────────────────
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Library.Enums;
 using MusicShop.Service.Services.Interfaces;
@@ -14,9 +13,7 @@ namespace MusicShop.Web.Areas.Admin.Controllers;
 /// <summary>
 /// 後台訂單管理控制器，負責訂單列表、詳情檢視與狀態更新
 /// </summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class OrderController : Controller
+public class OrderController : AdminBaseController
 {
     private readonly IOrderService _orderService;
 

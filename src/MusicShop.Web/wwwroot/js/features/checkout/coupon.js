@@ -1,6 +1,8 @@
 /**
  * 結帳頁面 - 優惠券套用功能
  * 當使用者選擇優惠券時，透過 AJAX 計算折扣金額並更新顯示
+ *
+ * 依賴：AjaxHelper (ajax-helper.js)
  */
 (function () {
     'use strict';
@@ -27,21 +29,11 @@
         }
 
         try {
-            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-            const response = await fetch('/api/coupon/validate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': token || ''
-                },
-                body: JSON.stringify({
-                    userCouponId: parseInt(userCouponId),
-                    totalAmount: originalTotal
-                })
+            // 使用 AjaxHelper 統一處理 AJAX 請求（含錯誤處理與 response.ok 檢查）
+            const result = await AjaxHelper.postJson('/api/coupon/validate', {
+                userCouponId: parseInt(userCouponId),
+                totalAmount: originalTotal
             });
-
-            const result = await response.json();
 
             if (result.success) {
                 discountRow.style.display = 'flex';
@@ -50,11 +42,19 @@
             } else {
                 discountRow.style.display = 'none';
                 finalAmount.textContent = 'NT$ ' + Math.round(originalTotal).toLocaleString();
-                alert(result.message);
+                if (typeof showError === 'function') {
+                    showError(result.message || '優惠券驗證失敗');
+                } else {
+                    alert(result.message || '優惠券驗證失敗');
+                }
                 couponSelect.value = '';
             }
         } catch {
-            alert('驗證優惠券時發生錯誤');
+            if (typeof showError === 'function') {
+                showError('驗證優惠券時發生錯誤');
+            } else {
+                alert('驗證優惠券時發生錯誤');
+            }
             couponSelect.value = '';
         }
     });

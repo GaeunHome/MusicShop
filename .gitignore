@@ -1,6 +1,7 @@
 appsettings.json
 .DS_Store
 *.log
+logs/
 **/bin/
 **/obj/
 img/

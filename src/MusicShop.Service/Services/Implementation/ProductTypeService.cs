@@ -128,24 +128,13 @@ public class ProductTypeService : IProductTypeService
     public async Task<IEnumerable<SelectItemViewModel>> GetParentCategorySelectItemsAsync()
     {
         var parents = await _unitOfWork.ProductTypes.GetParentCategoriesAsync();
-        return parents.Select(p => new SelectItemViewModel
-        {
-            Id = p.Id,
-            Name = p.Name,
-            DisplayOrder = p.DisplayOrder
-        });
+        return _mapper.Map<IEnumerable<SelectItemViewModel>>(parents);
     }
 
     public async Task<IEnumerable<SelectItemViewModel>> GetChildCategorySelectItemsByParentIdAsync(int parentId)
     {
         var children = await _unitOfWork.ProductTypes.GetChildrenByParentIdAsync(parentId);
-        return children.Select(c => new SelectItemViewModel
-        {
-            Id = c.Id,
-            Name = c.Name,
-            ParentId = c.ParentId,
-            DisplayOrder = c.DisplayOrder
-        });
+        return _mapper.Map<IEnumerable<SelectItemViewModel>>(children);
     }
 
     public async Task<string?> GetProductTypeNameByIdAsync(int id)
@@ -163,14 +152,7 @@ public class ProductTypeService : IProductTypeService
     public async Task<IEnumerable<SelectItemViewModel>> GetChildCategorySelectItemsAsync()
     {
         var childCategories = await _unitOfWork.ProductTypes.GetAllChildCategoriesAsync();
-        return childCategories.Select(c => new SelectItemViewModel
-        {
-            Id = c.Id,
-            Name = c.Name,
-            ParentId = c.ParentId,
-            ParentName = c.Parent?.Name,
-            DisplayOrder = c.DisplayOrder
-        });
+        return _mapper.Map<IEnumerable<SelectItemViewModel>>(childCategories);
     }
 
     public async Task<List<ProductTypeCategoryTreeViewModel>> GetCategoryTreeViewModelsAsync()

@@ -1,4 +1,6 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using MusicShop.Data;
 using MusicShop.Data.Entities;
@@ -6,8 +8,32 @@ using MusicShop.Data.UnitOfWork;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.Services.Implementation;
 using MusicShop.Web.Infrastructure;
+using MusicShop.Web.Infrastructure.Implementation;
+using Serilog;
+using Serilog.Events;
+
+// =====================================================================
+// Serilog 結構化日誌設定
+// 取代內建 Console Logger，支援檔案日誌、結構化查詢與滾動歸檔
+// =====================================================================
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File(
+        path: "logs/app-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 使用 Serilog 取代內建日誌系統
+builder.Host.UseSerilog();
 
 // Add services to the container.
 // 綁定網站全域設定（SiteSettings）至 appsettings.json 的 SiteSettings 區段
@@ -56,6 +82,10 @@ builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddScoped<IAlbumImageService, AlbumImageService>();
 builder.Services.AddScoped<IBannerImageService, BannerImageService>();
 
+// 註冊 SMTP Email 寄送服務
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+
 // 註冊 ECPay 物流服務（含 HttpClient，設定 30 秒逾時避免請求掛起）
 builder.Services.AddHttpClient<IEcpayLogisticsService, EcpayLogisticsService>(client =>
 {
@@ -73,6 +103,10 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
     options.Password.RequiredLength = 6;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
+
+    // ─── Email 驗證 ──────────────────────────────────────
+    // 註冊後需驗證 Email 才能登入，防止惡意註冊與帳號冒用
+    options.SignIn.RequireConfirmedEmail = true;
 
     // ─── 帳號鎖定策略（CWE-307: 暴力破解防護）─────────────
     // 連續登入失敗達上限時暫時鎖定帳號，阻止自動化密碼猜測工具。
@@ -134,20 +168,90 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddControllersWithViews();
 
+// =====================================================================
+// Rate Limiting 速率限制（CWE-770: Allocation of Resources Without Limits）
+// 防止惡意刷單、API 濫用與暴力破解攻擊
+// =====================================================================
+builder.Services.AddRateLimiter(options =>
+{
+    // 全域被拒絕時回傳 429 Too Many Requests
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // ─── 一般請求限制（滑動視窗演算法）──────────────────────
+    // 每分鐘最多 100 次請求，超過則暫時拒絕
+    options.AddSlidingWindowLimiter("general", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 100;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.SegmentsPerWindow = 6;
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 5;
+    });
+
+    // ─── API 請求限制 ───────────────────────────────────────
+    // API 端點較敏感，每分鐘最多 30 次
+    options.AddSlidingWindowLimiter("api", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 30;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.SegmentsPerWindow = 6;
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 2;
+    });
+
+    // ─── 登入/註冊限制 ──────────────────────────────────────
+    // 認證端點最敏感，每分鐘最多 10 次，搭配 Identity 鎖定機制形成雙重防護
+    options.AddFixedWindowLimiter("auth", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 10;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueLimit = 0;
+    });
+
+    // 以 IP 為鍵的全域限制器（未標記特定 Policy 的端點使用）
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = 200,
+                Window = TimeSpan.FromMinutes(1),
+                SegmentsPerWindow = 6,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 10
+            }));
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseGlobalExceptionHandler();
+app.UseSecurityHeaders();
 app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 
 if (!app.Environment.IsDevelopment())
 {
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    // HSTS：告知瀏覽器未來 1 年內只能透過 HTTPS 連線（含子網域）
     app.UseHsts();
     app.UseHttpsRedirection();
 }
 app.UseStaticFiles();
+
+// Serilog HTTP 請求日誌（記錄每個請求的方法、路徑、狀態碼與耗時）
+app.UseSerilogRequestLogging(options =>
+{
+    // 排除靜態檔案與健康檢查等高頻低價值請求
+    options.GetLevel = (httpContext, elapsed, ex) =>
+    {
+        if (ex != null) return LogEventLevel.Error;
+        if (httpContext.Response.StatusCode >= 500) return LogEventLevel.Error;
+        if (httpContext.Response.StatusCode >= 400) return LogEventLevel.Warning;
+        return LogEventLevel.Information;
+    };
+});
+
 app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -186,4 +290,16 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.Run();
+try
+{
+    Log.Information("MusicShop 應用程式啟動");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "MusicShop 應用程式啟動失敗");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

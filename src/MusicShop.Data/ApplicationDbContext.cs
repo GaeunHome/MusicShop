@@ -19,6 +19,7 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
     public DbSet<FeaturedArtist> FeaturedArtists { get; set; }
     public DbSet<Coupon> Coupons { get; set; }
     public DbSet<UserCoupon> UserCoupons { get; set; }
+    public DbSet<PasswordHistory> PasswordHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -176,6 +177,14 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .WithMany()
             .HasForeignKey(o => o.UserCouponId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        // PasswordHistory 與 AppUser 關聯
+        // 帳號刪除時一併刪除密碼歷史
+        builder.Entity<PasswordHistory>()
+            .HasOne(ph => ph.User)
+            .WithMany()
+            .HasForeignKey(ph => ph.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     /// <summary>

@@ -1,35 +1,30 @@
-@model IEnumerable<AlbumCardViewModel>
+@model AlbumIndexViewModel
 @{
     ViewData["Title"] = "商品列表";
-    var artistCategories = ViewBag.ArtistCategories as IEnumerable<SelectItemViewModel>;
-    var childCategories = ViewBag.ChildCategories as IEnumerable<SelectItemViewModel>;
-    var wishlistIds = ViewBag.WishlistIds as HashSet<int> ?? new HashSet<int>();
 
-    // 取得目前的篩選資訊
-    var currentArtistCategoryId = ViewBag.ArtistCategoryId as int?;
-    var currentArtistId = ViewBag.ArtistId as int?;
-    var currentProductTypeId = ViewBag.ProductTypeId as int?;
-    var currentParentProductTypeId = ViewBag.ParentProductTypeId as int?;
-    var currentSearch = ViewBag.Search as string;
-    var currentSortBy = ViewBag.SortBy as string;
-    var parentCategoryName = ViewBag.ParentCategoryName as string;
+    // 從 ViewModel 取得資料（不再使用 ViewBag）
+    var artistCategories = Model.ArtistCategories;
+    var childCategories = Model.ChildCategories;
+    var wishlistIds = Model.WishlistIds;
+    var items = Model.PagedResult.Items;
+    var paged = Model.PagedResult;
 
     // 找出當前選擇的分類名稱
-    var currentArtistCategoryName = currentArtistCategoryId.HasValue
-        ? artistCategories?.FirstOrDefault(c => c.Id == currentArtistCategoryId.Value)?.Name
+    var currentArtistCategoryName = Model.ArtistCategoryId.HasValue
+        ? artistCategories?.FirstOrDefault(c => c.Id == Model.ArtistCategoryId.Value)?.Name
         : null;
-    var currentProductTypeName = currentProductTypeId.HasValue
-        ? childCategories?.FirstOrDefault(c => c.Id == currentProductTypeId.Value)?.Name
+    var currentProductTypeName = Model.ProductTypeId.HasValue
+        ? childCategories?.FirstOrDefault(c => c.Id == Model.ProductTypeId.Value)?.Name
         : null;
-    var currentProductTypeParentName = currentProductTypeId.HasValue
-        ? childCategories?.FirstOrDefault(c => c.Id == currentProductTypeId.Value)?.ParentName
+    var currentProductTypeParentName = Model.ProductTypeId.HasValue
+        ? childCategories?.FirstOrDefault(c => c.Id == Model.ProductTypeId.Value)?.ParentName
         : null;
 }
 
 <div class="container mt-4">
 
     <!-- 麵包屑導航 / 當前分類顯示 -->
-    @if (currentArtistCategoryName != null || currentProductTypeName != null || parentCategoryName != null || !string.IsNullOrEmpty(currentSearch))
+    @if (currentArtistCategoryName != null || currentProductTypeName != null || Model.ParentCategoryName != null || !string.IsNullOrEmpty(Model.Search))
     {
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb">
@@ -38,11 +33,11 @@
                 {
                     <li class="breadcrumb-item active" aria-current="page">K-ARTIST › @currentArtistCategoryName</li>
                 }
-                @if (parentCategoryName != null && currentProductTypeName == null)
+                @if (Model.ParentCategoryName != null && currentProductTypeName == null)
                 {
-                    <li class="breadcrumb-item active" aria-current="page">@parentCategoryName</li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.ParentCategoryName</li>
                 }
-                @if (currentProductTypeName != null && currentProductTypeId.HasValue)
+                @if (currentProductTypeName != null && Model.ProductTypeId.HasValue)
                 {
                     @if (currentProductTypeParentName != null)
                     {
@@ -50,9 +45,9 @@
                     }
                     <li class="breadcrumb-item active" aria-current="page">@currentProductTypeName</li>
                 }
-                @if (!string.IsNullOrEmpty(currentSearch))
+                @if (!string.IsNullOrEmpty(Model.Search))
                 {
-                    <li class="breadcrumb-item active" aria-current="page">搜尋: @currentSearch</li>
+                    <li class="breadcrumb-item active" aria-current="page">搜尋: @Model.Search</li>
                 }
             </ol>
         </nav>
@@ -68,7 +63,7 @@
                         <i class="bi bi-search search-icon"></i>
                         <input type="text"
                                name="search"
-                               value="@ViewBag.Search"
+                               value="@Model.Search"
                                class="form-control search-input"
                                placeholder="搜尋商品名稱或歌手..."
                                aria-label="搜尋商品" />
@@ -82,7 +77,7 @@
                         @foreach (var ac in artistCategories ?? Enumerable.Empty<SelectItemViewModel>())
                         {
                             <option value="@ac.Id"
-                                selected="@(ViewBag.ArtistCategoryId != null && (int)ViewBag.ArtistCategoryId == ac.Id ? "selected" : null)">
+                                selected="@(Model.ArtistCategoryId.HasValue && Model.ArtistCategoryId.Value == ac.Id ? "selected" : null)">
                                 @ac.Name
                             </option>
                         }
@@ -104,7 +99,7 @@
                                         @foreach (var child in group.OrderBy(c => c.DisplayOrder))
                                         {
                                             <option value="@child.Id"
-                                                selected="@(ViewBag.ProductTypeId != null && (int)ViewBag.ProductTypeId == child.Id ? "selected" : null)">
+                                                selected="@(Model.ProductTypeId.HasValue && Model.ProductTypeId.Value == child.Id ? "selected" : null)">
                                                 @child.Name
                                             </option>
                                         }
@@ -115,7 +110,7 @@
                                     @foreach (var child in group.OrderBy(c => c.DisplayOrder))
                                     {
                                         <option value="@child.Id"
-                                            selected="@(ViewBag.ProductTypeId != null && (int)ViewBag.ProductTypeId == child.Id ? "selected" : null)">
+                                            selected="@(Model.ProductTypeId.HasValue && Model.ProductTypeId.Value == child.Id ? "selected" : null)">
                                             @child.Name
                                         </option>
                                     }
@@ -136,9 +131,7 @@
     </div>
 
     @{
-        // 有指定排序時顯示平鋪清單（讓排序效果全域生效）；無排序時依藝人分組
-        bool isSorted = !string.IsNullOrEmpty(currentSortBy);
-        var albumsByArtist = Model.GroupBy(a => a.ArtistName ?? "未設定藝人").OrderBy(g => g.Key);
+        var albumsByArtist = items.GroupBy(a => a.ArtistName ?? "未設定藝人").OrderBy(g => g.Key);
     }
 
     <!-- 收藏切換表單（含 AntiForgeryToken，供 JS 使用） -->
@@ -147,7 +140,7 @@
         <form id="wishlistForm" style="display:none;">@Html.AntiForgeryToken()</form>
     }
 
-    @if (!Model.Any())
+    @if (!items.Any())
     {
         <div class="text-center text-muted mt-5 py-5">
             <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" class="bi bi-inbox mb-3 opacity-50" viewBox="0 0 16 16">
@@ -167,38 +160,29 @@
                 <div class="d-flex gap-2 align-items-center flex-wrap">
                     <!-- 排序下拉選單 -->
                     <div class="dropdown">
-                        @{
-                            var sortLabel = currentSortBy switch
-                            {
-                                "date-new-old" => "最新上架",
-                                "date-old-new" => "最舊上架",
-                                "weekly-hot" => "本週熱賣",
-                                _ => "預設排序"
-                            };
-                        }
-                        <button class="btn btn-sort dropdown-toggle @(string.IsNullOrEmpty(currentSortBy) || currentSortBy == "date-new-old" || currentSortBy == "date-old-new" || currentSortBy == "weekly-hot" ? "active" : "")"
+                        <button class="btn btn-sort dropdown-toggle @(string.IsNullOrEmpty(Model.SortBy) || Model.SortBy == "date-new-old" || Model.SortBy == "date-old-new" || Model.SortBy == "weekly-hot" ? "active" : "")"
                                 type="button"
                                 id="sortDropdown"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false">
-                            @sortLabel
+                            @Model.SortLabel
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="sortDropdown">
-                            <li><a class="dropdown-item @(string.IsNullOrEmpty(currentSortBy) ? "active" : "")"
-                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "" })">
+                            <li><a class="dropdown-item @(string.IsNullOrEmpty(Model.SortBy) ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = Model.Search, artistCategoryId = Model.ArtistCategoryId, artistId = Model.ArtistId, productTypeId = Model.ProductTypeId, parentProductTypeId = Model.ParentProductTypeId, sortBy = "" })">
                                 <i class="bi bi-arrow-down-up me-2"></i>預設排序
                             </a></li>
-                            <li><a class="dropdown-item @(currentSortBy == "date-new-old" ? "active" : "")"
-                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "date-new-old" })">
+                            <li><a class="dropdown-item @(Model.SortBy == "date-new-old" ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = Model.Search, artistCategoryId = Model.ArtistCategoryId, artistId = Model.ArtistId, productTypeId = Model.ProductTypeId, parentProductTypeId = Model.ParentProductTypeId, sortBy = "date-new-old" })">
                                 <i class="bi bi-calendar-event me-2"></i>最新上架
                             </a></li>
-                            <li><a class="dropdown-item @(currentSortBy == "date-old-new" ? "active" : "")"
-                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "date-old-new" })">
+                            <li><a class="dropdown-item @(Model.SortBy == "date-old-new" ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = Model.Search, artistCategoryId = Model.ArtistCategoryId, artistId = Model.ArtistId, productTypeId = Model.ProductTypeId, parentProductTypeId = Model.ParentProductTypeId, sortBy = "date-old-new" })">
                                 <i class="bi bi-calendar me-2"></i>最舊上架
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item @(currentSortBy == "weekly-hot" ? "active" : "")"
-                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "weekly-hot" })">
+                            <li><a class="dropdown-item @(Model.SortBy == "weekly-hot" ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = Model.Search, artistCategoryId = Model.ArtistCategoryId, artistId = Model.ArtistId, productTypeId = Model.ProductTypeId, parentProductTypeId = Model.ParentProductTypeId, sortBy = "weekly-hot" })">
                                 <i class="bi bi-fire me-2"></i>本週熱賣
                             </a></li>
                         </ul>
@@ -206,28 +190,20 @@
 
                     <!-- 價格排序下拉選單 -->
                     <div class="dropdown">
-                        @{
-                            var priceLabel = currentSortBy switch
-                            {
-                                "price-low-high" => "價格由低到高",
-                                "price-high-low" => "價格由高到低",
-                                _ => "價格"
-                            };
-                        }
-                        <button class="btn btn-sort dropdown-toggle @(currentSortBy?.Contains("price") == true ? "active" : "")"
+                        <button class="btn btn-sort dropdown-toggle @(Model.SortBy?.Contains("price") == true ? "active" : "")"
                                 type="button"
                                 id="priceDropdown"
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false">
-                            @priceLabel
+                            @Model.PriceLabel
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="priceDropdown">
-                            <li><a class="dropdown-item @(currentSortBy == "price-low-high" ? "active" : "")"
-                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "price-low-high" })">
+                            <li><a class="dropdown-item @(Model.SortBy == "price-low-high" ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = Model.Search, artistCategoryId = Model.ArtistCategoryId, artistId = Model.ArtistId, productTypeId = Model.ProductTypeId, parentProductTypeId = Model.ParentProductTypeId, sortBy = "price-low-high" })">
                                 <i class="bi bi-sort-numeric-down me-2"></i>價格由低到高
                             </a></li>
-                            <li><a class="dropdown-item @(currentSortBy == "price-high-low" ? "active" : "")"
-                                   href="@Url.Action("Index", new { search = currentSearch, artistCategoryId = currentArtistCategoryId, artistId = currentArtistId, productTypeId = currentProductTypeId, parentProductTypeId = currentParentProductTypeId, sortBy = "price-high-low" })">
+                            <li><a class="dropdown-item @(Model.SortBy == "price-high-low" ? "active" : "")"
+                                   href="@Url.Action("Index", new { search = Model.Search, artistCategoryId = Model.ArtistCategoryId, artistId = Model.ArtistId, productTypeId = Model.ProductTypeId, parentProductTypeId = Model.ParentProductTypeId, sortBy = "price-high-low" })">
                                 <i class="bi bi-sort-numeric-down-alt me-2"></i>價格由高到低
                             </a></li>
                         </ul>
@@ -236,10 +212,10 @@
 
                 <!-- 右側：商品數量與視圖切換 -->
                 <div class="d-flex align-items-center gap-3">
-                    <!-- 商品類型快速篩選（移到右側） -->
+                    <!-- 商品類型快速篩選 -->
                     <select name="productTypeId"
                             class="form-select filter-select-small"
-                            onchange="window.location.href='@Url.Action("Index")?search=@currentSearch&artistCategoryId=@currentArtistCategoryId&artistId=@currentArtistId&productTypeId=' + this.value + '&sortBy=@currentSortBy'">
+                            onchange="window.location.href='@Url.Action("Index")?search=@Model.Search&artistCategoryId=@Model.ArtistCategoryId&artistId=@Model.ArtistId&productTypeId=' + this.value + '&sortBy=@Model.SortBy'">
                         <option value="">所有商品類型</option>
                         @if (childCategories != null)
                         {
@@ -252,7 +228,7 @@
                                         @foreach (var child in group.OrderBy(c => c.DisplayOrder))
                                         {
                                             <option value="@child.Id"
-                                                selected="@(ViewBag.ProductTypeId != null && (int)ViewBag.ProductTypeId == child.Id ? "selected" : null)">
+                                                selected="@(Model.ProductTypeId.HasValue && Model.ProductTypeId.Value == child.Id ? "selected" : null)">
                                                 @child.Name
                                             </option>
                                         }
@@ -263,7 +239,7 @@
                                     @foreach (var child in group.OrderBy(c => c.DisplayOrder))
                                     {
                                         <option value="@child.Id"
-                                            selected="@(ViewBag.ProductTypeId != null && (int)ViewBag.ProductTypeId == child.Id ? "selected" : null)">
+                                            selected="@(Model.ProductTypeId.HasValue && Model.ProductTypeId.Value == child.Id ? "selected" : null)">
                                             @child.Name
                                         </option>
                                     }
@@ -274,34 +250,30 @@
 
                     <!-- 商品數量（含分頁資訊） -->
                     @{
-                        var totalCount = (int)(ViewBag.TotalCount ?? Model.Count());
-                        var currentPageNum = (int)(ViewBag.CurrentPage ?? 1);
-                        var pageSize = (int)(ViewBag.PageSize ?? 12);
-                        var startItem = (currentPageNum - 1) * pageSize + 1;
-                        var endItem = Math.Min(currentPageNum * pageSize, totalCount);
+                        var startItem = (paged.CurrentPage - 1) * paged.PageSize + 1;
+                        var endItem = Math.Min(paged.CurrentPage * paged.PageSize, paged.TotalCount);
                     }
-                    <!-- 商品數量顯示：搜尋時顯示搜尋關鍵字 -->
                     <span class="text-muted product-count">
-                        @if (!string.IsNullOrEmpty(currentSearch))
+                        @if (!string.IsNullOrEmpty(Model.Search))
                         {
-                            @if (totalCount > pageSize)
+                            @if (paged.TotalCount > paged.PageSize)
                             {
-                                @:搜尋「@currentSearch」顯示第 @startItem-@endItem 筆，共找到 @totalCount 件商品
+                                @:搜尋「@Model.Search」顯示第 @startItem-@endItem 筆，共找到 @paged.TotalCount 件商品
                             }
                             else
                             {
-                                @:搜尋「@currentSearch」找到 @totalCount 件商品
+                                @:搜尋「@Model.Search」找到 @paged.TotalCount 件商品
                             }
                         }
                         else
                         {
-                            @if (totalCount > pageSize)
+                            @if (paged.TotalCount > paged.PageSize)
                             {
-                                @:顯示第 @startItem-@endItem 筆，共 @totalCount 件商品
+                                @:顯示第 @startItem-@endItem 筆，共 @paged.TotalCount 件商品
                             }
                             else
                             {
-                                @:共 @totalCount 件商品
+                                @:共 @paged.TotalCount 件商品
                             }
                         }
                     </span>
@@ -321,17 +293,17 @@
 
         <!-- 商品容器（支援視圖切換） -->
         <div id="productContainer" class="view-mode-grid">
-            @if (isSorted)
+            @if (Model.IsSorted)
             {
                 <!-- 排序模式：全域平鋪，不依藝人分組 -->
                 <div class="grid-view row row-cols-2 row-cols-lg-4 g-4 mb-5">
-                    @foreach (var album in Model)
+                    @foreach (var album in items)
                     {
                         @await Html.PartialAsync("_AlbumCard", album)
                     }
                 </div>
                 <div class="list-view mb-5">
-                    @foreach (var album in Model)
+                    @foreach (var album in items)
                     {
                         @await Html.PartialAsync("_AlbumListItem", album)
                     }

@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Service.Services.Interfaces;
@@ -20,17 +21,20 @@ namespace MusicShop.Service.Services.Implementation
         private readonly IOrderValidationService _orderValidationService;
         private readonly ICouponService _couponService;
         private readonly IMapper _mapper;
+        private readonly ILogger<OrderService> _logger;
 
         public OrderService(
             IUnitOfWork unitOfWork,
             IOrderValidationService orderValidationService,
             ICouponService couponService,
-            IMapper mapper)
+            IMapper mapper,
+            ILogger<OrderService> logger)
         {
             _unitOfWork = unitOfWork;
             _orderValidationService = orderValidationService;
             _couponService = couponService;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<int> CreateOrderWithFullInfoAsync(string userId, CheckoutViewModel checkoutInfo)
@@ -150,11 +154,16 @@ namespace MusicShop.Service.Services.Implementation
                 // 5. 提交交易
                 await _unitOfWork.CommitAsync();
 
+                _logger.LogInformation(
+                    "訂單建立成功：OrderId={OrderId}, UserId={UserId}, TotalAmount={TotalAmount}, DiscountAmount={DiscountAmount}, Items={ItemCount}",
+                    createdOrder.Id, userId, totalAmount, discountAmount, orderItems.Count);
+
                 return createdOrder.Id;
             }
-            catch
+            catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
+                _logger.LogError(ex, "訂單建立失敗：UserId={UserId}, TotalAmount={TotalAmount}", userId, totalAmount);
                 throw;
             }
         }
@@ -195,20 +204,29 @@ namespace MusicShop.Service.Services.Implementation
                     await _unitOfWork.Orders.UpdateOrderAsync(order);
 
                     await _unitOfWork.CommitAsync();
+
+                    _logger.LogInformation(
+                        "後台取消訂單：OrderId={OrderId}, 已恢復庫存並退還優惠券", orderId);
                 }
-                catch
+                catch (Exception ex)
                 {
                     await _unitOfWork.RollbackAsync();
+                    _logger.LogError(ex, "後台取消訂單失敗：OrderId={OrderId}", orderId);
                     throw;
                 }
 
                 return;
             }
 
+            var previousStatus = order.Status;
             order.Status = status;
             order.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.Orders.UpdateOrderAsync(order);
             await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "訂單狀態更新：OrderId={OrderId}, {PreviousStatus} → {NewStatus}",
+                orderId, previousStatus, status);
         }
 
         public async Task CancelOrderAsync(int orderId, string userId)
@@ -259,10 +277,15 @@ namespace MusicShop.Service.Services.Implementation
 
                 // 4. 提交交易
                 await _unitOfWork.CommitAsync();
+
+                _logger.LogInformation(
+                    "使用者取消訂單：OrderId={OrderId}, UserId={UserId}, 已恢復庫存{CouponInfo}",
+                    orderId, userId, order.UserCouponId.HasValue ? "並退還優惠券" : "");
             }
-            catch
+            catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
+                _logger.LogError(ex, "使用者取消訂單失敗：OrderId={OrderId}, UserId={UserId}", orderId, userId);
                 throw;
             }
         }

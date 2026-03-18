@@ -23,7 +23,7 @@ public class AvailableCouponViewModel
         {
             var discount = DiscountType == DiscountType.FixedAmount
                 ? $"折 NT$ {DiscountValue:N0}"
-                : $"打 {100 - DiscountValue} 折";
+                : $"打 {(100 - DiscountValue) / 10m:G} 折";
             var expiry = ExpiresAt.ToLocalTime().ToString("MM/dd");
             return $"{CouponName}（{discount}，{expiry} 到期）";
         }

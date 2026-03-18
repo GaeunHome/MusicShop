@@ -3,7 +3,6 @@
 // Area: Admin
 // ─────────────────────────────────────────────────────────────
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
 
@@ -12,9 +11,7 @@ namespace MusicShop.Web.Areas.Admin.Controllers;
 /// <summary>
 /// 後台首頁控制器，顯示統計數據儀表板
 /// </summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class DashboardController : Controller
+public class DashboardController : AdminBaseController
 {
     private readonly IStatisticsService _statisticsService;
 

@@ -3,9 +3,9 @@
 // Area: Admin
 // ─────────────────────────────────────────────────────────────
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using MusicShop.Library.Helpers;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.ViewModels.Admin;
 using MusicShop.Web.Infrastructure;
@@ -15,14 +15,12 @@ namespace MusicShop.Web.Areas.Admin.Controllers;
 /// <summary>
 /// 後台藝人管理控制器，負責藝人 CRUD 與上下架操作
 /// </summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class ArtistController : Controller
+public class ArtistController : AdminBaseController
 {
     private readonly IArtistService _artistService;
     private readonly IArtistCategoryService _artistCategoryService;
 
-    private const int ArtistPageSize = 10;
+    private const int ArtistPageSize = DisplayConstants.AdminArtistPageSize;
 
     public ArtistController(
         IArtistService artistService,

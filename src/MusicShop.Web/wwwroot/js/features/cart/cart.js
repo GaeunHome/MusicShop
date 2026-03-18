@@ -195,20 +195,8 @@ const Cart = {
      * 確認清空購物車
      */
     confirmClearCart() {
-        Swal.fire({
-            icon: 'warning',
-            title: '確認清空購物車',
-            text: '確定要清空購物車中的所有商品嗎？此操作無法復原。',
-            showCancelButton: true,
-            confirmButtonText: '確定清空',
-            cancelButtonText: '取消',
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('clearCartForm').submit();
-            }
+        showConfirm('確定要清空購物車中的所有商品嗎？此操作無法復原。', '確認清空購物車', () => {
+            document.getElementById('clearCartForm').submit();
         });
     },
 
@@ -293,110 +281,70 @@ const Cart = {
     },
 
     /**
-     * 配送方式切換邏輯
+     * 通用 Radio 切換邏輯
+     * @param {string} radioName - radio input 的 name 屬性
+     * @param {Object} valueToElementsMap - { radioValue: [顯示的元素ID], ... }，未列出的元素會自動隱藏
      */
-    initDeliveryMethodToggle() {
-        const deliveryRadios = document.querySelectorAll('input[name="DeliveryMethod"]');
-        const addressFields = document.getElementById('address-fields');
-        const sevenElevenFields = document.getElementById('seven-eleven-fields');
-        const familyMartFields = document.getElementById('family-mart-fields');
+    initRadioToggle(radioName, valueToElementsMap) {
+        const radios = document.querySelectorAll(`input[name="${radioName}"]`);
+        if (!radios.length) return;
 
-        if (!deliveryRadios.length) return;
+        // 收集所有受控的元素 ID
+        const allElementIds = new Set();
+        Object.values(valueToElementsMap).forEach(ids => ids.forEach(id => allElementIds.add(id)));
 
-        // 定義切換邏輯函式
         const toggleFields = () => {
-            const selectedValue = document.querySelector('input[name="DeliveryMethod"]:checked')?.value;
+            const selectedValue = document.querySelector(`input[name="${radioName}"]:checked`)?.value;
 
-            // 0 = HomeDelivery, 1 = SevenEleven, 2 = FamilyMart (enum 值)
-            if (selectedValue === '0') {
-                // 宅配到府：顯示地址欄位，隱藏所有門市欄位
-                if (addressFields) addressFields.style.display = 'block';
-                if (sevenElevenFields) sevenElevenFields.style.display = 'none';
-                if (familyMartFields) familyMartFields.style.display = 'none';
-            } else if (selectedValue === '1') {
-                // 7-11 超商取貨：隱藏地址和全家欄位，顯示 7-11 欄位
-                if (addressFields) addressFields.style.display = 'none';
-                if (sevenElevenFields) sevenElevenFields.style.display = 'block';
-                if (familyMartFields) familyMartFields.style.display = 'none';
-            } else if (selectedValue === '2') {
-                // 全家超商取貨：隱藏地址和 7-11 欄位，顯示全家欄位
-                if (addressFields) addressFields.style.display = 'none';
-                if (sevenElevenFields) sevenElevenFields.style.display = 'none';
-                if (familyMartFields) familyMartFields.style.display = 'block';
-            }
+            // 先隱藏所有受控欄位
+            allElementIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+
+            // 顯示選中值對應的欄位
+            const showIds = valueToElementsMap[selectedValue] || [];
+            showIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'block';
+            });
         };
 
-        // 綁定切換事件
-        deliveryRadios.forEach(radio => {
-            radio.addEventListener('change', toggleFields);
-        });
+        radios.forEach(radio => radio.addEventListener('change', toggleFields));
+        toggleFields(); // 初始化
+    },
 
-        // 頁面載入時根據預設選擇初始化顯示狀態
-        toggleFields();
+    /**
+     * 配送方式切換邏輯
+     * 0 = HomeDelivery, 1 = SevenEleven, 2 = FamilyMart (enum 值)
+     */
+    initDeliveryMethodToggle() {
+        this.initRadioToggle('DeliveryMethod', {
+            '0': ['address-fields'],
+            '1': ['seven-eleven-fields'],
+            '2': ['family-mart-fields']
+        });
     },
 
     /**
      * 付款方式切換邏輯
+     * 0 = CashOnDelivery, 1 = CreditCard (enum 值)
      */
     initPaymentMethodToggle() {
-        const paymentRadios = document.querySelectorAll('input[name="PaymentMethod"]');
-        const creditCardFields = document.getElementById('credit-card-fields');
-
-        if (!paymentRadios.length) return;
-
-        // 定義切換邏輯函式
-        const toggleFields = () => {
-            const selectedValue = document.querySelector('input[name="PaymentMethod"]:checked')?.value;
-
-            // 0 = CashOnDelivery, 1 = CreditCard (enum 值)
-            if (selectedValue === '1' && creditCardFields) {
-                creditCardFields.style.display = 'block';
-            } else {
-                if (creditCardFields) creditCardFields.style.display = 'none';
-            }
-        };
-
-        paymentRadios.forEach(radio => {
-            radio.addEventListener('change', toggleFields);
+        this.initRadioToggle('PaymentMethod', {
+            '1': ['credit-card-fields']
         });
-
-        // 頁面載入時根據預設選擇初始化顯示狀態
-        toggleFields();
     },
 
     /**
      * 發票類型切換邏輯
+     * 0 = Duplicate (二聯式), 1 = Triplicate (三聯式), 2 = EInvoice (電子發票)
      */
     initInvoiceTypeToggle() {
-        const invoiceRadios = document.querySelectorAll('input[name="InvoiceType"]');
-        const triplicateFields = document.getElementById('triplicate-fields');
-        const eInvoiceFields = document.getElementById('einvoice-fields');
-
-        if (!invoiceRadios.length) return;
-
-        // 定義切換邏輯函式
-        const toggleFields = () => {
-            const selectedValue = document.querySelector('input[name="InvoiceType"]:checked')?.value;
-
-            // 隱藏所有特殊欄位
-            if (triplicateFields) triplicateFields.style.display = 'none';
-            if (eInvoiceFields) eInvoiceFields.style.display = 'none';
-
-            // 根據選擇顯示對應欄位
-            // 0 = Duplicate (二聯式), 1 = Triplicate (三聯式), 2 = EInvoice (電子發票)
-            if (selectedValue === '1' && triplicateFields) {
-                triplicateFields.style.display = 'block';
-            } else if (selectedValue === '2' && eInvoiceFields) {
-                eInvoiceFields.style.display = 'block';
-            }
-        };
-
-        invoiceRadios.forEach(radio => {
-            radio.addEventListener('change', toggleFields);
+        this.initRadioToggle('InvoiceType', {
+            '1': ['triplicate-fields'],
+            '2': ['einvoice-fields']
         });
-
-        // 頁面載入時根據預設選擇初始化顯示狀態
-        toggleFields();
     },
 
     // ==================== 門市選擇功能 ====================
@@ -457,9 +405,13 @@ const Cart = {
             return;
         }
 
-        // 更新 Modal 標題
-        document.getElementById('storeSelectionModalLabel').innerHTML =
-            `<i class="bi bi-shop me-2"></i>${modalTitle}`;
+        // 更新 Modal 標題（modalTitle 為硬編碼值，安全無 XSS 風險）
+        const labelEl = document.getElementById('storeSelectionModalLabel');
+        labelEl.textContent = '';
+        const icon = document.createElement('i');
+        icon.className = 'bi bi-shop me-2';
+        labelEl.appendChild(icon);
+        labelEl.appendChild(document.createTextNode(modalTitle));
 
         // 顯示 Modal
         const modal = new bootstrap.Modal(document.getElementById('storeSelectionModal'));
@@ -585,7 +537,10 @@ const Cart = {
         if (stores.length > MAX_DISPLAY) {
             const hint = document.createElement('div');
             hint.className = 'alert alert-info py-2 mb-2';
-            hint.innerHTML = `<i class="bi bi-info-circle me-1"></i>共 ${stores.length} 間門市，目前顯示前 ${MAX_DISPLAY} 筆。請輸入關鍵字或選擇縣市縮小範圍。`;
+            const hintIcon = document.createElement('i');
+            hintIcon.className = 'bi bi-info-circle me-1';
+            hint.appendChild(hintIcon);
+            hint.appendChild(document.createTextNode(`共 ${stores.length} 間門市，目前顯示前 ${MAX_DISPLAY} 筆。請輸入關鍵字或選擇縣市縮小範圍。`));
             fragment.appendChild(hint);
         }
 
@@ -593,16 +548,32 @@ const Cart = {
             const storeItem = document.createElement('a');
             storeItem.href = '#';
             storeItem.className = 'list-group-item list-group-item-action';
-            storeItem.innerHTML = `
-                <div class="d-flex w-100 justify-content-between align-items-start">
-                    <div>
-                        <h6 class="mb-1">${store.name}</h6>
-                        <p class="mb-1 text-muted small">${store.address}</p>
-                        <small class="text-muted">門市代號：${store.code}</small>
-                    </div>
-                    <span class="badge bg-primary rounded-pill">${store.city}</span>
-                </div>
-            `;
+
+            // 使用 DOM API 建立元素，避免 innerHTML XSS 風險
+            const wrapper = document.createElement('div');
+            wrapper.className = 'd-flex w-100 justify-content-between align-items-start';
+
+            const infoDiv = document.createElement('div');
+            const nameEl = document.createElement('h6');
+            nameEl.className = 'mb-1';
+            nameEl.textContent = store.name;
+            const addrEl = document.createElement('p');
+            addrEl.className = 'mb-1 text-muted small';
+            addrEl.textContent = store.address;
+            const codeEl = document.createElement('small');
+            codeEl.className = 'text-muted';
+            codeEl.textContent = '門市代號：' + store.code;
+            infoDiv.appendChild(nameEl);
+            infoDiv.appendChild(addrEl);
+            infoDiv.appendChild(codeEl);
+
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-primary rounded-pill';
+            badge.textContent = store.city;
+
+            wrapper.appendChild(infoDiv);
+            wrapper.appendChild(badge);
+            storeItem.appendChild(wrapper);
 
             storeItem.addEventListener('click', (e) => {
                 e.preventDefault();

@@ -3,7 +3,6 @@
 // Area: Admin
 // ─────────────────────────────────────────────────────────────
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MusicShop.Service.Services.Interfaces;
@@ -15,9 +14,7 @@ namespace MusicShop.Web.Areas.Admin.Controllers;
 /// <summary>
 /// 後台分類管理控制器，負責藝人分類與商品類型的 CRUD 操作
 /// </summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class CategoryController : Controller
+public class CategoryController : AdminBaseController
 {
     private readonly IArtistCategoryService _artistCategoryService;
     private readonly IProductTypeService _productTypeService;

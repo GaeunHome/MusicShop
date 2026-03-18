@@ -65,21 +65,11 @@ const AdminCategory = {
      * 確認刪除父分類（會刪除所有子分類）
      */
     confirmDeleteParent(parentName, parentId) {
-        Swal.fire({
-            icon: 'warning',
-            title: '確認刪除父分類',
-            text: `確定要刪除「${parentName}」嗎？此操作會同時刪除所有子分類！此操作無法復原。`,
-            showCancelButton: true,
-            confirmButtonText: '確定刪除',
-            cancelButtonText: '取消',
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('deleteParent_' + parentId).submit();
-            }
-        });
+        showConfirm(
+            `確定要刪除「${parentName}」嗎？此操作會同時刪除所有子分類！此操作無法復原。`,
+            '確認刪除父分類',
+            () => { document.getElementById('deleteParent_' + parentId).submit(); }
+        );
     },
 
     /**

@@ -34,6 +34,11 @@ const AjaxHelper = {
                 body: formData.toString()
             });
 
+            // 檢查 HTTP 狀態碼
+            if (!response.ok) {
+                throw new Error(`伺服器回應錯誤（${response.status}）`);
+            }
+
             // 解析 JSON
             const result = await response.json();
 
@@ -81,6 +86,11 @@ const AjaxHelper = {
                 body: JSON.stringify(data)
             });
 
+            // 檢查 HTTP 狀態碼
+            if (!response.ok) {
+                throw new Error(`伺服器回應錯誤（${response.status}）`);
+            }
+
             const result = await response.json();
 
             if (options.onSuccess && typeof options.onSuccess === 'function') {
@@ -124,6 +134,11 @@ const AjaxHelper = {
                     ...(options.headers || {})
                 }
             });
+
+            // 檢查 HTTP 狀態碼
+            if (!response.ok) {
+                throw new Error(`伺服器回應錯誤（${response.status}）`);
+            }
 
             // 解析 JSON
             const result = await response.json();

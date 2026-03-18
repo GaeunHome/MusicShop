@@ -1,4 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
+// ─────────────────────────────────────────────────────────────
+// FeaturedArtistController.cs - 後台精選藝人管理
+// Area: Admin
+// ─────────────────────────────────────────────────────────────
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MusicShop.Service.Services.Interfaces;
@@ -10,9 +14,7 @@ namespace MusicShop.Web.Areas.Admin.Controllers;
 /// <summary>
 /// 後台精選藝人管理控制器
 /// </summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class FeaturedArtistController : Controller
+public class FeaturedArtistController : AdminBaseController
 {
     private readonly IFeaturedArtistService _featuredArtistService;
     private readonly IArtistService _artistService;

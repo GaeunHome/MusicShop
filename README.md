@@ -7,8 +7,6 @@
 
 一個基於 ASP.NET Core MVC 開發的線上音樂專輯電子商務平台，採用三層式架構設計，提供完整的購物與後台管理功能。
 
----
-
 ## 專案目標
 
 建立一個功能完整的音樂專輯電商網站，包含：
@@ -18,8 +16,6 @@
 - 訂單管理系統（含交易保護與並發控制）
 - 後台管理功能（商品、分類、訂單、使用者）
 - SEO 優化（Open Graph + Schema.org）
-
----
 
 ## 技術堆疊
 
@@ -35,8 +31,6 @@
 | **設計模式** | Repository, UnitOfWork, DI, Factory, BaseController, MVC Area | - |
 | **物流金流** | 綠界 ECPay 物流 API（超商取貨） | logistics API |
 
----
-
 ## 核心功能
 
 | 模組 | 功能 | 狀態 | 說明 |
@@ -48,36 +42,34 @@
 | | 雙分類篩選 | ✅ | 藝人分類 + 商品類型（階層式） |
 | | 關鍵字搜尋 | ✅ | 標題、演出者 |
 | | 排序功能 | ✅ | 預設/最新/價格（升/降） |
-| | 分頁瀏覽 | ✅ | 伺服器端分頁（v1.6.1） |
-| **購物車** | 加入商品 | ✅ | API Controller + AJAX（不跳轉）（v1.6.3） |
+| | 分頁瀏覽 | ✅ | 伺服器端分頁 |
+| **購物車** | 加入商品 | ✅ | API Controller + AJAX（不跳轉） |
 | | 數量管理 | ✅ | 含庫存驗證 |
-| | 購物車徽章 | ✅ | API 即時更新 + 彈跳動畫（v1.6.3） |
+| | 購物車徽章 | ✅ | API 即時更新 + 彈跳動畫 |
 | **訂單系統** | 建立訂單 | ✅ | 資料庫交易保護 |
 | | 庫存扣除 | ✅ | 樂觀並發控制 |
 | | 訂單追蹤 | ✅ | 5 種狀態（待處理→已完成） |
-| | 訂單時間軸 | ✅ | 視覺化訂單進度（v1.6.1） |
+| | 訂單時間軸 | ✅ | 視覺化訂單進度 |
 | | 超商門市選取 | ✅ | 綠界 ECPay 物流 API |
-| **優惠券系統** | 後台優惠券 CRUD | ✅ | 固定金額 / 百分比折扣（v1.7.0） |
-| | 兌換碼兌換 | ✅ | 使用者輸入兌換碼領取（v1.7.0） |
-| | 統一發放 / 壽星發放 | ✅ | 管理員一鍵發放給全部使用者或當月壽星（v1.7.1） |
-| | 結帳套用優惠券 | ✅ | AJAX 即時計算折扣，訂單顯示折扣後金額（v1.7.1） |
-| | 取消訂單自動退券 | ✅ | 前台/後台取消均退還優惠券（v1.7.1） |
+| **優惠券系統** | 後台優惠券 CRUD | ✅ | 固定金額 / 百分比折扣 |
+| | 兌換碼兌換 | ✅ | 使用者輸入兌換碼領取 |
+| | 統一發放 / 壽星發放 | ✅ | 管理員一鍵發放給全部使用者或當月壽星 |
+| | 結帳套用優惠券 | ✅ | AJAX 即時計算折扣，訂單顯示折扣後金額 |
+| | 取消訂單自動退券 | ✅ | 前台/後台取消均退還優惠券 |
 | **後台管理** | 儀表板 | ✅ | 統計資訊（商品/訂單/銷售額） |
 | | 商品管理 | ✅ | CRUD + 雙分類 |
-| | 藝人管理 | ✅ | CRUD + 上架/下架 + 分頁 + 篩選（v1.6.2） |
-| | 訂單管理 | ✅ | 完整訂單詳情（收件人、配送、付款、發票、優惠券、備註）（v1.7.1） |
+| | 藝人管理 | ✅ | CRUD + 上架/下架 + 分頁 + 篩選 |
+| | 訂單管理 | ✅ | 完整訂單詳情（收件人、配送、付款、發票、優惠券、備註） |
 | | 使用者管理 | ✅ | 角色切換（Admin/User） |
 | | 幻燈片管理 | ✅ | CRUD + 圖片上傳 + 商品聯動 |
-| | 精選藝人管理 | ✅ | CRUD + 首頁展示（v1.7.0） |
-| | 優惠券管理 | ✅ | CRUD + 統一發放 + 壽星發放（v1.7.1） |
+| | 精選藝人管理 | ✅ | CRUD + 首頁展示 |
+| | 優惠券管理 | ✅ | CRUD + 統一發放 + 壽星發放 |
 | **收藏清單** | 加入最愛 | ✅ | AJAX 即時切換 |
 | | 收藏清單頁 | ✅ | 顯示收藏商品，可直接移除 |
-| **效能與品質** | MemoryCache 快取 | ✅ | 分類與商品類型快取（v1.6.1） |
-| | 全域例外處理 | ✅ | GlobalExceptionMiddleware（v1.6.1） |
-| | SEO 優化 | ✅ | Open Graph + Schema.org（v1.6.1） |
+| **效能與品質** | MemoryCache 快取 | ✅ | 分類與商品類型快取 |
+| | 全域例外處理 | ✅ | GlobalExceptionMiddleware |
+| | SEO 優化 | ✅ | Open Graph + Schema.org |
 | **待開發** | Email 通知 | ⏳ | 待開發 |
-
----
 
 ## 系統架構
 
@@ -111,8 +103,6 @@ SQL Server
 | **View Components** | `ViewComponents/` | 可重複使用的 UI 元件 |
 | **ValidationHelper** | `Helpers/` | 集中驗證邏輯 |
 
----
-
 ## 快速開始
 
 ### 系統需求
@@ -122,7 +112,7 @@ SQL Server
 | **.NET SDK** | 10.0+ |
 | **SQL Server** | 2019+ |
 | **作業系統** | Windows / macOS (含 Apple Silicon) / Linux |
-| **編輯器** | Visual Studio Code（推薦）或 Visual Studio 2025 |
+| **編輯器** | Visual Studio Code 或 Visual Studio 2025 |
 
 ### 安裝步驟
 
@@ -166,11 +156,9 @@ dotnet watch run
 
 應用程式將在 `http://localhost:5281` 啟動。
 
----
-
 ## 專案結構
 
-本專案採用**多專案解決方案**架構（v1.3.0 起）：
+本專案採用**多專案解決方案**架構：
 
 ```
 MusicShop/
@@ -219,8 +207,6 @@ MusicShop/
 └── MusicShop.slnx                       # 解決方案檔案
 ```
 
----
-
 ## 資料庫架構
 
 ### 主要資料表
@@ -258,9 +244,35 @@ MusicShop/
 | UserCoupon → Coupon (多對一) | Restrict |
 | UserCoupon ↔ Order (雙向可選) | NoAction |
 
----
-
 ## 版本歷史
+
+### v1.7.2 (2026-03-18) - 程式碼品質審查、管理員 Email 確認、安全強化
+
+#### 程式碼品質全面審查
+- AlbumController 重構：15+ ViewBag 改為強型別 `AlbumIndexViewModel`
+- AutoMapper 集中化：Artist、ArtistCategory、ProductType、Album 新增 `SelectItemViewModel` 映射，取代手動 `.Select()`
+- 移除 6 個 Service 未使用的 `ILogger` 注入（ArtistCategory、ProductType、Banner、Wishlist 等）
+- CSS `!important` 清理：mega-menu 區段 23 處改為高特異性選擇器
+- CSS 變數統一：search-suggestions 硬編碼色值改用 `var(--color-primary)`
+- JS 重構：購物車 3 個 toggle 函式合併為泛用 `initRadioToggle()`，確認對話框統一使用 `showConfirm()`
+- `DisplayConstants` 新增 `AlbumPageSize`、`AdminArtistPageSize` 常數
+- CartController 例外處理：generic `catch (Exception)` 改為具體例外類型
+- FeaturedArtistService 補上 `ValidationHelper.ValidateId()` 驗證
+
+#### 後台管理員手動確認 Email
+- 新增 `AdminConfirmEmailAsync()` 方法，管理員可手動確認使用者 Email 驗證
+- 後台使用者列表新增 Email 驗證狀態欄位與「確認 Email」操作按鈕
+- 解決舊帳號因 Email 未驗證無法登入的問題
+
+#### 安全強化
+- 新增 `SecurityHeadersMiddleware`：X-Content-Type-Options、X-Frame-Options、Referrer-Policy 等安全標頭
+- 新增密碼歷史記錄（`PasswordHistory` 實體），防止重複使用近期密碼
+- 新增忘記密碼 / 重設密碼流程（`ForgotPassword`、`ResetPassword` 頁面）
+- 新增 Email 驗證註冊確認頁面（`RegisterConfirmation`）
+- 新增 SMTP Email 服務（`SmtpEmailService`）
+- 樂觀並發控制：Order、Artist、Coupon 新增 `[Timestamp] RowVersion`
+- `GlobalExceptionMiddleware` 增強錯誤處理
+- `BaseApiController` 新增安全基底
 
 ### v1.7.1 (2026-03-18) - 優惠券系統完善、訂單詳情強化、程式碼品質審查
 
@@ -328,8 +340,6 @@ MusicShop/
 | **v1.1.0** | 2026-03-04 | 三層式架構、購物車、訂單、後台管理、DbInitializer |
 | **v1.0.0** | 2026-03-03 | 初始版本：使用者認證、專輯展示、首頁輪播 |
 
----
-
 ## 開發指令
 
 ### 建置與執行
@@ -351,15 +361,13 @@ MusicShop/
 | `dotnet ef migrations remove` | 移除最後一次遷移（需尚未套用） |
 | `dotnet ef database drop` | 刪除資料庫 |
 
----
-
 ## 安全性特性
 
 | 項目 | 實作 |
 |------|------|
 | **密碼加密** | PBKDF2 演算法 + 唯一 Salt |
 | **Cookie 安全** | HttpOnly + Secure + SameSite=Lax + 自訂名稱 + 2 小時過期 |
-| **帳號鎖定** | 連續 5 次登入失敗鎖定 15 分鐘，防止暴力破解 |
+| **帳號鎖定** | 連續 3 次登入失敗鎖定 5 分鐘，防止暴力破解 |
 | **CSRF 防護** | `[ValidateAntiForgeryToken]` + `SameSite=Lax` |
 | **SQL 注入防護** | EF Core 參數化查詢 |
 | **XSS 防護** | Razor 自動編碼 + Cookie HttpOnly |
@@ -370,19 +378,13 @@ MusicShop/
 | **軟刪除** | `ISoftDeletable` + Global Query Filter，保留資料完整性 |
 | **全域例外處理** | Middleware 統一攔截未捕獲例外 |
 
----
-
 ## 作者
 
 **Hou Wen Chia**
 
----
-
 ## 授權
 
 此專案為學習與教育用途。
-
----
 
 ## 相關連結
 

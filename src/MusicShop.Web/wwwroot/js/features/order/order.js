@@ -37,20 +37,8 @@ const Order = {
      * 確認取消訂單（訂單列表頁）
      */
     confirmCancelOrder(orderId) {
-        Swal.fire({
-            icon: 'warning',
-            title: '確認取消訂單',
-            text: '確定要取消此訂單嗎？此操作無法復原。',
-            showCancelButton: true,
-            confirmButtonText: '確定取消',
-            cancelButtonText: '返回',
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('cancelOrderForm_' + orderId).submit();
-            }
+        showConfirm('確定要取消此訂單嗎？此操作無法復原。', '確認取消訂單', () => {
+            document.getElementById('cancelOrderForm_' + orderId).submit();
         });
     },
 
@@ -58,20 +46,8 @@ const Order = {
      * 確認取消訂單（訂單詳情頁）
      */
     confirmCancelOrderDetail() {
-        Swal.fire({
-            icon: 'warning',
-            title: '確認取消訂單',
-            text: '確定要取消此訂單嗎？此操作無法復原。',
-            showCancelButton: true,
-            confirmButtonText: '確定取消',
-            cancelButtonText: '返回',
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('cancelOrderFormDetail').submit();
-            }
+        showConfirm('確定要取消此訂單嗎？此操作無法復原。', '確認取消訂單', () => {
+            document.getElementById('cancelOrderFormDetail').submit();
         });
     }
 };

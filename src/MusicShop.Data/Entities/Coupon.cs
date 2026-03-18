@@ -68,6 +68,10 @@ public class Coupon : ISoftDeletable
     // ===== 導航屬性 =====
     public ICollection<UserCoupon> UserCoupons { get; set; } = new List<UserCoupon>();
 
+    // ===== 並發控制 =====
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
+
     // ===== 軟刪除欄位 =====
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }

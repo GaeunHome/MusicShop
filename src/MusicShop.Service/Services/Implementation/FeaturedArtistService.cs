@@ -52,6 +52,8 @@ public class FeaturedArtistService : IFeaturedArtistService
 
     public async Task CreateFeaturedArtistAsync(FeaturedArtistFormViewModel vm)
     {
+        ValidationHelper.ValidateId(vm.ArtistId, "藝人", nameof(vm.ArtistId));
+
         var entity = new FeaturedArtist
         {
             ArtistId = vm.ArtistId,

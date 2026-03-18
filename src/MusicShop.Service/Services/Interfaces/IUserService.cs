@@ -67,6 +67,11 @@ public interface IUserService
     Task<(bool Success, string Message)> ToggleAdminRoleAsync(string userId, string currentAdminId);
 
     /// <summary>
+    /// 管理員手動確認使用者 Email（用於舊帳號或特殊情況）
+    /// </summary>
+    Task<(bool Success, string Message)> AdminConfirmEmailAsync(string userId);
+
+    /// <summary>
     /// 更新使用者密碼
     /// </summary>
     /// <param name="userId">使用者 ID</param>
@@ -74,4 +79,38 @@ public interface IUserService
     /// <param name="newPassword">新密碼</param>
     /// <returns>操作結果訊息</returns>
     Task<(bool Success, string Message)> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
+
+    // ==================== Email 驗證 ====================
+
+    /// <summary>
+    /// 產生 Email 驗證 Token
+    /// </summary>
+    Task<(string? Token, string? UserId)> GenerateEmailConfirmationTokenAsync(string userId);
+
+    /// <summary>
+    /// 確認 Email 驗證
+    /// </summary>
+    Task<(bool Success, string Message)> ConfirmEmailAsync(string userId, string token);
+
+    /// <summary>
+    /// 重新寄送驗證信
+    /// </summary>
+    Task<(string? Token, string? UserId, string? Email)> ResendConfirmationTokenAsync(string userId);
+
+    /// <summary>
+    /// 檢查 Email 是否已驗證
+    /// </summary>
+    Task<bool> IsEmailConfirmedAsync(string userId);
+
+    // ==================== 忘記密碼 ====================
+
+    /// <summary>
+    /// 產生密碼重設 Token
+    /// </summary>
+    Task<(string? Token, string? UserId)> GeneratePasswordResetTokenAsync(string email);
+
+    /// <summary>
+    /// 使用 Token 重設密碼
+    /// </summary>
+    Task<(bool Success, string Message)> ResetPasswordAsync(string userId, string token, string newPassword);
 }

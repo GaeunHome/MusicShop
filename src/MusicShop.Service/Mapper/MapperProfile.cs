@@ -151,6 +151,15 @@ namespace MusicShop.Service.Mapper
                 .ForMember(d => d.DiscountValue, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.DiscountValue : 0m))
                 .ForMember(d => d.MaxDiscountAmount, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.MaxDiscountAmount : null));
 
+            // ==================== SelectItemViewModel 通用映射 ====================
+            // 用於各種下拉選單：藝人、藝人分類、商品類型等（Name → Name 直接對應）
+            CreateMap<Artist, SelectItemViewModel>();
+            CreateMap<ArtistCategory, SelectItemViewModel>();
+            CreateMap<ProductType, SelectItemViewModel>()
+                .ForMember(d => d.ParentName, o => o.MapFrom(s => s.Parent != null ? s.Parent.Name : null));
+            CreateMap<Album, SelectItemViewModel>()
+                .ForMember(d => d.Name, o => o.MapFrom(s => s.Title));
+
             // ==================== Order 子項目映射 ====================
             CreateMap<OrderItem, OrderItemViewModel>()
                 .ForMember(d => d.AlbumTitle,

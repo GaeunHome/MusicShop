@@ -3,7 +3,6 @@
 // Area: Admin
 // ─────────────────────────────────────────────────────────────
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using MusicShop.Service.Services.Interfaces;
@@ -15,9 +14,7 @@ namespace MusicShop.Web.Areas.Admin.Controllers;
 /// <summary>
 /// 後台幻燈片管理控制器，負責幻燈片 CRUD 與啟用/停用操作
 /// </summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class BannerController : Controller
+public class BannerController : AdminBaseController
 {
     private readonly IBannerService _bannerService;
     private readonly IAlbumService _albumService;

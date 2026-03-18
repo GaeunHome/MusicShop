@@ -100,6 +100,10 @@ namespace MusicShop.Data.Entities
         // ==================== 導航屬性 ====================
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
+        // ==================== 並發控制 ====================
+        [Timestamp]
+        public byte[]? RowVersion { get; set; }
+
         // ==================== 軟刪除欄位 ====================
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }

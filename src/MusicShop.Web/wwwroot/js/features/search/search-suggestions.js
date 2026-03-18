@@ -57,40 +57,52 @@
         }
     }
 
+    // HTML 特殊字元跳脫（防止 XSS）
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
     // 渲染建議清單
     function renderSuggestions(items, query) {
         var html = items.map(function (item) {
-            // 將搜尋關鍵字在標題中高亮顯示
-            var highlightedTitle = highlightMatch(item.title, query);
-            var highlightedArtist = item.artistName ? highlightMatch(item.artistName, query) : '';
+            // 先跳脫 HTML，再套用關鍵字高亮
+            var highlightedTitle = highlightMatch(escapeHtml(item.title), query);
+            var highlightedArtist = item.artistName ? highlightMatch(escapeHtml(item.artistName), query) : '';
+            var safeImageUrl = escapeHtml(item.coverImageUrl);
+            var safeTitle = escapeHtml(item.title);
+            var safeId = parseInt(item.id, 10) || 0;
 
-            return '<a href="/Album/Detail/' + item.id + '" class="search-suggestion-item">'
+            return '<a href="/Album/Detail/' + safeId + '" class="search-suggestion-item">'
                 + '<div class="suggestion-image">'
                 + (item.coverImageUrl
-                    ? '<img src="' + item.coverImageUrl + '" alt="' + item.title + '" />'
+                    ? '<img src="' + safeImageUrl + '" alt="' + safeTitle + '" />'
                     : '<div class="suggestion-no-image"><i class="bi bi-music-note"></i></div>')
                 + '</div>'
                 + '<div class="suggestion-info">'
                 + '<div class="suggestion-title">' + highlightedTitle + '</div>'
                 + (highlightedArtist ? '<div class="suggestion-artist">' + highlightedArtist + '</div>' : '')
-                + '<div class="suggestion-price">NT$ ' + item.price + '</div>'
+                + '<div class="suggestion-price">NT$ ' + escapeHtml(String(item.price)) + '</div>'
                 + '</div>'
                 + '</a>';
         }).join('');
 
         // 加上「查看全部結果」連結
         html += '<a href="/Album?search=' + encodeURIComponent(query) + '" class="search-suggestion-all">'
-            + '查看「' + query + '」的所有結果 →'
+            + '查看「' + escapeHtml(query) + '」的所有結果 →'
             + '</a>';
 
         suggestionsContainer.innerHTML = html;
         suggestionsContainer.style.display = 'block';
     }
 
-    // 關鍵字高亮（不區分大小寫）
+    // 關鍵字高亮（不區分大小寫，輸入已經過 escapeHtml 處理）
     function highlightMatch(text, query) {
         if (!query) return text;
-        var regex = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+        var escapedQuery = escapeHtml(query);
+        var regex = new RegExp('(' + escapedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
         return text.replace(regex, '<mark>$1</mark>');
     }
 

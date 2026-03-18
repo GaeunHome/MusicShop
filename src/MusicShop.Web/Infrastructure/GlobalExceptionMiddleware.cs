@@ -1,4 +1,5 @@
 using System.Net;
+using Microsoft.EntityFrameworkCore;
 
 namespace MusicShop.Web.Infrastructure;
 
@@ -43,6 +44,16 @@ public class GlobalExceptionMiddleware
             _logger.LogWarning(ex, "找不到請求的資源：{Path}", context.Request.Path);
             context.Response.StatusCode = (int)HttpStatusCode.NotFound;
             context.Response.Redirect("/Home/Error?statusCode=404");
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogWarning(ex, "並發衝突：{Path}", context.Request.Path);
+
+            if (!context.Response.HasStarted)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Conflict;
+                context.Response.Redirect("/Home/Error?statusCode=409");
+            }
         }
         catch (InvalidOperationException ex)
         {

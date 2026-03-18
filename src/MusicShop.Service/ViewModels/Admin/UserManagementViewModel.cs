@@ -32,6 +32,11 @@ public class UserManagementViewModel
     public DateTime RegisteredAt { get; set; }
 
     /// <summary>
+    /// Email 是否已驗證
+    /// </summary>
+    public bool EmailConfirmed { get; set; }
+
+    /// <summary>
     /// 是否為管理員
     /// </summary>
     public bool IsAdmin { get; set; }

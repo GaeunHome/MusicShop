@@ -59,6 +59,10 @@ public class Artist : ISoftDeletable
     /// </summary>
     public ICollection<Album> Albums { get; set; } = new List<Album>();
 
+    // ===== 並發控制 =====
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
+
     // ===== 軟刪除欄位 =====
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }

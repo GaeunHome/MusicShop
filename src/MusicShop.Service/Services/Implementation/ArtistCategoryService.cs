@@ -40,11 +40,7 @@ public class ArtistCategoryService : IArtistCategoryService
             async () =>
             {
                 var categories = await _unitOfWork.ArtistCategories.GetAllAsync();
-                return categories.Select(c => new SelectItemViewModel
-                {
-                    Id = c.Id,
-                    Name = c.Name
-                });
+                return _mapper.Map<IEnumerable<SelectItemViewModel>>(categories);
             });
     }
 

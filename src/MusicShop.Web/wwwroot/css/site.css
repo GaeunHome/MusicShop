@@ -496,53 +496,47 @@ body > .container {
 
 /* ========================================
    Mega Menu 樣式（三層藝人分類導航）
+   使用高優先級選擇器覆蓋 Bootstrap，避免 !important
    ======================================== */
 
-/* Mega dropdown 容器 */
-.mega-dropdown,
-.nav-menu-item.mega-dropdown {
-  position: static !important;
+/* Mega dropdown 容器（需為 static 讓子選單相對 navbar 定位） */
+.nav-menu .nav-menu-item.mega-dropdown {
+  position: static;
 }
 
 /* Mega menu 下拉面板 */
-.mega-menu {
-  display: none !important;
-  position: absolute !important;
-  top: 100% !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  background: white !important;
-  border-top: 3px solid var(--color-primary) !important;
-  border-bottom: none !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
-  padding: 2rem 0 !important;
-  z-index: 9999 !important;
-  min-height: 200px !important;
-  overflow-x: hidden !important;
-  overflow-y: hidden !important;
+.nav-menu .nav-menu-item.mega-dropdown > .mega-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: var(--color-white);
+  border-top: 3px solid var(--color-primary);
+  border-bottom: none;
+  box-shadow: var(--shadow-xl);
+  padding: 2rem 0;
+  z-index: 9999;
+  min-height: 200px;
+  overflow: hidden;
 }
 
-/* 隱藏 mega-menu 內的所有捲軸 */
-.mega-menu::-webkit-scrollbar {
-  display: none !important;
+/* 隱藏 mega-menu 內的捲軸 */
+.nav-menu .mega-menu::-webkit-scrollbar {
+  display: none;
 }
 
 /* 滑鼠懸停時顯示 */
-.mega-dropdown:hover .mega-menu {
-  display: block !important;
-}
-
-/* 針對 scoped CSS 的修正 */
-.nav-menu-item.mega-dropdown:hover .mega-menu {
-  display: block !important;
+.nav-menu .nav-menu-item.mega-dropdown:hover > .mega-menu {
+  display: block;
 }
 
 /* Mega menu 標題連結 */
 .mega-menu-title-link {
   text-decoration: none;
   display: block;
-  transition: all 0.3s ease;
+  transition: all var(--transition-slow);
 }
 
 .mega-menu-title-link:hover .mega-menu-title {
@@ -556,7 +550,7 @@ body > .container {
   font-size: 1rem;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 2px solid var(--color-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
@@ -569,6 +563,8 @@ body > .container {
   margin: 0;
   max-height: 400px;
   overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* 隱藏捲軸 */
@@ -576,27 +572,22 @@ body > .container {
   display: none;
 }
 
-.mega-menu-list {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+/* 重設 mega-menu 內部元素樣式 */
+.nav-menu .mega-menu .container,
+.nav-menu .mega-menu .row,
+.nav-menu .mega-menu .col-md-4 {
+  border: none;
+  background: transparent;
 }
 
-/* 移除 mega-menu 內所有可能的紫色元素 */
-.mega-menu .container,
-.mega-menu .row,
-.mega-menu .col-md-4 {
-  border: none !important;
-  background: transparent !important;
-}
-
-.mega-menu::after,
-.mega-menu::before,
-.mega-menu .container::after,
-.mega-menu .container::before,
-.mega-menu .row::after,
-.mega-menu .row::before {
-  display: none !important;
-  content: none !important;
+.nav-menu .mega-menu::after,
+.nav-menu .mega-menu::before,
+.nav-menu .mega-menu .container::after,
+.nav-menu .mega-menu .container::before,
+.nav-menu .mega-menu .row::after,
+.nav-menu .mega-menu .row::before {
+  display: none;
+  content: none;
 }
 
 /* 列表項目 */
@@ -623,10 +614,10 @@ body > .container {
 
 /* 響應式設計 */
 @media (max-width: 768px) {
-  .mega-menu {
+  .nav-menu .nav-menu-item.mega-dropdown > .mega-menu {
     position: relative;
     box-shadow: none;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border-color);
     padding: 1rem 0;
   }
 
