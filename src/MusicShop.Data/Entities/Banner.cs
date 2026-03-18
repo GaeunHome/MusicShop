@@ -3,7 +3,7 @@ namespace MusicShop.Data.Entities
     /// <summary>
     /// 首頁幻燈片橫幅
     /// </summary>
-    public class Banner
+    public class Banner : ISoftDeletable
     {
         public int Id { get; set; }
 
@@ -29,5 +29,9 @@ namespace MusicShop.Data.Entities
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // ===== 軟刪除欄位 =====
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
     }
 }

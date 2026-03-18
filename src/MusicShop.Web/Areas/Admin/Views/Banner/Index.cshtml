@@ -1,0 +1,88 @@
+@model IEnumerable<MusicShop.Service.ViewModels.Admin.BannerListItemViewModel>
+@{
+    ViewData["Title"] = "幻燈片管理";
+    ViewData["PageId"] = "admin-banners";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>🖼️ 幻燈片管理</h3>
+        <a asp-action="Create" class="btn btn-primary">➕ 新增幻燈片</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>順序</th>
+                    <th>預覽</th>
+                    <th>連結商品</th>
+                    <th>狀態</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var banner in Model)
+                {
+                    <tr>
+                        <td>@banner.DisplayOrder</td>
+                        <td>
+                            @if (banner.HasImage)
+                            {
+                                <img src="@banner.ImageUrl" alt="幻燈片" style="height:60px;object-fit:cover;border-radius:4px;">
+                            }
+                            else
+                            {
+                                <span class="text-muted">尚未上傳圖片</span>
+                            }
+                        </td>
+                        <td>
+                            @if (banner.HasLinkedAlbum)
+                            {
+                                <a asp-area="" asp-controller="Album" asp-action="Detail" asp-route-id="@banner.AlbumId" target="_blank">
+                                    @banner.AlbumTitle
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">純展示（無連結）</span>
+                            }
+                        </td>
+                        <td>
+                            @if (banner.IsActive)
+                            {
+                                <span class="badge bg-success">顯示中</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">已停用</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@banner.Id" class="btn btn-sm btn-outline-primary">編輯</a>
+
+                            <form asp-action="Toggle" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@banner.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm @(banner.IsActive ? "btn-outline-warning" : "btn-outline-success")">
+                                    @(banner.IsActive ? "停用" : "啟用")
+                                </button>
+                            </form>
+
+                            <form asp-action="Delete" method="post" class="d-inline"
+                                  onsubmit="return confirm('確定要刪除這張幻燈片嗎？')">
+                                <input type="hidden" name="id" value="@banner.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">刪除</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">尚未新增任何幻燈片</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>

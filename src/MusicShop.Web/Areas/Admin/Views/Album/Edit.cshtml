@@ -1,0 +1,153 @@
+@model MusicShop.Service.ViewModels.Admin.AlbumFormViewModel
+@{
+    ViewData["Title"] = "編輯商品";
+}
+
+            <div class="card shadow-sm">
+                <div class="card-header fw-bold">✏️ 編輯商品</div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        <input type="hidden" asp-for="RowVersion" />
+                        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                        {
+                            <div asp-validation-summary="All" class="alert alert-danger"></div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label required">商品名稱</label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="ArtistCategoryFilter" class="form-label required">藝人分類</label>
+                                <select id="ArtistCategoryFilter" asp-items="ViewBag.ArtistCategories" class="form-select">
+                                    <option value="">請先選擇藝人分類</option>
+                                </select>
+                                <small class="text-muted">選擇後會顯示對應的藝人列表</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ArtistId" class="form-label required">藝人/歌手</label>
+                                <select asp-for="ArtistId" id="ArtistSelect" class="form-select">
+                                    <option value="">請先選擇藝人分類</option>
+                                </select>
+                                <span asp-validation-for="ArtistId" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="ParentCategorySelect" class="form-label">商品大分類</label>
+                                <select id="ParentCategorySelect" asp-items="ViewBag.ParentCategories" class="form-select">
+                                    <option value="">請先選擇大分類</option>
+                                </select>
+                                <small class="text-muted">選擇後會顯示對應的子分類</small>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="ProductTypeId" class="form-label">商品類型（子分類）</label>
+                            <select asp-for="ProductTypeId" id="ProductTypeSelect" class="form-select">
+                                <option value="">請先選擇大分類</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">描述</label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label required">價格</label>
+                                <input asp-for="Price" class="form-control" type="number" step="1" value="@((int)Model.Price)" />
+                                <span asp-validation-for="Price" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Stock" class="form-label required">庫存</label>
+                                <input asp-for="Stock" class="form-control" type="number" />
+                            </div>
+                        </div>
+                        <!-- 保留現有圖片 URL（若未重新上傳則維持原值） -->
+                        <input type="hidden" asp-for="CoverImageUrl" />
+                        <input type="hidden" asp-for="DescriptionImageUrl" />
+
+                        <div class="mb-3">
+                            <label class="form-label">封面圖片</label>
+                            @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                            {
+                                <div class="mb-2">
+                                    <img src="@Model.CoverImageUrl" alt="目前封面" style="max-height:120px; border-radius:4px; border:1px solid #dee2e6;" />
+                                    <div class="text-muted small mt-1">目前圖片，上傳新圖片可取代</div>
+                                </div>
+                            }
+                            <input type="file" name="coverImageFile" class="form-control" accept="image/*" id="coverImageInput" />
+                            <small class="text-muted">支援 JPG、PNG、WebP，最大 5MB</small>
+                            <div id="coverImagePreview" class="mt-2" style="display:none;">
+                                <img id="coverPreviewImg" src="" alt="預覽" style="max-height:150px; border-radius:4px; border:1px solid #dee2e6;" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">商品介紹圖片</label>
+                            @if (!string.IsNullOrEmpty(Model.DescriptionImageUrl))
+                            {
+                                <div class="mb-2">
+                                    <img src="@Model.DescriptionImageUrl" alt="目前介紹圖" style="max-height:120px; border-radius:4px; border:1px solid #dee2e6;" />
+                                    <div class="text-muted small mt-1">目前圖片，上傳新圖片可取代</div>
+                                </div>
+                            }
+                            <input type="file" name="descriptionImageFile" class="form-control" accept="image/*" id="descImageInput" />
+                            <small class="text-muted">支援 JPG、PNG、WebP，最大 5MB（用於顯示詳細的商品組成內容）</small>
+                            <div id="descImagePreview" class="mt-2" style="display:none;">
+                                <img id="descPreviewImg" src="" alt="預覽" style="max-height:150px; border-radius:4px; border:1px solid #dee2e6;" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">← 取消</a>
+                            <button type="submit" class="btn btn-primary">儲存變更</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <!-- Select2 CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- 載入工具類別 -->
+    <script src="~/js/utils/cascade-select.js"></script>
+    <script src="~/js/utils/select2-helper.js"></script>
+    <script>
+        var selectedProductTypeId = @Html.Raw(ViewBag.SelectedProductTypeId ?? "null");
+        var selectedArtistId = @Html.Raw(Model.ArtistId?.ToString() ?? "null");
+        var selectedArtistCategoryId = @Html.Raw(ViewBag.SelectedArtistCategoryId ?? "null");
+
+        $(document).ready(function() {
+            var selectedParentCategoryId = $('#ParentCategorySelect').val();
+            AlbumAdmin.initEdit(
+                selectedArtistCategoryId,
+                selectedArtistId,
+                selectedParentCategoryId,
+                selectedProductTypeId
+            );
+        });
+
+        // 圖片即時預覽
+        function previewImage(inputId, previewContainerId, previewImgId) {
+            document.getElementById(inputId).addEventListener('change', function() {
+                const file = this.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(previewImgId).src = e.target.result;
+                    document.getElementById(previewContainerId).style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        previewImage('coverImageInput', 'coverImagePreview', 'coverPreviewImg');
+        previewImage('descImageInput', 'descImagePreview', 'descPreviewImg');
+    </script>
+}

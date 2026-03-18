@@ -156,30 +156,6 @@ function showLogoutConfirm(onConfirm) {
     });
 }
 
-/**
- * Toast 提示（輕量級提示，3秒後自動消失）
- * @param {string} message - 提示訊息
- * @param {string} icon - 圖示類型：success, error, warning, info
- */
-function showToast(message, icon = 'success') {
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
-        }
-    });
-
-    Toast.fire({
-        icon: icon,
-        title: message
-    });
-}
-
 // ===== 自動處理 TempData 訊息 =====
 // 在頁面載入時自動檢查 TempData 並顯示對應的提示
 document.addEventListener('DOMContentLoaded', function () {

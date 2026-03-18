@@ -23,6 +23,8 @@ namespace MusicShop.Data.UnitOfWork
         private IStatisticsRepository? _statistics;
         private IBannerRepository? _banners;
         private IWishlistRepository? _wishlists;
+        private IFeaturedArtistRepository? _featuredArtists;
+        private ICouponRepository? _coupons;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -41,17 +43,21 @@ namespace MusicShop.Data.UnitOfWork
         public IStatisticsRepository Statistics => _statistics ??= new StatisticsRepository(_context);
         public IBannerRepository Banners => _banners ??= new BannerRepository(_context);
         public IWishlistRepository Wishlists => _wishlists ??= new WishlistRepository(_context);
+        public IFeaturedArtistRepository FeaturedArtists => _featuredArtists ??= new FeaturedArtistRepository(_context);
+        public ICouponRepository Coupons => _coupons ??= new CouponRepository(_context);
 
         /// <summary>
-        /// 開始資料庫交易
+        /// 開始資料庫交易（同一時間僅支援一個活躍交易）
         /// </summary>
-        /// <remarks>
-        /// 注意：同一時間僅支援一個活躍交易。若在未 Commit/Rollback 前再次呼叫，
-        /// 舊的 _transaction 參考會被覆蓋且無法回滾，可能導致連線洩漏。
-        /// 呼叫端應確保交易生命週期完整（BeginTransaction → Commit 或 Rollback）。
-        /// </remarks>
+        /// <exception cref="InvalidOperationException">已有進行中的交易時拋出</exception>
         public async Task BeginTransactionAsync()
         {
+            if (_transaction != null)
+            {
+                throw new InvalidOperationException(
+                    "已有進行中的交易，請先呼叫 CommitAsync 或 RollbackAsync 完成當前交易。");
+            }
+
             _transaction = await _context.Database.BeginTransactionAsync();
         }
 
@@ -67,6 +73,8 @@ namespace MusicShop.Data.UnitOfWork
                 if (_transaction != null)
                 {
                     await _transaction.CommitAsync();
+                    await _transaction.DisposeAsync();
+                    _transaction = null;
                 }
             }
             catch

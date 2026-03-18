@@ -16,5 +16,6 @@ namespace MusicShop.Data.Entities
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
         public ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();
+        public ICollection<UserCoupon> UserCoupons { get; set; } = new List<UserCoupon>();
     }
 }

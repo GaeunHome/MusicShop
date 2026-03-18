@@ -58,4 +58,19 @@ public class StatisticsRepository : IStatisticsRepository
     {
         return await _context.Artists.CountAsync();
     }
+
+    public async Task<int> GetBannerCountAsync()
+    {
+        return await _context.Banners.CountAsync();
+    }
+
+    public async Task<int> GetFeaturedArtistCountAsync()
+    {
+        return await _context.FeaturedArtists.CountAsync();
+    }
+
+    public async Task<int> GetCouponCountAsync()
+    {
+        return await _context.Coupons.CountAsync();
+    }
 }

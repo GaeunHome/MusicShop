@@ -7,7 +7,7 @@ namespace MusicShop.Data.Entities
     /// <summary>
     /// 訂單主檔
     /// </summary>
-    public class Order
+    public class Order : ISoftDeletable
     {
         public int Id { get; set; }
 
@@ -80,11 +80,28 @@ namespace MusicShop.Data.Entities
         [StringLength(100)]
         public string? InvoiceCarrier { get; set; }
 
+        // ==================== 優惠券資訊 ====================
+        /// <summary>
+        /// 使用的優惠券 ID（可為 null）
+        /// </summary>
+        public int? UserCouponId { get; set; }
+        public UserCoupon? UserCoupon { get; set; }
+
+        /// <summary>
+        /// 折扣金額
+        /// </summary>
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal DiscountAmount { get; set; } = 0;
+
         // ==================== 其他資訊 ====================
         [StringLength(1000)]
         public string? OrderNote { get; set; }
 
         // ==================== 導航屬性 ====================
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+        // ==================== 軟刪除欄位 ====================
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
     }
 }

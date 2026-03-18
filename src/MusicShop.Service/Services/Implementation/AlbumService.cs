@@ -3,7 +3,6 @@ using MusicShop.Data.Entities;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Library.Helpers;
-using MusicShop.Service.ViewModels;
 using MusicShop.Service.ViewModels.Admin;
 using MusicShop.Service.ViewModels.Album;
 using MusicShop.Service.ViewModels.Shared;
@@ -22,18 +21,6 @@ namespace MusicShop.Service.Services.Implementation
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-        }
-
-        public async Task<IEnumerable<Album>> GetAlbumsAsync(
-            string? searchTerm = null,
-            int? artistCategoryId = null,
-            int? artistId = null,
-            int? productTypeId = null,
-            int? parentProductTypeId = null,
-            string? sortBy = null,
-            int? excludeId = null)
-        {
-            return await _unitOfWork.Albums.GetAlbumsAsync(searchTerm, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy, excludeId);
         }
 
         public async Task<IEnumerable<AlbumCardViewModel>> GetAlbumCardViewModelsAsync(
@@ -69,11 +56,6 @@ namespace MusicShop.Service.Services.Implementation
             return new PagedResult<AlbumCardViewModel>(viewModels, totalCount, page, pageSize);
         }
 
-        public async Task<Album?> GetAlbumDetailAsync(int id)
-        {
-            return await _unitOfWork.Albums.GetAlbumByIdAsync(id);
-        }
-
         public async Task<AlbumDetailViewModel?> GetAlbumDetailViewModelAsync(int id)
         {
             var album = await _unitOfWork.Albums.GetAlbumByIdAsync(id);
@@ -95,9 +77,9 @@ namespace MusicShop.Service.Services.Implementation
             var vm = _mapper.Map<AlbumDetailViewModel>(album);
 
             // RelatedAlbums 在 MapperProfile 中設為 Ignore（因為需要額外查詢，無法在單次映射中完成），
-            // 因此必須手動賦值。Take(8) 限制最多顯示 8 筆，對應前端一行 4 張卡片、最多兩行的版面配置。
+            // 因此必須手動賦值。
             vm.RelatedAlbums = _mapper.Map<List<AlbumCardViewModel>>(
-                relatedAlbums.Take(8).ToList());
+                relatedAlbums.Take(DisplayConstants.RelatedAlbumsCount).ToList());
 
             return vm;
         }
@@ -108,13 +90,6 @@ namespace MusicShop.Service.Services.Implementation
 
             var albums = await _unitOfWork.Albums.GetLatestAlbumsAsync(count);
             return _mapper.Map<IEnumerable<AlbumCardViewModel>>(albums);
-        }
-
-        public async Task<IEnumerable<Album>> GetLatestAlbumsAsync(int count)
-        {
-            ValidationHelper.ValidatePositive(count, "數量", nameof(count));
-
-            return await _unitOfWork.Albums.GetLatestAlbumsAsync(count);
         }
 
         public async Task<bool> IsStockAvailableAsync(int albumId, int quantity = 1)

@@ -1,0 +1,292 @@
+@model MusicShop.Service.ViewModels.Admin.AdminOrderDetailViewModel
+@{
+    ViewData["Title"] = $"訂單 #{Model.Id}";
+    ViewData["PageId"] = "admin-order-detail";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>📦 訂單 #@Model.Id</h3>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← 返回訂單列表</a>
+</div>
+
+<!-- 訂單狀態時間軸 -->
+@await Html.PartialAsync("_OrderTimeline", Model.Status)
+
+<div class="row">
+    <!-- 左側：訂單詳情 -->
+    <div class="col-lg-8 mb-4">
+
+        <!-- 基本資訊 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">
+                <i class="bi bi-info-circle me-1"></i>基本資訊
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">訂單編號</dt>
+                    <dd class="col-sm-8 fw-bold">#@Model.Id</dd>
+
+                    <dt class="col-sm-4">下單時間</dt>
+                    <dd class="col-sm-8">@Model.FormattedOrderDate</dd>
+
+                    @if (Model.FormattedUpdatedAt != null)
+                    {
+                        <dt class="col-sm-4">最後更新</dt>
+                        <dd class="col-sm-8">@Model.FormattedUpdatedAt</dd>
+                    }
+
+                    <dt class="col-sm-4">訂單狀態</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge @Model.CurrentStatusBadgeClass">@Model.CurrentStatusText</span>
+                        <small class="text-muted ms-2">@Model.CurrentStatusDescription</small>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- 會員資訊 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">
+                <i class="bi bi-person me-1"></i>會員資訊
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">@Model.UserEmail</dd>
+
+                    @if (!string.IsNullOrEmpty(Model.UserFullName))
+                    {
+                        <dt class="col-sm-4">姓名</dt>
+                        <dd class="col-sm-8">@Model.UserFullName</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        <!-- 收件人與配送 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">
+                <i class="bi bi-truck me-1"></i>收件人與配送
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">收件人</dt>
+                    <dd class="col-sm-8">@Model.ReceiverName</dd>
+
+                    <dt class="col-sm-4">聯絡電話</dt>
+                    <dd class="col-sm-8">@Model.ReceiverPhone</dd>
+
+                    <dt class="col-sm-4">配送方式</dt>
+                    <dd class="col-sm-8">@Model.DeliveryMethodText</dd>
+
+                    <dt class="col-sm-4">配送狀態</dt>
+                    <dd class="col-sm-8">@Model.DeliveryStatusText</dd>
+
+                    <dt class="col-sm-4">收件地址</dt>
+                    <dd class="col-sm-8">@Model.FullAddress</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- 付款資訊 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">
+                <i class="bi bi-wallet2 me-1"></i>付款資訊
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">付款方式</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge @Model.PaymentBadgeClass">@Model.PaymentMethodText</span>
+                    </dd>
+
+                    <dt class="col-sm-4">付款狀態</dt>
+                    <dd class="col-sm-8">@Model.PaymentStatusText</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- 發票資訊 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">
+                <i class="bi bi-receipt me-1"></i>發票資訊
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">發票類型</dt>
+                    <dd class="col-sm-8">@Model.InvoiceTypeText</dd>
+
+                    @if (!string.IsNullOrEmpty(Model.CompanyTaxId))
+                    {
+                        <dt class="col-sm-4">統一編號</dt>
+                        <dd class="col-sm-8">@Model.CompanyTaxId</dd>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.CompanyName))
+                    {
+                        <dt class="col-sm-4">公司抬頭</dt>
+                        <dd class="col-sm-8">@Model.CompanyName</dd>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.InvoiceCarrier))
+                    {
+                        <dt class="col-sm-4">電子發票載具</dt>
+                        <dd class="col-sm-8"><code>@Model.InvoiceCarrier</code></dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        <!-- 訂單備註 -->
+        @if (!string.IsNullOrEmpty(Model.OrderNote))
+        {
+            <div class="card shadow-sm mb-4">
+                <div class="card-header fw-bold">
+                    <i class="bi bi-chat-left-text me-1"></i>訂單備註
+                </div>
+                <div class="card-body">
+                    <p class="mb-0 text-muted">@Model.OrderNote</p>
+                </div>
+            </div>
+        }
+
+        <!-- 訂單商品明細 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">
+                <i class="bi bi-bag me-1"></i>訂單商品（共 @Model.TotalQuantity 件）
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>商品名稱</th>
+                                <th class="text-center">單價</th>
+                                <th class="text-center">數量</th>
+                                <th class="text-end">小計</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>@item.AlbumTitle</td>
+                                    <td class="text-center">NT$ @item.FormattedUnitPrice</td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end">NT$ @item.FormattedSubTotal</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右側：金額摘要與狀態操作 -->
+    <div class="col-lg-4">
+
+        <!-- 金額摘要 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">
+                <i class="bi bi-calculator me-1"></i>金額摘要
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>商品總計：</span>
+                    <span>NT$ @Model.FormattedTotalAmount</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>運費：</span>
+                    <span class="text-success">免費</span>
+                </div>
+                @if (Model.HasDiscount)
+                {
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>優惠券折扣：</span>
+                        <span class="text-danger">-NT$ @Model.FormattedDiscountAmount</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.CouponName))
+                {
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>使用優惠券：</span>
+                        <span class="text-info">@Model.CouponName</span>
+                    </div>
+                }
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <strong class="fs-5">實付金額：</strong>
+                    <strong class="fs-5 text-primary">NT$ @Model.FormattedFinalAmount</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- 更新訂單狀態 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-bold">
+                <i class="bi bi-arrow-repeat me-1"></i>更新訂單狀態
+            </div>
+            <div class="card-body">
+                <form asp-action="UpdateStatus" method="post" id="updateStatusForm"
+                      data-current-status="@Model.CurrentStatusText">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <select name="status" id="statusSelect" class="form-select">
+                            @foreach (var option in Model.ValidNextStatuses)
+                            {
+                                <option value="@option.StatusValue" selected="@option.IsCurrentStatus"
+                                        data-status-text="@option.FullText">
+                                    @option.FullText
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <button type="button" id="updateStatusBtn" class="btn btn-primary w-100"
+                            @(!Model.CanUpdateStatus ? "disabled" : "")>
+                        更新狀態
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('updateStatusBtn')?.addEventListener('click', function () {
+            const form = document.getElementById('updateStatusForm');
+            const select = document.getElementById('statusSelect');
+            const currentStatus = form.dataset.currentStatus;
+            const selectedOption = select.options[select.selectedIndex];
+            const newStatus = selectedOption.dataset.statusText || selectedOption.text;
+
+            if (currentStatus === newStatus) {
+                showWarning('新狀態與當前狀態相同，無需更新。');
+                return;
+            }
+
+            Swal.fire({
+                icon: 'question',
+                title: '確認更新訂單狀態',
+                html: `
+                    <div class="text-start">
+                        <p>確定要將訂單狀態更新為以下狀態嗎？</p>
+                        <p class="mb-1">目前狀態：<strong>${currentStatus}</strong></p>
+                        <p class="mb-0">更新為：<strong class="text-primary">${newStatus}</strong></p>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '確定更新',
+                cancelButtonText: '取消',
+                confirmButtonColor: '#0d6efd',
+                cancelButtonColor: '#6c757d',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    </script>
+}

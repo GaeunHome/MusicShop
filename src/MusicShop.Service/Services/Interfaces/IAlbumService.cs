@@ -1,6 +1,4 @@
-using MusicShop.Data.Entities;
 using MusicShop.Library.Helpers;
-using MusicShop.Service.ViewModels;
 using MusicShop.Service.ViewModels.Admin;
 using MusicShop.Service.ViewModels.Album;
 using MusicShop.Service.ViewModels.Shared;
@@ -13,22 +11,7 @@ namespace MusicShop.Service.Services.Interfaces
     public interface IAlbumService
     {
         /// <summary>
-        /// 取得專輯列表（支援搜尋與多重篩選）
-        /// 【返回 Entity，僅供 Service 層內部使用】
-        /// Controller 應使用 GetAlbumCardViewModelsAsync 或 GetAlbumSelectItemsAsync 取代
-        /// </summary>
-        Task<IEnumerable<Album>> GetAlbumsAsync(
-            string? searchTerm = null,
-            int? artistCategoryId = null,
-            int? artistId = null,
-            int? productTypeId = null,
-            int? parentProductTypeId = null,
-            string? sortBy = null,
-            int? excludeId = null);
-
-        /// <summary>
         /// 取得專輯列表 ViewModel（支援搜尋與多重篩選）
-        /// 【公開前台使用，返回 ViewModel，供 AlbumController 使用】
         /// </summary>
         Task<IEnumerable<AlbumCardViewModel>> GetAlbumCardViewModelsAsync(
             string? searchTerm = null,
@@ -40,14 +23,7 @@ namespace MusicShop.Service.Services.Interfaces
             int? excludeId = null);
 
         /// <summary>
-        /// 取得專輯詳細資訊（返回 Entity，僅供 Service 層內部使用）
-        /// Controller 應使用 GetAlbumDetailViewModelAsync 取代
-        /// </summary>
-        Task<Album?> GetAlbumDetailAsync(int id);
-
-        /// <summary>
         /// 取得專輯詳情 ViewModel（供展示層使用）
-        /// 【公開前台使用，返回 ViewModel，供 AlbumController 使用】
         /// </summary>
         Task<AlbumDetailViewModel?> GetAlbumDetailViewModelAsync(int id);
 
@@ -70,12 +46,6 @@ namespace MusicShop.Service.Services.Interfaces
         /// 【公開前台使用，返回 ViewModel，供 HomeController 使用】
         /// </summary>
         Task<IEnumerable<AlbumCardViewModel>> GetLatestAlbumCardsAsync(int count);
-
-        /// <summary>
-        /// 取得最新上架的專輯（返回 Entity，僅供 Service 層內部使用）
-        /// Controller 應使用 GetLatestAlbumCardsAsync 取代
-        /// </summary>
-        Task<IEnumerable<Album>> GetLatestAlbumsAsync(int count);
 
         /// <summary>
         /// 檢查專輯庫存是否充足

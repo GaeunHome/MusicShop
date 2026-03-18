@@ -42,8 +42,14 @@
     <!-- 訂單狀態時間軸元件樣式 -->
     <link rel="stylesheet" href="~/css/components/order-timeline.css" asp-append-version="true" />
 
-    @* 後台專屬樣式 *@
-    @if (ViewContext.RouteData.Values["controller"]?.ToString() == "Admin")
+    <!-- 搜尋即時建議樣式 -->
+    <link rel="stylesheet" href="~/css/components/search-suggestions.css" asp-append-version="true" />
+
+    <!-- 分頁元件樣式 -->
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+
+    @* 後台專屬樣式（Area 為 "Admin" 時載入）*@
+    @if (ViewContext.RouteData.Values["area"]?.ToString() == "Admin")
     {
         <link rel="stylesheet" href="~/css/pages/admin.css" asp-append-version="true" />
     }
@@ -79,7 +85,7 @@
                             <i class="bi bi-list" style="font-size: 1.6rem; color: #555;"></i>
                         </button>
                     </div>
-                    <a asp-controller="Home" asp-action="Index" class="logo-link">
+                    <a asp-area="" asp-controller="Home" asp-action="Index" class="logo-link">
                         <h2 class="logo-text mb-0">@siteSettings.SiteName</h2>
                     </a>
                     <!-- 右側圖示 -->
@@ -97,25 +103,25 @@
                                 @if (User.Identity!.IsAuthenticated)
                                 {
                                     <div class="dropdown-section">
-                                        <a asp-controller="Account" asp-action="Index" class="dropdown-link">我的帳戶</a>
-                                        <a asp-controller="Order" asp-action="Index" class="dropdown-link">訂單查詢</a>
-                                        <a href="#" class="dropdown-link">專屬優惠券</a>
-                                        <a asp-controller="Wishlist" asp-action="Index" class="dropdown-link">收藏清單</a>
+                                        <a asp-area="" asp-controller="Account" asp-action="Index" class="dropdown-link">我的帳戶</a>
+                                        <a asp-area="" asp-controller="Order" asp-action="Index" class="dropdown-link">訂單查詢</a>
+                                        <a asp-area="" asp-controller="Coupon" asp-action="Index" class="dropdown-link">專屬優惠券</a>
+                                        <a asp-area="" asp-controller="Wishlist" asp-action="Index" class="dropdown-link">收藏清單</a>
                                     </div>
                                     <div class="dropdown-divider"></div>
-                                    <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+                                    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
                                         <button type="button" class="dropdown-button secondary-button" onclick="confirmLogout()">登出</button>
                                     </form>
                                 }
                                 else
                                 {
-                                    <a asp-controller="Account" asp-action="Login" class="dropdown-button primary-button">會員登入</a>
-                                    <a asp-controller="Account" asp-action="Register" class="dropdown-button secondary-button">註冊新會員</a>
+                                    <a asp-area="" asp-controller="Account" asp-action="Login" class="dropdown-button primary-button">會員登入</a>
+                                    <a asp-area="" asp-controller="Account" asp-action="Register" class="dropdown-button secondary-button">註冊新會員</a>
                                     <div class="dropdown-divider"></div>
                                     <div class="dropdown-section">
-                                        <a asp-controller="Order" asp-action="Index" class="dropdown-link">訂單查詢</a>
-                                        <a href="#" class="dropdown-link">專屬優惠券</a>
-                                        <a asp-controller="Wishlist" asp-action="Index" class="dropdown-link">收藏清單</a>
+                                        <a href="#" class="dropdown-link" data-require-auth>訂單查詢</a>
+                                        <a href="#" class="dropdown-link" data-require-auth>專屬優惠券</a>
+                                        <a href="#" class="dropdown-link" data-require-auth>收藏清單</a>
                                     </div>
                                 }
                             </div>
@@ -123,7 +129,7 @@
                         <!-- 購物車圖示 -->
                         @if (User.Identity!.IsAuthenticated)
                         {
-                            <a asp-controller="Cart" asp-action="Index" class="nav-icon cart-icon" aria-label="購物車">
+                            <a asp-area="" asp-controller="Cart" asp-action="Index" class="nav-icon cart-icon" aria-label="購物車">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
                                     <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
                                 </svg>
@@ -152,7 +158,7 @@
         <!-- 搜尋彈出框 -->
         <div class="search-overlay" id="searchOverlay">
             <div class="search-container">
-                <form asp-controller="Album" asp-action="Index" method="get" class="search-form">
+                <form asp-area="" asp-controller="Album" asp-action="Index" method="get" class="search-form">
                     <input type="text" name="search" class="search-input" placeholder="搜尋專輯或藝人..." aria-label="搜尋商品" />
                     <button type="submit" class="search-submit-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
@@ -170,10 +176,10 @@
                 <div class="collapse" id="mainNavCollapse">
                     <ul class="nav-menu">
                         <li class="nav-menu-item">
-                            <a asp-controller="Home" asp-action="Index">Home</a>
+                            <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-menu-item mega-dropdown dropdown">
-                            <a asp-controller="Album" asp-action="Index">K-ARTIST</a>
+                            <a asp-area="" asp-controller="Album" asp-action="Index">K-ARTIST</a>
                             <button class="d-lg-none nav-mobile-toggle" type="button"
                                     data-nav-mobile-toggle>
                                 <i class="bi bi-chevron-down"></i>
@@ -185,6 +191,7 @@
                                         {
                                             <div class="col-md-4">
                                                 <a asp-controller="Album"
+                                                   asp-area=""
                                                    asp-action="Index"
                                                    asp-route-artistCategoryId="@group.CategoryId"
                                                    class="mega-menu-title-link">
@@ -195,6 +202,7 @@
                                                     {
                                                         <li>
                                                             <a asp-controller="Album"
+                                                               asp-area=""
                                                                asp-action="Index"
                                                                asp-route-artistId="@artist.Id">
                                                                 @artist.Name
@@ -211,7 +219,7 @@
                         @foreach (var parent in categoryTree)
                         {
                             <li class="nav-menu-item dropdown">
-                                <a asp-controller="Album" asp-action="Index" asp-route-parentProductTypeId="@parent.Id">@parent.Name</a>
+                                <a asp-area="" asp-controller="Album" asp-action="Index" asp-route-parentProductTypeId="@parent.Id">@parent.Name</a>
                                 <button class="d-lg-none nav-mobile-toggle" type="button"
                                         data-nav-mobile-toggle>
                                     <i class="bi bi-chevron-down"></i>
@@ -221,7 +229,7 @@
                                     {
                                         @foreach (var child in parent.Children)
                                         {
-                                            <li><a asp-controller="Album" asp-action="Index" asp-route-productTypeId="@child.Id">@child.Name</a></li>
+                                            <li><a asp-area="" asp-controller="Album" asp-action="Index" asp-route-productTypeId="@child.Id">@child.Name</a></li>
                                         }
                                     }
                                     else
@@ -234,11 +242,11 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-menu-item">
-                                <a asp-controller="Admin" asp-action="Index">後台管理</a>
+                                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">後台管理</a>
                             </li>
                         }
                         <li class="nav-menu-item">
-                            <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                     </ul>
                 </div>
@@ -260,12 +268,12 @@
                     <div class="col-md-3 mb-4">
                         <h5 class="footer-title mb-3">關於 @siteSettings.SiteName</h5>
                         <ul class="list-unstyled footer-links">
-                            <li><a asp-controller="Home" asp-action="Index">查詢</a></li> @* 首頁 *@
-                            <li><a asp-controller="Home" asp-action="About">關於我們</a></li> @* 尚未建立 About Action *@
-                            <li><a asp-controller="Account" asp-action="Index">我的帳戶</a></li> @* 會員中心 *@
-                            <li><a asp-controller="Home" asp-action="RefundPolicy">退款政策</a></li> @* 尚未建立 RefundPolicy Action *@
-                            <li><a asp-controller="Home" asp-action="Privacy">隱私政策</a></li> @* 已建立 *@
-                            <li><a asp-controller="Home" asp-action="Terms">服務條款</a></li> @* 尚未建立 Terms Action *@
+                            <li><a asp-area="" asp-controller="Home" asp-action="Index">查詢</a></li> @* 首頁 *@
+                            <li><a asp-area="" asp-controller="Home" asp-action="About">關於我們</a></li> @* 尚未建立 About Action *@
+                            <li><a asp-area="" asp-controller="Account" asp-action="Index">我的帳戶</a></li> @* 會員中心 *@
+                            <li><a asp-area="" asp-controller="Home" asp-action="RefundPolicy">退款政策</a></li> @* 尚未建立 RefundPolicy Action *@
+                            <li><a asp-area="" asp-controller="Home" asp-action="Privacy">隱私政策</a></li> @* 已建立 *@
+                            <li><a asp-area="" asp-controller="Home" asp-action="Terms">服務條款</a></li> @* 尚未建立 Terms Action *@
                         </ul>
                     </div>
 
@@ -355,6 +363,7 @@
     <!-- 前台功能模組 -->
     <script src="~/js/features/cart/cart.js" asp-append-version="true"></script>
     <script src="~/js/features/order/order.js" asp-append-version="true"></script>
+    <script src="~/js/features/search/search-suggestions.js" asp-append-version="true"></script>
 
     <!-- 後台管理模組 -->
     <script src="~/js/admin/album.js" asp-append-version="true"></script>

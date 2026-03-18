@@ -5,7 +5,7 @@ namespace MusicShop.Data.Entities;
 /// <summary>
 /// 商品類型模型（專輯、手燈、周邊商品等）
 /// </summary>
-public class ProductType
+public class ProductType : ISoftDeletable
 {
     /// <summary>
     /// 商品類型 ID
@@ -49,4 +49,8 @@ public class ProductType
     /// 此商品類型下的所有商品
     /// </summary>
     public ICollection<Album> Albums { get; set; } = new List<Album>();
+
+    // ===== 軟刪除欄位 =====
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
 }

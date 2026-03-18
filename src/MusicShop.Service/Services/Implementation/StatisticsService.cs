@@ -139,7 +139,6 @@ namespace MusicShop.Service.Services.Implementation
         {
             var count = await _unitOfWork.Statistics.GetArtistCountAsync();
 
-            // 商業邏輯：如果藝人數量為 0，記錄警告
             if (count == 0)
             {
                 _logger.LogWarning("系統中沒有任何藝人資料");
@@ -150,6 +149,21 @@ namespace MusicShop.Service.Services.Implementation
             }
 
             return count;
+        }
+
+        public async Task<int> GetBannerCountAsync()
+        {
+            return await _unitOfWork.Statistics.GetBannerCountAsync();
+        }
+
+        public async Task<int> GetFeaturedArtistCountAsync()
+        {
+            return await _unitOfWork.Statistics.GetFeaturedArtistCountAsync();
+        }
+
+        public async Task<int> GetCouponCountAsync()
+        {
+            return await _unitOfWork.Statistics.GetCouponCountAsync();
         }
     }
 }

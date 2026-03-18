@@ -3,7 +3,6 @@ using MusicShop.Data.Entities;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Library.Helpers;
-using MusicShop.Service.ViewModels;
 using MusicShop.Service.ViewModels.Admin;
 using MusicShop.Service.ViewModels.Shared;
 
@@ -21,27 +20,6 @@ public class ArtistService : IArtistService
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-    }
-
-    public async Task<IEnumerable<Artist>> GetAllArtistsAsync()
-    {
-        return await _unitOfWork.Artists.GetAllArtistsAsync();
-    }
-
-    public async Task<IEnumerable<Artist>> GetArtistsByCategoryIdAsync(int artistCategoryId)
-    {
-        ValidationHelper.ValidateId(artistCategoryId, "藝人分類 ID", nameof(artistCategoryId));
-        return await _unitOfWork.Artists.GetArtistsByCategoryIdAsync(artistCategoryId);
-    }
-
-    public async Task<Dictionary<ArtistCategory, IEnumerable<Artist>>> GetArtistsGroupedByCategoryAsync()
-    {
-        return await _unitOfWork.Artists.GetArtistsGroupedByCategoryAsync();
-    }
-
-    public async Task<Artist?> GetArtistByIdAsync(int id)
-    {
-        return await _unitOfWork.Artists.GetArtistByIdAsync(id);
     }
 
     public async Task<IEnumerable<SelectItemViewModel>> GetArtistSelectItemsAsync()

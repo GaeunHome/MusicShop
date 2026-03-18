@@ -1,0 +1,51 @@
+@*
+    後台管理側邊選單（Area 版）
+    使用 asp-area="Admin" 搭配各自的 Controller 名稱，
+    以 Controller 名稱判斷 active 狀態（取代舊版以 Action 名稱判斷）
+*@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+<div class="card mb-4">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="bi bi-speedometer2"></i> 後台管理</h5>
+    </div>
+    <div class="list-group list-group-flush">
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"
+           class="list-group-item list-group-item-action @(currentController == "Dashboard" ? "active" : "")">
+            <i class="bi bi-house-door"></i> 管理首頁
+        </a>
+        <a asp-area="Admin" asp-controller="Album" asp-action="Index"
+           class="list-group-item list-group-item-action @(currentController == "Album" ? "active" : "")">
+            <i class="bi bi-music-note-list"></i> 專輯管理
+        </a>
+        <a asp-area="Admin" asp-controller="Artist" asp-action="Index"
+           class="list-group-item list-group-item-action @(currentController == "Artist" ? "active" : "")">
+            <i class="bi bi-mic"></i> 藝人管理
+        </a>
+        <a asp-area="Admin" asp-controller="Category" asp-action="Index"
+           class="list-group-item list-group-item-action @(currentController == "Category" ? "active" : "")">
+            <i class="bi bi-tags"></i> 分類管理
+        </a>
+        <a asp-area="Admin" asp-controller="Order" asp-action="Index"
+           class="list-group-item list-group-item-action @(currentController == "Order" ? "active" : "")">
+            <i class="bi bi-box-seam"></i> 訂單管理
+        </a>
+        <a asp-area="Admin" asp-controller="User" asp-action="Index"
+           class="list-group-item list-group-item-action @(currentController == "User" ? "active" : "")">
+            <i class="bi bi-person-badge"></i> 使用者管理
+        </a>
+        <a asp-area="Admin" asp-controller="Banner" asp-action="Index"
+           class="list-group-item list-group-item-action @(currentController == "Banner" ? "active" : "")">
+            <i class="bi bi-image"></i> 幻燈片管理
+        </a>
+        <a asp-area="Admin" asp-controller="FeaturedArtist" asp-action="Index"
+           class="list-group-item list-group-item-action @(currentController == "FeaturedArtist" ? "active" : "")">
+            <i class="bi bi-star"></i> 精選藝人
+        </a>
+        <a asp-area="Admin" asp-controller="Coupon" asp-action="Index"
+           class="list-group-item list-group-item-action @(currentController == "Coupon" ? "active" : "")">
+            <i class="bi bi-ticket-perforated"></i> 優惠券管理
+        </a>
+    </div>
+</div>

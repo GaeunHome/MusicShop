@@ -11,6 +11,8 @@ public class OrderDetailViewModel
     public int Id { get; set; }
     public DateTime OrderDate { get; set; }
     public decimal TotalAmount { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal FinalAmount => TotalAmount - DiscountAmount;
 
     // 狀態相關
     /// <summary>
@@ -29,15 +31,24 @@ public class OrderDetailViewModel
     public string PaymentStatusText { get; set; } = string.Empty;
     public string DeliveryStatusText { get; set; } = string.Empty;
 
-    // 使用者資訊
-    public string UserName { get; set; } = string.Empty;
-    public string UserEmail { get; set; } = string.Empty;
+    // 收件人資訊
+    public string ReceiverName { get; set; } = string.Empty;
+    public string ReceiverPhone { get; set; } = string.Empty;
+
+    // 配送地址
+    public string FullAddress { get; set; } = string.Empty;
+
+    // 訂單備註
+    public string? OrderNote { get; set; }
 
     // 訂單明細
     public List<OrderItemViewModel> Items { get; set; } = new();
     public int TotalQuantity => Items.Sum(i => i.Quantity);
 
     public string FormattedTotalAmount => TotalAmount.ToString("N0");
+    public string FormattedDiscountAmount => DiscountAmount.ToString("N0");
+    public string FormattedFinalAmount => FinalAmount.ToString("N0");
+    public bool HasDiscount => DiscountAmount > 0;
     public string FormattedOrderDate => OrderDate.ToString("yyyy-MM-dd HH:mm:ss");
 }
 

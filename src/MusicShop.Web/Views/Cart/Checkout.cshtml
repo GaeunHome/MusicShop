@@ -433,6 +433,26 @@
 
                         <hr>
 
+                        <!-- 優惠券選擇 -->
+                        @{
+                            var availableCoupons = ViewBag.AvailableCoupons as IEnumerable<MusicShop.Service.ViewModels.Coupon.AvailableCouponViewModel>;
+                        }
+                        @if (availableCoupons != null && availableCoupons.Any())
+                        {
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-ticket-perforated me-1"></i>優惠券
+                                </label>
+                                <select name="UserCouponId" id="couponSelect" class="form-select form-select-sm">
+                                    <option value="">不使用優惠券</option>
+                                    @foreach (var coupon in availableCoupons)
+                                    {
+                                        <option value="@coupon.UserCouponId">@coupon.DisplayText</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+
                         <!-- 金額計算 -->
                         <div class="summary-row">
                             <span>商品總計</span>
@@ -442,12 +462,16 @@
                             <span>運費</span>
                             <span class="text-success">免費</span>
                         </div>
+                        <div class="summary-row" id="discount-row" style="display:none;">
+                            <span>優惠券折扣</span>
+                            <span class="text-danger" id="discount-amount">-NT$ 0</span>
+                        </div>
 
                         <hr>
 
                         <div class="summary-row summary-total">
                             <span class="fw-bold">應付金額</span>
-                            <span class="fw-bold text-primary fs-4">NT$ @Model.TotalAmount.ToString("N0")</span>
+                            <span class="fw-bold text-primary fs-4" id="final-amount">NT$ @Model.TotalAmount.ToString("N0")</span>
                         </div>
 
                         <!-- 提交按鈕 -->
@@ -533,6 +557,7 @@
 
     <!-- 購物車模組會自動處理結帳頁面的動態功能 -->
 
+    <script src="~/js/features/checkout/coupon.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function() {
             // 簡化驗證：完全依賴後端驗證（CheckoutViewModel.Validate）

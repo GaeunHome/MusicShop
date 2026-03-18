@@ -23,7 +23,14 @@ public interface IUserService
     /// <summary>
     /// 登入使用者
     /// </summary>
-    Task<(bool Success, string? FullName)> LoginAsync(string email, string password, bool rememberMe);
+    /// <returns>
+    /// Success：是否登入成功
+    /// FullName：使用者姓名（成功時）
+    /// IsLockedOut：帳號是否被鎖定
+    /// LockoutMinutes：剩餘鎖定分鐘數（鎖定時）
+    /// RemainingAttempts：剩餘可嘗試次數（失敗但未鎖定時）
+    /// </returns>
+    Task<(bool Success, string? FullName, bool IsLockedOut, int LockoutMinutes, int RemainingAttempts)> LoginAsync(string email, string password, bool rememberMe);
 
     /// <summary>
     /// 登出使用者

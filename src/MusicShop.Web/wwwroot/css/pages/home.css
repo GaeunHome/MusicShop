@@ -275,6 +275,31 @@
     color: #a855f7;
 }
 
+/* ==================== 精選藝人特區 ==================== */
+
+.featured-artist-section {
+    padding: 1.5rem;
+    background-color: #fafafa;
+    border-radius: 12px;
+}
+
+.featured-artist-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.featured-artist-name a {
+    color: #333;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+
+.featured-artist-name a:hover {
+    color: #a855f7;
+}
+
 /* ==================== 查看所有連結樣式 ==================== */
 
 /* 查看所有專輯連結 */

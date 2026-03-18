@@ -53,7 +53,7 @@ const AlbumAdmin = {
         this.artistCascade = new CascadeSelect({
             parentSelect: '#ArtistCategoryFilter',
             childSelect: '#ArtistSelect',
-            apiUrl: '/Admin/GetArtistsByCategory',
+            apiUrl: '/Admin/Artist/GetByCategory',
             paramName: 'categoryId',
             enableSelect2: true,
             select2Options: {
@@ -72,7 +72,7 @@ const AlbumAdmin = {
         this.productTypeCascade = new CascadeSelect({
             parentSelect: '#ParentCategorySelect',
             childSelect: '#ProductTypeSelect',
-            apiUrl: '/Admin/GetChildCategories',
+            apiUrl: '/Admin/Category/GetChildCategories',
             paramName: 'parentId',
             enableSelect2: false,
             emptyText: '請先選擇大分類',

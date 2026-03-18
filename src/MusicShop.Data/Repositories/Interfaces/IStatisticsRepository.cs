@@ -39,4 +39,19 @@ public interface IStatisticsRepository
     /// 取得藝人總數
     /// </summary>
     Task<int> GetArtistCountAsync();
+
+    /// <summary>
+    /// 取得幻燈片總數
+    /// </summary>
+    Task<int> GetBannerCountAsync();
+
+    /// <summary>
+    /// 取得精選藝人總數
+    /// </summary>
+    Task<int> GetFeaturedArtistCountAsync();
+
+    /// <summary>
+    /// 取得優惠券總數
+    /// </summary>
+    Task<int> GetCouponCountAsync();
 }

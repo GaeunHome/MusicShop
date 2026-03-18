@@ -231,6 +231,10 @@ namespace MusicShop.Data.Repositories.Implementation
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// 刪除專輯（軟刪除）。
+        /// 呼叫 Remove 後，SaveChangesAsync 會攔截並轉為軟刪除（設定 IsDeleted = true）。
+        /// </summary>
         public async Task DeleteAlbumAsync(int id)
         {
             var targetAlbum = await _context.Albums.FindAsync(id);

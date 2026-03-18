@@ -1,6 +1,4 @@
-using MusicShop.Data.Entities;
 using MusicShop.Library.Helpers;
-using MusicShop.Service.ViewModels;
 using MusicShop.Service.ViewModels.Admin;
 using MusicShop.Service.ViewModels.Shared;
 
@@ -12,32 +10,7 @@ namespace MusicShop.Service.Services.Interfaces;
 public interface IArtistService
 {
     /// <summary>
-    /// 取得所有藝人（返回 Entity，僅供 Service 層內部使用）
-    /// Controller 應使用 GetArtistSelectItemsAsync 取代
-    /// </summary>
-    Task<IEnumerable<Artist>> GetAllArtistsAsync();
-
-    /// <summary>
-    /// 根據藝人分類 ID 取得藝人列表（返回 Entity，僅供 Service 層內部使用）
-    /// Controller 應使用 GetArtistSelectItemsByCategoryIdAsync 取代
-    /// </summary>
-    Task<IEnumerable<Artist>> GetArtistsByCategoryIdAsync(int artistCategoryId);
-
-    /// <summary>
-    /// 取得藝人分組資料（返回 Entity，僅供 Service 層內部使用）
-    /// Controller 應使用 GetNavArtistGroupsAsync 取代
-    /// </summary>
-    Task<Dictionary<ArtistCategory, IEnumerable<Artist>>> GetArtistsGroupedByCategoryAsync();
-
-    /// <summary>
-    /// 根據 ID 取得單一藝人（返回 Entity，僅供 Service 層內部使用）
-    /// Controller 應使用 GetArtistNameByIdAsync 或 GetArtistCategoryIdByArtistIdAsync 取代
-    /// </summary>
-    Task<Artist?> GetArtistByIdAsync(int id);
-
-    /// <summary>
     /// 取得所有藝人下拉選單項目 ViewModel（供展示層 SelectList 使用）
-    /// Controller 應使用此方法取代 GetAllArtistsAsync，避免直接接觸 Entity
     /// </summary>
     Task<IEnumerable<SelectItemViewModel>> GetArtistSelectItemsAsync();
 

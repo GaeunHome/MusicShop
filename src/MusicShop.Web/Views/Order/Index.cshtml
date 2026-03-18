@@ -115,8 +115,17 @@
                                     <!-- 總金額和操作 -->
                                     <div class="col-md-6 text-end">
                                         <div class="mb-3">
+                                            @if (order.HasDiscount)
+                                            {
+                                                <div class="text-muted text-decoration-line-through small">
+                                                    商品總計：NT$@order.FormattedTotalAmount
+                                                </div>
+                                                <div class="text-danger small">
+                                                    優惠折扣：-NT$@order.FormattedDiscountAmount
+                                                </div>
+                                            }
                                             <h5 class="mb-0">
-                                                <strong class="text-primary">總金額：NT$@order.FormattedTotalAmount</strong>
+                                                <strong class="text-primary">實付金額：NT$@order.FormattedFinalAmount</strong>
                                             </h5>
                                         </div>
                                         <div class="d-flex gap-2 justify-content-end">

@@ -1,0 +1,69 @@
+@model IEnumerable<MusicShop.Service.ViewModels.Admin.FeaturedArtistListItemViewModel>
+@{
+    ViewData["Title"] = "精選藝人管理";
+    ViewData["PageId"] = "admin-featured-artists";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>⭐ 精選藝人管理</h3>
+    <a asp-action="Create" class="btn btn-primary">➕ 新增精選藝人</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>順序</th>
+                <th>藝人</th>
+                <th>專輯數</th>
+                <th>狀態</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.DisplayOrder</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            @if (item.HasProfileImage)
+                            {
+                                <img src="@item.ProfileImageUrl" alt="@item.ArtistName"
+                                     style="width:40px;height:40px;object-fit:cover;border-radius:50%;" class="me-2">
+                            }
+                            <span>@item.ArtistName</span>
+                        </div>
+                    </td>
+                    <td>@item.AlbumCount</td>
+                    <td>
+                        @if (item.IsActive)
+                        {
+                            <span class="badge bg-success">顯示中</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">已停用</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">編輯</a>
+
+                        <form asp-action="Delete" method="post" class="d-inline"
+                              onsubmit="return confirm('確定要移除此精選藝人嗎？')">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger">移除</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">尚未設定任何精選藝人</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

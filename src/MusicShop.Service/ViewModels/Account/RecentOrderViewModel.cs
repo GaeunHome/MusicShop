@@ -9,6 +9,8 @@ public class RecentOrderViewModel
     public int Id { get; set; }
     public DateTime OrderDate { get; set; }
     public decimal TotalAmount { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal FinalAmount => TotalAmount - DiscountAmount;
     public string StatusText { get; set; } = string.Empty;
     public string StatusBadgeClass { get; set; } = string.Empty;
     public string PaymentStatusText { get; set; } = string.Empty;
@@ -24,5 +26,7 @@ public class RecentOrderViewModel
     public int ExtraItemCount => TotalItemCount > 1 ? TotalItemCount - 1 : 0;
 
     public string FormattedTotalAmount => TotalAmount.ToString("N0");
+    public string FormattedFinalAmount => FinalAmount.ToString("N0");
+    public bool HasDiscount => DiscountAmount > 0;
     public string FormattedOrderDate => OrderDate.ToString("yyyy-MM-dd");
 }

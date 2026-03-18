@@ -21,14 +21,14 @@ namespace MusicShop.Service.ViewModels.Cart
         public int Quantity { get; set; }
 
         /// <summary>
-        /// 該商品小計（格式化後的字串，如 "1,200"）
+        /// 該商品小計金額
         /// </summary>
-        public string Subtotal { get; set; } = string.Empty;
+        public decimal Subtotal { get; set; }
 
         /// <summary>
-        /// 購物車總金額（格式化後的字串，如 "5,600"）
+        /// 購物車總金額
         /// </summary>
-        public string CartTotal { get; set; } = string.Empty;
+        public decimal CartTotal { get; set; }
 
         /// <summary>
         /// 購物車商品總數量

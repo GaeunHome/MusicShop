@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MusicShop.Data.Entities
 {
-    public class Album
+    public class Album : ISoftDeletable
     {
         public int Id { get; set; }
 
@@ -52,5 +52,12 @@ namespace MusicShop.Data.Entities
         public Artist? Artist { get; set; }
 
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        /// <summary>
+        /// 軟刪除欄位：用於標記專輯已被刪除但不從資料庫中移除
+        /// </summary>
+        /// IsDeleted = 1 表示已刪除，0 表示未刪除
+        /// DeletedAt 記錄刪除時間，方便後續清理或審計
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
     }
 }

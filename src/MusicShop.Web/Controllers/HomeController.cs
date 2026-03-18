@@ -2,25 +2,26 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Web.Infrastructure;
-using System.Security.Claims;
 
 namespace MusicShop.Controllers;
 
 /// <summary>
 /// 首頁控制器 - 展示層
 /// </summary>
-public class HomeController : Controller
+public class HomeController : BaseController
 {
     private readonly IAlbumService _albumService;
     private readonly IBannerService _bannerService;
     private readonly IWishlistService _wishlistService;
+    private readonly IFeaturedArtistService _featuredArtistService;
 
     public HomeController(IAlbumService albumService, IBannerService bannerService,
-        IWishlistService wishlistService)
+        IWishlistService wishlistService, IFeaturedArtistService featuredArtistService)
     {
         _albumService = albumService;
         _bannerService = bannerService;
         _wishlistService = wishlistService;
+        _featuredArtistService = featuredArtistService;
     }
 
     public async Task<IActionResult> Index()
@@ -29,8 +30,11 @@ public class HomeController : Controller
         ViewBag.Banners = await _bannerService.GetActiveBannerDisplaysAsync();
 
         // 傳遞使用者收藏清單 ID（供商品卡片判斷愛心狀態）
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetCurrentUserId();
         ViewBag.WishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId ?? string.Empty);
+
+        // 取得精選藝人特區資料
+        ViewBag.FeaturedArtists = await _featuredArtistService.GetActiveFeaturedArtistDisplaysAsync();
 
         // 從服務層取得最新上架的 8 個專輯 ViewModel（首頁展示用）
         var latestAlbums = await _albumService.GetLatestAlbumCardsAsync(8);

@@ -1,0 +1,25 @@
+@*
+    後台管理專用 Layout
+    繼承前台 _Layout（保留導覽列、Footer），
+    在 _Layout 的 container 內加入側邊選單 + 主要內容的左右欄位佈局。
+*@
+@{
+    Layout = "_Layout";
+}
+
+<partial name="_TempDataNotifications" />
+
+<div class="row mt-4">
+    <!-- 側邊選單 -->
+    <div class="col-lg-3 col-md-4 mb-4">
+        <partial name="_AdminMenu" />
+    </div>
+    <!-- 主要內容 -->
+    <div class="col-lg-9 col-md-8">
+        @RenderBody()
+    </div>
+</div>
+
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+}

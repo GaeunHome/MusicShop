@@ -1,0 +1,68 @@
+@model MusicShop.Service.ViewModels.Admin.ArtistFormViewModel
+@{
+    ViewData["Title"] = "編輯藝人";
+}
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white fw-bold">
+                    <i class="bi bi-pencil"></i> 編輯藝人
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                        {
+                            <div asp-validation-summary="All" class="alert alert-danger"></div>
+                        }
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label required">藝人名稱</label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ArtistCategoryId" class="form-label required">藝人分類</label>
+                            <select asp-for="ArtistCategoryId" asp-items="ViewBag.ArtistCategories" class="form-select">
+                                <option value="0">請選擇藝人分類</option>
+                            </select>
+                            <span asp-validation-for="ArtistCategoryId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">藝人簡介（選填）</label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ProfileImageUrl" class="form-label">形象圖片 URL（選填）</label>
+                            <input asp-for="ProfileImageUrl" class="form-control" />
+                            <small class="text-muted">請輸入完整的圖片網址</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DisplayOrder" class="form-label">排序順序</label>
+                            <input asp-for="DisplayOrder" class="form-control" type="number" />
+                            <small class="text-muted">數字越小排序越前面</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                <label asp-for="IsActive" class="form-check-label">上架中</label>
+                            </div>
+                            <small class="text-muted">關閉後藝人不會顯示在前台，但可在後台管理</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> 取消
+                            </a>
+                            <button type="submit" class="btn btn-primary">儲存變更</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

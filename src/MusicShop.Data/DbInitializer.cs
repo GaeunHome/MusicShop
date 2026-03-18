@@ -13,11 +13,8 @@ public static class DbInitializer
     /// 初始化角色、管理員帳戶和預設分類資料
     /// </summary>
     /// <remarks>
-    /// TODO: 目前各初始化步驟（角色、管理員、分類、藝人）各自獨立 SaveChanges，
-    /// 並未包裝在同一個資料庫交易中。若中途失敗（例如藝人建立失敗），
-    /// 已完成的步驟不會回滾，可能導致資料不一致。
-    /// 由於此方法僅在應用程式首次啟動時執行，且每步都有「已存在則跳過」的防護，
-    /// 重新啟動即可自動補齊，因此目前影響有限。
+    /// 角色和管理員帳戶由 Identity 管理（自帶交易），不在 DbContext 交易範圍內。
+    /// 分類和藝人的種子資料使用同一交易包裝，確保原子性：若任一步驟失敗，全部回滾。
     /// </remarks>
     public static async Task InitializeAsync(
         RoleManager<IdentityRole> roleManager,
@@ -25,17 +22,23 @@ public static class DbInitializer
         IConfiguration configuration,
         ApplicationDbContext context)
     {
-        // 建立角色
+        // Identity 操作（角色、管理員）自帶交易管理，不需要額外包裝
         await CreateRolesAsync(roleManager);
-
-        // 建立預設管理員（從設定檔讀取）
         await CreateDefaultAdminAsync(userManager, configuration);
 
-        // 建立預設的藝人分類和商品類型
-        await CreateDefaultCategoriesAsync(context);
-
-        // 建立預設的藝人/團體資料
-        await CreateDefaultArtistsAsync(context);
+        // 種子資料使用交易確保原子性
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        try
+        {
+            await CreateDefaultCategoriesAsync(context);
+            await CreateDefaultArtistsAsync(context);
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     /// <summary>

@@ -97,6 +97,10 @@ namespace MusicShop.Service.ViewModels.Cart
         [Display(Name = "電子發票載具")]
         public string? InvoiceCarrier { get; set; }
 
+        // ==================== 優惠券 ====================
+        [Display(Name = "優惠券")]
+        public int? UserCouponId { get; set; }
+
         // ==================== 其他資訊 ====================
         [StringLength(1000, ErrorMessage = "訂單備註不可超過 1000 個字元")]
         [Display(Name = "訂單備註")]

@@ -5,7 +5,7 @@ namespace MusicShop.Data.Entities;
 /// <summary>
 /// 藝人分類模型（男子團體、女子團體等）
 /// </summary>
-public class ArtistCategory
+public class ArtistCategory : ISoftDeletable
 {
     /// <summary>
     /// 藝人分類 ID
@@ -31,12 +31,11 @@ public class ArtistCategory
     public int DisplayOrder { get; set; } = 0;
 
     /// <summary>
-    /// 此藝人分類下的所有商品
-    /// </summary>
-    public ICollection<Album> Albums { get; set; } = new List<Album>();
-
-    /// <summary>
     /// 此藝人分類下的所有藝人/團體（如：BOY GROUP 分類下的 2PM、BTS、ASTRO 等）
     /// </summary>
     public ICollection<Artist> Artists { get; set; } = new List<Artist>();
+
+    // ===== 軟刪除欄位 =====
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
 }

@@ -11,12 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="16.1.1" />
+    <ProjectReference Include="..\MusicShop.Data\MusicShop.Data.csproj" />
+    <ProjectReference Include="..\MusicShop.Library\MusicShop.Library.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MusicShop.Data\MusicShop.Data.csproj" />
-    <ProjectReference Include="..\MusicShop.Library\MusicShop.Library.csproj" />
+    <PackageReference Include="AutoMapper" Version="16.1.1" />
   </ItemGroup>
 
 </Project>

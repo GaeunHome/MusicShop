@@ -66,6 +66,52 @@
     }
 }
 
+<!-- 精選藝人特區 -->
+@{
+    var featuredArtists = ViewBag.FeaturedArtists as IEnumerable<FeaturedArtistDisplayViewModel> ?? [];
+    var featuredList = featuredArtists.ToList();
+}
+
+@if (featuredList.Any())
+{
+    <div id="featured-artists" class="mb-5">
+        <div class="section-heading text-center mb-4">
+            <h2 class="section-title">精選藝人特區</h2>
+        </div>
+
+        @foreach (var artist in featuredList)
+        {
+            <div class="featured-artist-section mb-4">
+                <div class="d-flex align-items-center mb-3">
+                    @if (artist.HasProfileImage)
+                    {
+                        <img src="@artist.ProfileImageUrl" alt="@artist.ArtistName" class="featured-artist-avatar me-3" loading="lazy">
+                    }
+                    <h4 class="featured-artist-name mb-0">
+                        <a asp-controller="Album" asp-action="Index" asp-route-artistId="@artist.ArtistId" class="text-decoration-none">
+                            @artist.ArtistName
+                        </a>
+                    </h4>
+                </div>
+
+                @if (artist.Albums.Any())
+                {
+                    <div class="row row-cols-2 row-cols-lg-4 g-4">
+                        @foreach (var album in artist.Albums)
+                        {
+                            @await Html.PartialAsync("_AlbumCard", album)
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">此藝人目前沒有上架專輯</p>
+                }
+            </div>
+        }
+    </div>
+}
+
 <!-- 最新上架專輯區塊 -->
 <div id="latest-albums" class="mb-5">
     <div class="section-heading text-center mb-4">

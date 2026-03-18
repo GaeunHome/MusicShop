@@ -5,8 +5,6 @@ using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.ViewModels.Cart;
 using MusicShop.Library.Helpers;
 using MusicShop.Web.Infrastructure;
-using System.Security.Claims;
-
 namespace MusicShop.Controllers;
 
 /// <summary>
@@ -21,17 +19,20 @@ public class CartController : BaseController // 繼承自 BaseController，提�
     private readonly IOrderService _orderService;
     private readonly IUserService _userService;
     private readonly IEcpayLogisticsService _ecpayLogisticsService;
+    private readonly ICouponService _couponService;
 
     public CartController(
         ICartService cartService,
         IOrderService orderService,
         IUserService userService,
-        IEcpayLogisticsService ecpayLogisticsService)
+        IEcpayLogisticsService ecpayLogisticsService,
+        ICouponService couponService)
     {
         _cartService = cartService;
         _orderService = orderService;
         _userService = userService;
         _ecpayLogisticsService = ecpayLogisticsService;
+        _couponService = couponService;
     }
 
     // GET: /Cart
@@ -87,14 +88,24 @@ public class CartController : BaseController // 繼承自 BaseController，提�
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateQuantityAjax(int cartItemId, int quantity)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetCurrentUserId();
         if (string.IsNullOrEmpty(userId))
             return Json(new { success = false, message = "未登入" });
 
         try
         {
             var result = await _cartService.UpdateCartItemQuantityAjaxAsync(cartItemId, userId, quantity);
-            return Json(result);
+
+            // 格式化金額（Service 層回傳原始 decimal，由 Web 層負責顯示格式）
+            return Json(new
+            {
+                result.Success,
+                result.Message,
+                result.Quantity,
+                Subtotal = result.Subtotal.ToTaiwanPrice(),
+                CartTotal = result.CartTotal.ToTaiwanPrice(),
+                result.CartItemCount
+            });
         }
         catch (Exception)
         {
@@ -184,6 +195,9 @@ public class CartController : BaseController // 繼承自 BaseController，提�
 
         // 傳遞縣市清單給前端
         ViewBag.Cities = TaiwanDistricts.Cities;
+
+        // 傳遞可用優惠券
+        ViewBag.AvailableCoupons = await _couponService.GetAvailableCouponsForCheckoutAsync(userId);
 
         return View(viewModel);
     }
@@ -306,6 +320,7 @@ public class CartController : BaseController // 繼承自 BaseController，提�
         // 優化：直接從已取得的 cartItems 計算總計，避免重複查詢資料庫
         model.TotalAmount = cartItemViewModels.Sum(c => c.SubTotal);
         ViewBag.Cities = TaiwanDistricts.Cities;
+        ViewBag.AvailableCoupons = await _couponService.GetAvailableCouponsForCheckoutAsync(userId);
         return View("Checkout", model);
     }
 }

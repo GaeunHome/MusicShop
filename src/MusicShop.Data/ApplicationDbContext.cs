@@ -16,10 +16,25 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
     public DbSet<CartItem> CartItems { get; set; }
     public DbSet<Banner> Banners { get; set; }
     public DbSet<WishlistItem> WishlistItems { get; set; }
+    public DbSet<FeaturedArtist> FeaturedArtists { get; set; }
+    public DbSet<Coupon> Coupons { get; set; }
+    public DbSet<UserCoupon> UserCoupons { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        // ===== 軟刪除 Global Query Filter =====
+        // 所有實作 ISoftDeletable 的實體，查詢時自動排除已軟刪除的資料。
+        // 需要查詢已刪除資料時，使用 .IgnoreQueryFilters() 明確略過。
+        builder.Entity<Album>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Artist>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<ArtistCategory>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<ProductType>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Order>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Banner>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<FeaturedArtist>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Coupon>().HasQueryFilter(e => !e.IsDeleted);
 
         // 以下分類關聯皆使用 Restrict：刪除分類/藝人前必須先移除或重新指派所屬商品，
         // 避免意外串聯刪除大量專輯資料，由 Service 層在刪除前檢查並給予使用者明確提示。
@@ -118,5 +133,69 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .WithMany()
             .HasForeignKey(b => b.AlbumId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // FeaturedArtist 與 Artist 關聯
+        // 使用 Cascade：精選藝人僅是「標記」，藝人刪除後精選也無意義
+        builder.Entity<FeaturedArtist>()
+            .HasOne(fa => fa.Artist)
+            .WithMany()
+            .HasForeignKey(fa => fa.ArtistId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Coupon Code 唯一索引（過濾已軟刪除的紀錄）
+        builder.Entity<Coupon>()
+            .HasIndex(c => c.Code)
+            .IsUnique()
+            .HasFilter("IsDeleted = 0");
+
+        // UserCoupon 與 AppUser 關聯
+        builder.Entity<UserCoupon>()
+            .HasOne(uc => uc.User)
+            .WithMany(u => u.UserCoupons)
+            .HasForeignKey(uc => uc.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // UserCoupon 與 Coupon 關聯
+        builder.Entity<UserCoupon>()
+            .HasOne(uc => uc.Coupon)
+            .WithMany(c => c.UserCoupons)
+            .HasForeignKey(uc => uc.CouponId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // UserCoupon 與 Order 關聯（可為 null）
+        // 使用 NoAction 避免 SQL Server 循環串聯路徑（UserCoupon ↔ Order 雙向參照）
+        builder.Entity<UserCoupon>()
+            .HasOne(uc => uc.Order)
+            .WithMany()
+            .HasForeignKey(uc => uc.OrderId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // Order 與 UserCoupon 關聯（訂單可選擇性使用優惠券）
+        builder.Entity<Order>()
+            .HasOne(o => o.UserCoupon)
+            .WithMany()
+            .HasForeignKey(o => o.UserCouponId)
+            .OnDelete(DeleteBehavior.NoAction);
+    }
+
+    /// <summary>
+    /// 覆寫 SaveChangesAsync，攔截刪除操作並轉換為軟刪除。
+    /// 當 EF Core ChangeTracker 偵測到 ISoftDeletable 實體被標記為 Deleted 時，
+    /// 自動改為 Modified 狀態並設定 IsDeleted = true、DeletedAt = 當前時間。
+    /// </summary>
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<ISoftDeletable>())
+        {
+            if (entry.State == EntityState.Deleted)
+            {
+                // 將硬刪除轉換為軟刪除
+                entry.State = EntityState.Modified;
+                entry.Entity.IsDeleted = true;
+                entry.Entity.DeletedAt = DateTime.UtcNow;
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
     }
 }

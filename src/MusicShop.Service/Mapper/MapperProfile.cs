@@ -1,9 +1,11 @@
 using AutoMapper;
 using MusicShop.Data.Entities;
+using MusicShop.Library.Enums;
 using MusicShop.Service.ViewModels.Account;
 using MusicShop.Service.ViewModels.Admin;
 using MusicShop.Service.ViewModels.Album;
 using MusicShop.Service.ViewModels.Cart;
+using MusicShop.Service.ViewModels.Coupon;
 using MusicShop.Service.ViewModels.Home;
 using MusicShop.Service.ViewModels.Shared;
 using MusicShop.Service.ViewModels.Order;
@@ -83,6 +85,16 @@ namespace MusicShop.Service.Mapper
             CreateMap<ProductType, NavCategoryItemViewModel>()
                 .ForMember(d => d.Children, o => o.Ignore());
 
+            // ==================== FeaturedArtist 映射 ====================
+            CreateMap<FeaturedArtist, FeaturedArtistListItemViewModel>()
+                .ForMember(d => d.ArtistName, o => o.MapFrom(s => s.Artist.Name))
+                .ForMember(d => d.ProfileImageUrl, o => o.MapFrom(s => s.Artist.ProfileImageUrl))
+                .ForMember(d => d.AlbumCount, o => o.MapFrom(s => s.Artist.Albums != null ? s.Artist.Albums.Count : 0));
+
+            CreateMap<FeaturedArtist, FeaturedArtistFormViewModel>()
+                .ReverseMap()
+                .ForMember(d => d.Id, o => o.Ignore());
+
             // ==================== Banner 映射 ====================
             CreateMap<Banner, BannerDisplayViewModel>();
 
@@ -116,6 +128,28 @@ namespace MusicShop.Service.Mapper
                     o => o.MapFrom(s => s.Album != null ? s.Album.Price : 0m))
                 .ForMember(d => d.Stock,
                     o => o.MapFrom(s => s.Album != null ? s.Album.Stock : 0));
+
+            // ==================== Coupon 映射 ====================
+            CreateMap<Coupon, CouponListItemViewModel>()
+                .ForMember(d => d.IssuedCount, o => o.MapFrom(s => s.UserCoupons.Count))
+                .ForMember(d => d.UsedCount, o => o.MapFrom(s => s.UserCoupons.Count(uc => uc.IsUsed)));
+
+            CreateMap<Coupon, CouponFormViewModel>();
+
+            CreateMap<UserCoupon, UserCouponViewModel>()
+                .ForMember(d => d.CouponName, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.Name : "未知"))
+                .ForMember(d => d.CouponDescription, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.Description : null))
+                .ForMember(d => d.CouponCode, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.Code : ""))
+                .ForMember(d => d.DiscountType, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.DiscountType : DiscountType.FixedAmount))
+                .ForMember(d => d.DiscountValue, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.DiscountValue : 0m))
+                .ForMember(d => d.MaxDiscountAmount, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.MaxDiscountAmount : null));
+
+            CreateMap<UserCoupon, AvailableCouponViewModel>()
+                .ForMember(d => d.UserCouponId, o => o.MapFrom(s => s.Id))
+                .ForMember(d => d.CouponName, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.Name : "未知"))
+                .ForMember(d => d.DiscountType, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.DiscountType : DiscountType.FixedAmount))
+                .ForMember(d => d.DiscountValue, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.DiscountValue : 0m))
+                .ForMember(d => d.MaxDiscountAmount, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.MaxDiscountAmount : null));
 
             // ==================== Order 子項目映射 ====================
             CreateMap<OrderItem, OrderItemViewModel>()

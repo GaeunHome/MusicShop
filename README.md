@@ -32,7 +32,7 @@
 | **認證** | ASP.NET Core Identity | Cookie 認證 |
 | **快取** | IMemoryCache | 內建記憶體快取 |
 | **前端** | Razor Views + Bootstrap 5 + jQuery | - |
-| **設計模式** | Repository, UnitOfWork, DI, Factory, BaseController, Partial Controller | - |
+| **設計模式** | Repository, UnitOfWork, DI, Factory, BaseController, MVC Area | - |
 | **物流金流** | 綠界 ECPay 物流 API（超商取貨） | logistics API |
 
 ---
@@ -57,12 +57,19 @@
 | | 訂單追蹤 | ✅ | 5 種狀態（待處理→已完成） |
 | | 訂單時間軸 | ✅ | 視覺化訂單進度（v1.6.1） |
 | | 超商門市選取 | ✅ | 綠界 ECPay 物流 API |
+| **優惠券系統** | 後台優惠券 CRUD | ✅ | 固定金額 / 百分比折扣（v1.7.0） |
+| | 兌換碼兌換 | ✅ | 使用者輸入兌換碼領取（v1.7.0） |
+| | 統一發放 / 壽星發放 | ✅ | 管理員一鍵發放給全部使用者或當月壽星（v1.7.1） |
+| | 結帳套用優惠券 | ✅ | AJAX 即時計算折扣，訂單顯示折扣後金額（v1.7.1） |
+| | 取消訂單自動退券 | ✅ | 前台/後台取消均退還優惠券（v1.7.1） |
 | **後台管理** | 儀表板 | ✅ | 統計資訊（商品/訂單/銷售額） |
 | | 商品管理 | ✅ | CRUD + 雙分類 |
 | | 藝人管理 | ✅ | CRUD + 上架/下架 + 分頁 + 篩選（v1.6.2） |
-| | 訂單管理 | ✅ | 查看/更新狀態 |
+| | 訂單管理 | ✅ | 完整訂單詳情（收件人、配送、付款、發票、優惠券、備註）（v1.7.1） |
 | | 使用者管理 | ✅ | 角色切換（Admin/User） |
 | | 幻燈片管理 | ✅ | CRUD + 圖片上傳 + 商品聯動 |
+| | 精選藝人管理 | ✅ | CRUD + 首頁展示（v1.7.0） |
+| | 優惠券管理 | ✅ | CRUD + 統一發放 + 壽星發放（v1.7.1） |
 | **收藏清單** | 加入最愛 | ✅ | AJAX 即時切換 |
 | | 收藏清單頁 | ✅ | 顯示收藏商品，可直接移除 |
 | **效能與品質** | MemoryCache 快取 | ✅ | 分類與商品類型快取（v1.6.1） |
@@ -97,7 +104,8 @@ SQL Server
 | **Dependency Injection** | `Program.cs` | 降低耦合度 |
 | **Factory Pattern** | `IDbContextFactory<T>` | 避免 DbContext 並行問題 |
 | **BaseController** | `BaseController` | 共用控制器邏輯萃取 |
-| **Partial Controller** | `Controllers/Admin/` | 以 partial class 拆分大型控制器 |
+| **MVC Area** | `Areas/Admin/` | 後台管理功能獨立 Area 拆分 |
+| **Soft Delete** | `ISoftDeletable` + Global Query Filter | 軟刪除保留資料完整性 |
 | **MemoryCache** | `IMemoryCache` | 減少重複資料庫查詢 |
 | **Middleware** | `GlobalExceptionMiddleware` | 集中處理未捕獲例外 |
 | **View Components** | `ViewComponents/` | 可重複使用的 UI 元件 |
@@ -169,11 +177,12 @@ MusicShop/
 ├── src/
 │   ├── MusicShop.Data/                  # 資料存取層
 │   │   ├── Entities/                    # 實體模型（AppUser, Album, Banner, Order...）
+│   │   │   └── ISoftDeletable.cs        # 軟刪除介面
 │   │   ├── Repositories/
 │   │   │   ├── Interfaces/              # Repository 介面
 │   │   │   └── Implementation/          # Repository 實作
 │   │   ├── UnitOfWork/                  # IUnitOfWork / UnitOfWork
-│   │   ├── ApplicationDbContext.cs
+│   │   ├── ApplicationDbContext.cs      # DbContext（含軟刪除攔截與 Global Query Filter）
 │   │   ├── DbInitializer.cs
 │   │   └── Migrations/                  # EF Core 遷移檔案
 │   │
@@ -190,12 +199,13 @@ MusicShop/
 │   │   └── Enums/                       # 共用列舉定義
 │   │
 │   └── MusicShop.Web/                   # 展示層
-│       ├── Controllers/                 # MVC 控制器
-│       │   ├── Admin/                   # 後台管理 partial class 控制器
+│       ├── Controllers/                 # 前台 MVC 控制器
 │       │   └── Api/                     # RESTful API 控制器
+│       ├── Areas/Admin/                 # 後台管理 Area
+│       │   ├── Controllers/             # Dashboard, Album, Artist, Category, Order, User, Banner
+│       │   └── Views/                   # 後台管理 Views
 │       ├── Infrastructure/              # Web 基礎設施（圖片服務、ViewComponent、中間件、設定模型、常數）
 │       ├── Views/
-│       │   ├── Admin/                   # 後台管理 Views
 │       │   ├── Shared/                  # 共用局部視圖（_AlbumCard 等）
 │       │   └── Home/                    # 動態幻燈片首頁
 │       └── wwwroot/
@@ -225,6 +235,9 @@ MusicShop/
 | **CartItems** | 購物車項目 | UserId, AlbumId, Quantity |
 | **WishlistItems** | 收藏清單項目 | UserId, AlbumId, AddedAt（唯一索引） |
 | **Banners** | 首頁幻燈片 | Title, ImageUrl, AlbumId, IsActive |
+| **FeaturedArtists** | 精選藝人 | ArtistId, DisplayOrder, IsActive |
+| **Coupons** | 優惠券模板 | Code, DiscountType, DiscountValue, ValidDays |
+| **UserCoupons** | 使用者持有的優惠券 | UserId, CouponId, ExpiresAt, IsUsed, OrderId |
 | **AspNetUsers** | 使用者資料 | Email, PasswordHash, FullName |
 | **AspNetRoles** | 角色資料 | User, Admin |
 
@@ -240,57 +253,68 @@ MusicShop/
 | OrderItem → Album (多對一) | Restrict |
 | CartItem → User / Album | Cascade / Restrict |
 | Banner → Album (多對一) | SetNull |
+| FeaturedArtist → Artist (多對一) | Cascade |
+| UserCoupon → User (多對一) | Cascade |
+| UserCoupon → Coupon (多對一) | Restrict |
+| UserCoupon ↔ Order (雙向可選) | NoAction |
 
 ---
 
 ## 版本歷史
 
-### v1.6.3 (2026-03-17) - 購物車 API 化、前端程式碼審查與清理
+### v1.7.1 (2026-03-18) - 優惠券系統完善、訂單詳情強化、程式碼品質審查
 
-- 新增 `CartApiController`（RESTful API）：`POST /api/cart/add`、`GET /api/cart/count`
-- 加入購物車改為 AJAX（不再整頁跳轉），購物車 Badge 即時更新 + 彈跳動畫
-- `AjaxHelper` 新增 `postJson()` 方法支援 JSON API 呼叫
-- 全面前端程式碼審查與清理：
-  - 修復 `detail.js` 引用錯誤 DOM ID 的 Bug（數量 +/- 按鈕未同步 AJAX 提交值）
-  - 修復 `init.js` 呼叫不存在的 `.init()` 方法（改為正確的 `.initList()`）
-  - 修復 `admin/artist.js` 從未載入也未初始化的問題
-  - 刪除 `detail.js` 中被 `wishlist.js` 取代的死代碼
-  - 刪除 `common.js` 中從未觸發的 `bindLogoutHandler`
-  - 刪除未被引用的 `_SkeletonCard.cshtml` 局部視圖
-  - 移除 `Admin/Album/Create.cshtml` 與 `Edit.cshtml` 重複載入的 `admin/album.js`
-  - 移除 `Album/Index.cshtml` 與 `init.js` 重複的初始化呼叫
-  - 清除 `carousel.js`、`admin/album.js`、`admin/artist.js`、`init.js` 中的除錯 `console.log`
+#### 優惠券系統修復與強化
+- 修復結帳使用優惠券導致訂單錯誤的 Bug（交易內 SaveChanges 取得訂單 ID）
+- 所有訂單頁面顯示折扣後實付金額（前台 3 頁 + 後台 2 頁 + 帳號首頁）
+- 前台/後台取消訂單均自動退還優惠券（後台 `UpdateOrderStatusAsync` 補上恢復庫存與退券邏輯）
+- 新增「統一發放」功能，管理員可一鍵發放優惠券給所有使用者
 
-### v1.6.2 (2026-03-17) - 藝人管理強化與 Bug 修復
+#### 訂單詳情資訊完善
+- 前台訂單詳情新增：收件人資訊、配送地址、付款方式、訂單備註
+- 後台訂單詳情全面重構為分類卡片佈局：基本資訊、會員、收件人與配送、付款、發票、備註、商品明細、金額摘要（含優惠券名稱）、狀態管理
 
-- 藝人管理頁面重新設計：分頁瀏覽、分類與上架狀態篩選、商品數量顯示
-- 藝人上架/下架功能（`IsActive` 欄位），下架藝人不在前台導覽列顯示
-- 新增藝人時顯示目前最大排序值，方便決定排序位置
-- 修復收藏功能（Wishlist）500 錯誤：修正 `ApplicationDbContext` 中 WishlistItem 關聯設定
-- 修復訂單建立失敗：補建 `Order.UpdatedAt` 欄位的資料庫遷移
-- 新增 `.vscode/launch.json` 支援 VS Code 一鍵啟動偵錯
+#### 程式碼品質全面審查
+- 統一 EF Core 版本（Data 10.0.0 → 10.0.3，與 Web 一致）
+- 修正 `CouponRepository.UpdateUserCouponAsync` 的錯誤 async 模式
+- 刪除未使用的 `AlbumIndexViewModel`
+- 硬編碼 magic numbers 提取為 `DisplayConstants` 常數（`Take(8)`, `Take(4)`, `Take(3)`, `count=5`）
+- CSS class 邏輯從 OrderService 移至 `OrderHelper.GetPaymentBadgeClass()`
+- CouponService / FeaturedArtistService 手動 `.Select()` 映射改為 AutoMapper
+- MapperProfile 新增 Coupon 相關 4 組映射
+- 清理 `artist.js` 未使用的 `initCreate/initEdit` 方法
+- 後台表單版面寬度調整（移除多餘的 `row justify-content-center` 和 `max-width:640px` 限制）
 
-### v1.6.1 (2026-03-17) - 分頁、快取與 SEO 優化
+### v1.7.0 (2026-03-18) - Cookie 安全強化、軟刪除機制、MVC Area 拆分
 
-- 商品列表分頁瀏覽（伺服器端分頁，`PagedResult<T>` 模型）
-- MemoryCache 快取機制（分類與商品類型資料，`CacheKeys` 常數集中管理）
-- 全域例外處理中介軟體（`GlobalExceptionMiddleware`，統一錯誤頁面與日誌記錄）
-- SEO 優化（Open Graph meta tags + Schema.org 結構化資料）
-- 訂單時間軸視覺化（訂單詳情頁顯示狀態進度）
-- Web 層重構：`Services/` 更名為 `Infrastructure/`，新增 `Middleware/`、`Constants/`、`Models/` 目錄
-- 後台控制器改用 partial class 拆分至 `Controllers/Admin/`
-- 控制器共用邏輯萃取至 `BaseController`
+#### Cookie 驗證安全強化
+- Cookie 新增 `HttpOnly`、`Secure`、`SameSite=Lax` 安全屬性，防止 XSS 竊取 Session 與 CSRF 攻擊
+- 自訂 Cookie 名稱 `MusicShop.Auth`，避免預設名稱暴露技術棧
+- Cookie 過期時間設為 2 小時 + 滑動過期，閒置自動登出
+- Identity 帳號鎖定策略：連續 5 次登入失敗鎖定 15 分鐘，防止暴力破解
 
-### v1.6.0 (2026-03-16) - 購物車登入提示優化
+#### 軟刪除（Soft Delete）機制
+- 新增 `ISoftDeletable` 介面（`IsDeleted` + `DeletedAt` 欄位）
+- 6 個實體實作軟刪除：Album、Artist、Order、Banner、ProductType、ArtistCategory
+- `ApplicationDbContext` 覆寫 `SaveChangesAsync`，自動攔截刪除操作轉為軟刪除
+- EF Core Global Query Filter 自動過濾已刪除資料，需查詢時用 `.IgnoreQueryFilters()`
+- CartItem、WishlistItem、OrderItem 維持硬刪除（暫存性質）
 
-- 未登入點擊導覽列購物車圖示時，以 SweetAlert2 彈跳視窗提示「請先登入」
-- 提供「立即登入」（帶 returnUrl）與「稍後再說」兩個選項
-- 沿用現有 `data-require-auth` + `Common.bindAuthGuard()` 機制
+#### MVC Area 拆分
+- 後台管理從單一 `AdminController`（partial class）重構為 `Areas/Admin/` Area
+- 拆分為 7 個獨立 Controller：Dashboard、Album、Artist、Category、Order、User、Banner
+- 路由格式：`/Admin/{Controller}/{Action}/{id?}`（如 `/Admin/Album/Edit/5`）
+- Action 名稱簡化：`AlbumCreate` → `Create`、`AlbumEdit` → `Edit` 等
+- 刪除舊的 `Controllers/Admin/` partial class 檔案與 `Views/Admin/` 目錄
 
-### 歷史版本摘要（v1.0.0 ~ v1.5.2）
+### 歷史版本摘要（v1.0.0 ~ v1.6.3）
 
 | 版本 | 日期 | 主要內容 |
 |------|------|---------|
+| **v1.6.3** | 2026-03-17 | 購物車 API 化（AJAX 不跳轉）、Badge 即時更新、前端程式碼審查與清理 |
+| **v1.6.2** | 2026-03-17 | 藝人管理強化（分頁、篩選、上下架）、修復 Wishlist 與訂單 Bug |
+| **v1.6.1** | 2026-03-17 | 商品分頁瀏覽、MemoryCache 快取、全域例外處理、SEO 優化、訂單時間軸 |
+| **v1.6.0** | 2026-03-16 | 購物車圖示加入登入提示彈跳視窗（SweetAlert2） |
 | **v1.5.2** | 2026-03-11 | 首頁商品卡片改用共用局部視圖；收藏頁補上樣式 |
 | **v1.5.1** | 2026-03-11 | 未登入操作改以 SweetAlert2 彈窗提示；全域攔截機制 |
 | **v1.5.0** | 2026-03-11 | 收藏清單功能（WishlistItem、AJAX 愛心切換） |
@@ -334,13 +358,16 @@ MusicShop/
 | 項目 | 實作 |
 |------|------|
 | **密碼加密** | PBKDF2 演算法 + 唯一 Salt |
-| **CSRF 防護** | `[ValidateAntiForgeryToken]` |
+| **Cookie 安全** | HttpOnly + Secure + SameSite=Lax + 自訂名稱 + 2 小時過期 |
+| **帳號鎖定** | 連續 5 次登入失敗鎖定 15 分鐘，防止暴力破解 |
+| **CSRF 防護** | `[ValidateAntiForgeryToken]` + `SameSite=Lax` |
 | **SQL 注入防護** | EF Core 參數化查詢 |
-| **XSS 防護** | Razor 自動編碼 |
+| **XSS 防護** | Razor 自動編碼 + Cookie HttpOnly |
 | **敏感資訊保護** | `appsettings.json` 已加入 `.gitignore` |
 | **權限控制** | `[Authorize]` + 角色驗證（Admin/User） |
 | **並發控制** | 樂觀並發（`[Timestamp]` RowVersion） |
 | **交易保護** | 資料庫交易確保原子性（ACID） |
+| **軟刪除** | `ISoftDeletable` + Global Query Filter，保留資料完整性 |
 | **全域例外處理** | Middleware 統一攔截未捕獲例外 |
 
 ---

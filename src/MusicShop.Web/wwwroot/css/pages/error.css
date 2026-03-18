@@ -1,0 +1,164 @@
+/* 錯誤頁面樣式 */
+
+/* 錯誤頁面容器 */
+.error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+/* 錯誤圖示 */
+.error-icon {
+    font-size: 5rem;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+    animation: error-icon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes error-icon-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.85; }
+}
+
+/* 狀態碼 */
+.error-status-code {
+    font-size: 6rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    letter-spacing: -2px;
+}
+
+/* 錯誤標題 */
+.error-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.75rem;
+}
+
+/* 錯誤訊息 */
+.error-message {
+    font-size: 1.05rem;
+    color: #777;
+    max-width: 480px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+}
+
+/* 按鈕群組 */
+.error-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* 主要按鈕（返回首頁） */
+.error-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.75rem;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(177, 156, 217, 0.35);
+}
+
+.error-btn-primary:hover {
+    background: linear-gradient(135deg, var(--color-primary-dark), #8570b0);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(177, 156, 217, 0.5);
+}
+
+/* 次要按鈕（返回上一頁） */
+.error-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.75rem;
+    background: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.error-btn-secondary:hover {
+    background: rgba(177, 156, 217, 0.1);
+    color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    transform: translateY(-2px);
+}
+
+/* Request ID（僅開發環境顯示） */
+.error-request-id {
+    margin-top: 2rem;
+    padding: 0.75rem 1.25rem;
+    background: #f8f8fa;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #999;
+}
+
+.error-request-id code {
+    color: var(--color-primary);
+    font-weight: 500;
+}
+
+/* 裝飾分隔線 */
+.error-divider {
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-primary), #d4c5f0);
+    border: none;
+    border-radius: 2px;
+    margin: 1rem auto 1.5rem;
+}
+
+/* 響應式調整 */
+@media (max-width: 576px) {
+    .error-status-code {
+        font-size: 4rem;
+    }
+
+    .error-icon {
+        font-size: 3.5rem;
+    }
+
+    .error-title {
+        font-size: 1.35rem;
+    }
+
+    .error-message {
+        font-size: 0.95rem;
+    }
+
+    .error-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .error-btn-primary,
+    .error-btn-secondary {
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+    }
+}

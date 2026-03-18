@@ -168,8 +168,8 @@ namespace MusicShop.Service.Services.Implementation
                     Success = true,
                     Message = "數量已更新",
                     Quantity = quantity,
-                    Subtotal = itemSubtotal.ToTaiwanPrice(),
-                    CartTotal = totalCartAmount.ToTaiwanPrice(),
+                    Subtotal = itemSubtotal,
+                    CartTotal = totalCartAmount,
                     CartItemCount = totalCartQuantity
                 };
             }
@@ -179,11 +179,7 @@ namespace MusicShop.Service.Services.Implementation
                 return new CartUpdateResult
                 {
                     Success = false,
-                    Message = ex.Message,
-                    Quantity = 0,
-                    Subtotal = "0",
-                    CartTotal = "0",
-                    CartItemCount = 0
+                    Message = ex.Message
                 };
             }
             catch (InvalidOperationException ex)
@@ -192,11 +188,7 @@ namespace MusicShop.Service.Services.Implementation
                 return new CartUpdateResult
                 {
                     Success = false,
-                    Message = ex.Message,
-                    Quantity = 0,
-                    Subtotal = "0",
-                    CartTotal = "0",
-                    CartItemCount = 0
+                    Message = ex.Message
                 };
             }
             catch (Exception)
@@ -205,11 +197,7 @@ namespace MusicShop.Service.Services.Implementation
                 return new CartUpdateResult
                 {
                     Success = false,
-                    Message = "更新數量時發生錯誤，請稍後再試",
-                    Quantity = 0,
-                    Subtotal = "0",
-                    CartTotal = "0",
-                    CartItemCount = 0
+                    Message = "更新數量時發生錯誤，請稍後再試"
                 };
             }
         }

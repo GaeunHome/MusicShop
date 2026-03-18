@@ -5,7 +5,7 @@ namespace MusicShop.Data.Entities;
 /// <summary>
 /// 藝人/團體實體模型（如：2PM、BTS、BLACKPINK 等具體藝人團體）
 /// </summary>
-public class Artist
+public class Artist : ISoftDeletable
 {
     /// <summary>
     /// 藝人 ID
@@ -58,4 +58,8 @@ public class Artist
     /// 此藝人的所有專輯
     /// </summary>
     public ICollection<Album> Albums { get; set; } = new List<Album>();
+
+    // ===== 軟刪除欄位 =====
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
 }

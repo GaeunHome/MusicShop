@@ -18,6 +18,8 @@ namespace MusicShop.Data.UnitOfWork
         IStatisticsRepository Statistics { get; }
         IBannerRepository Banners { get; }
         IWishlistRepository Wishlists { get; }
+        IFeaturedArtistRepository FeaturedArtists { get; }
+        ICouponRepository Coupons { get; }
 
         /// <summary>
         /// 開始資料庫交易

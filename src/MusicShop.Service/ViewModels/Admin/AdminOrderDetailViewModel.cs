@@ -12,27 +12,47 @@ public class AdminOrderDetailViewModel
     public int Id { get; set; }
     public DateTime OrderDate { get; set; }
     public decimal TotalAmount { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal FinalAmount => TotalAmount - DiscountAmount;
 
     /// <summary>
     /// 訂單狀態列舉值（供時間軸元件使用）
     /// </summary>
     public OrderStatus Status { get; set; }
 
+    public DateTime? UpdatedAt { get; set; }
+
     // 會員資訊
     public string UserEmail { get; set; } = string.Empty;
+    public string? UserFullName { get; set; }
 
     // 付款與配送（已格式化文字）
     public string PaymentMethodText { get; set; } = string.Empty;
     public string PaymentBadgeClass { get; set; } = string.Empty;
+    public string PaymentStatusText { get; set; } = string.Empty;
     public string DeliveryMethodText { get; set; } = string.Empty;
+    public string DeliveryStatusText { get; set; } = string.Empty;
 
     // 收件人資訊
     public string ReceiverName { get; set; } = string.Empty;
     public string ReceiverPhone { get; set; } = string.Empty;
     public string FullAddress { get; set; } = string.Empty;
 
+    // 發票資訊
+    public string InvoiceTypeText { get; set; } = string.Empty;
+    public string? CompanyTaxId { get; set; }
+    public string? CompanyName { get; set; }
+    public string? InvoiceCarrier { get; set; }
+
+    // 優惠券資訊
+    public string? CouponName { get; set; }
+
+    // 備註
+    public string? OrderNote { get; set; }
+
     // 訂單明細
     public List<OrderItemViewModel> Items { get; set; } = new();
+    public int TotalQuantity => Items.Sum(i => i.Quantity);
 
     // 狀態相關
     public string CurrentStatusText { get; set; } = string.Empty;
@@ -44,7 +64,11 @@ public class AdminOrderDetailViewModel
     public List<AdminOrderStatusOptionViewModel> ValidNextStatuses { get; set; } = new();
 
     public string FormattedTotalAmount => TotalAmount.ToString("N0");
+    public string FormattedDiscountAmount => DiscountAmount.ToString("N0");
+    public string FormattedFinalAmount => FinalAmount.ToString("N0");
+    public bool HasDiscount => DiscountAmount > 0;
     public string FormattedOrderDate => OrderDate.ToString("yyyy/MM/dd HH:mm");
+    public string? FormattedUpdatedAt => UpdatedAt?.ToString("yyyy/MM/dd HH:mm");
 }
 
 /// <summary>

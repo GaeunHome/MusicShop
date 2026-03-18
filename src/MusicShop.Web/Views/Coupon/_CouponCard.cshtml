@@ -1,0 +1,31 @@
+@model MusicShop.Service.ViewModels.Coupon.UserCouponViewModel
+
+<div class="col-md-6 col-lg-4">
+    <div class="card coupon-card @(Model.IsAvailable ? "" : "opacity-75")">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="card-title mb-0">@Model.CouponName</h6>
+                <span class="badge @Model.StatusBadgeClass">@Model.StatusText</span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.CouponDescription))
+            {
+                <p class="text-muted small mb-2">@Model.CouponDescription</p>
+            }
+
+            <div class="coupon-discount text-primary fw-bold fs-5 mb-2">
+                @Model.DiscountText
+            </div>
+
+            <div class="small text-muted">
+                <div>來源：@Model.SourceText</div>
+                <div>領取：@Model.IssuedAt.ToLocalTime().ToString("yyyy/MM/dd")</div>
+                <div>到期：@Model.ExpiresAt.ToLocalTime().ToString("yyyy/MM/dd")</div>
+                @if (Model.IsUsed && Model.OrderId.HasValue)
+                {
+                    <div>用於訂單：<a asp-controller="Order" asp-action="Detail" asp-route-id="@Model.OrderId">#@Model.OrderId</a></div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

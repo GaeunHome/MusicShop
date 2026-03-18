@@ -1,0 +1,24 @@
+/* 分頁元件樣式 */
+
+.pagination-custom .page-link {
+    color: var(--color-purple-2);
+    border-color: #e0d6f0;
+    transition: all 0.2s ease;
+}
+
+.pagination-custom .page-link:hover {
+    color: #fff;
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.pagination-custom .page-item.active .page-link {
+    color: #fff;
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.pagination-custom .page-item.disabled .page-link {
+    color: #ccc;
+    border-color: #e0d6f0;
+}

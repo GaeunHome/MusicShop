@@ -6,7 +6,7 @@
  * const artistCascade = new CascadeSelect({
  *     parentSelect: '#ArtistCategoryFilter',
  *     childSelect: '#ArtistSelect',
- *     apiUrl: '/Admin/GetArtistsByCategory',
+ *     apiUrl: '/Admin/Artist/GetByCategory',
  *     paramName: 'categoryId'
  * });
  */
@@ -74,18 +74,18 @@ class CascadeSelect {
             return;
         }
 
-        // 發送 AJAX 請求獲取子項目
-        $.ajax({
-            url: this.config.apiUrl,
-            type: 'GET',
-            data: { [this.config.paramName]: parentId },
-            success: (data) => {
-                this.onLoadSuccess(data, selectedId);
-            },
-            error: () => {
+        // 發送 AJAX 請求獲取子項目（統一使用 AjaxHelper）
+        AjaxHelper.get(this.config.apiUrl, { [this.config.paramName]: parentId })
+            .then(data => {
+                if (Array.isArray(data)) {
+                    this.onLoadSuccess(data, selectedId);
+                } else {
+                    this.onLoadError();
+                }
+            })
+            .catch(() => {
                 this.onLoadError();
-            }
-        });
+            });
     }
 
     /**
@@ -130,7 +130,9 @@ class CascadeSelect {
      */
     onLoadError() {
         this.childSelect.html('<option value="">載入失敗</option>');
-        alert('載入資料失敗，請重試');
+        if (typeof showError === 'function') {
+            showError('載入資料失敗，請重試');
+        }
     }
 
     /**

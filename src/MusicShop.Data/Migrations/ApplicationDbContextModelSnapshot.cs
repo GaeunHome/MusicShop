@@ -163,9 +163,6 @@ namespace MusicShop.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ArtistCategoryId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("ArtistId")
                         .HasColumnType("int");
 
@@ -175,12 +172,18 @@ namespace MusicShop.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("DescriptionImageUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
@@ -202,8 +205,6 @@ namespace MusicShop.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ArtistCategoryId");
 
                     b.HasIndex("ArtistId");
 
@@ -300,6 +301,9 @@ namespace MusicShop.Migrations
                     b.Property<int>("ArtistCategoryId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -308,6 +312,9 @@ namespace MusicShop.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
@@ -333,12 +340,18 @@ namespace MusicShop.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -364,6 +377,9 @@ namespace MusicShop.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
 
@@ -372,6 +388,9 @@ namespace MusicShop.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
@@ -411,6 +430,97 @@ namespace MusicShop.Migrations
                     b.ToTable("CartItems");
                 });
 
+            modelBuilder.Entity("MusicShop.Data.Entities.Coupon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("DiscountType")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRedeemable")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("MaxDiscountAmount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("ValidDays")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("IsDeleted = 0");
+
+                    b.ToTable("Coupons");
+                });
+
+            modelBuilder.Entity("MusicShop.Data.Entities.FeaturedArtist", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArtistId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArtistId");
+
+                    b.ToTable("FeaturedArtists");
+                });
+
             modelBuilder.Entity("MusicShop.Data.Entities.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -435,8 +545,14 @@ namespace MusicShop.Migrations
                         .HasMaxLength(8)
                         .HasColumnType("nvarchar(8)");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("DeliveryMethod")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<string>("District")
                         .HasMaxLength(50)
@@ -448,6 +564,9 @@ namespace MusicShop.Migrations
 
                     b.Property<int>("InvoiceType")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
@@ -494,11 +613,16 @@ namespace MusicShop.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("UserCouponId")
+                        .HasColumnType("int");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserCouponId");
 
                     b.HasIndex("UserId");
 
@@ -542,12 +666,18 @@ namespace MusicShop.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -562,6 +692,50 @@ namespace MusicShop.Migrations
                     b.HasIndex("ParentId");
 
                     b.ToTable("ProductTypes");
+                });
+
+            modelBuilder.Entity("MusicShop.Data.Entities.UserCoupon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CouponId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CouponId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserCoupons");
                 });
 
             modelBuilder.Entity("MusicShop.Data.Entities.WishlistItem", b =>
@@ -645,10 +819,6 @@ namespace MusicShop.Migrations
 
             modelBuilder.Entity("MusicShop.Data.Entities.Album", b =>
                 {
-                    b.HasOne("MusicShop.Data.Entities.ArtistCategory", null)
-                        .WithMany("Albums")
-                        .HasForeignKey("ArtistCategoryId");
-
                     b.HasOne("MusicShop.Data.Entities.Artist", "Artist")
                         .WithMany("Albums")
                         .HasForeignKey("ArtistId")
@@ -704,8 +874,24 @@ namespace MusicShop.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MusicShop.Data.Entities.FeaturedArtist", b =>
+                {
+                    b.HasOne("MusicShop.Data.Entities.Artist", "Artist")
+                        .WithMany()
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artist");
+                });
+
             modelBuilder.Entity("MusicShop.Data.Entities.Order", b =>
                 {
+                    b.HasOne("MusicShop.Data.Entities.UserCoupon", "UserCoupon")
+                        .WithMany()
+                        .HasForeignKey("UserCouponId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("MusicShop.Data.Entities.AppUser", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
@@ -713,6 +899,8 @@ namespace MusicShop.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+
+                    b.Navigation("UserCoupon");
                 });
 
             modelBuilder.Entity("MusicShop.Data.Entities.OrderItem", b =>
@@ -742,6 +930,32 @@ namespace MusicShop.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("MusicShop.Data.Entities.UserCoupon", b =>
+                {
+                    b.HasOne("MusicShop.Data.Entities.Coupon", "Coupon")
+                        .WithMany("UserCoupons")
+                        .HasForeignKey("CouponId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MusicShop.Data.Entities.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("MusicShop.Data.Entities.AppUser", "User")
+                        .WithMany("UserCoupons")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Coupon");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MusicShop.Data.Entities.WishlistItem", b =>
@@ -774,6 +988,8 @@ namespace MusicShop.Migrations
 
                     b.Navigation("Orders");
 
+                    b.Navigation("UserCoupons");
+
                     b.Navigation("WishlistItems");
                 });
 
@@ -784,9 +1000,12 @@ namespace MusicShop.Migrations
 
             modelBuilder.Entity("MusicShop.Data.Entities.ArtistCategory", b =>
                 {
-                    b.Navigation("Albums");
-
                     b.Navigation("Artists");
+                });
+
+            modelBuilder.Entity("MusicShop.Data.Entities.Coupon", b =>
+                {
+                    b.Navigation("UserCoupons");
                 });
 
             modelBuilder.Entity("MusicShop.Data.Entities.Order", b =>

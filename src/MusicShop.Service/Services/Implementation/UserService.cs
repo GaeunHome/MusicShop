@@ -69,19 +69,51 @@ public class UserService : IUserService
     }
 
     /// <summary>
-    /// 登入使用者
+    /// 登入使用者，回傳詳細的登入狀態供前端顯示對應提示
     /// </summary>
-    public async Task<(bool Success, string? FullName)> LoginAsync(string email, string password, bool rememberMe)
+    public async Task<(bool Success, string? FullName, bool IsLockedOut, int LockoutMinutes, int RemainingAttempts)> LoginAsync(string email, string password, bool rememberMe)
     {
-        var result = await _signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: false);
+        // lockoutOnFailure: true（CWE-307 防護的關鍵開關）
+        // 設為 true 時，每次密碼錯誤會遞增 AspNetUsers.AccessFailedCount，
+        // 達到 Program.cs 設定的 MaxFailedAccessAttempts（5 次）後觸發帳號鎖定。
+        // 設為 false 則永遠不鎖定，等同停用 Lockout 功能。
+        // 登入成功時 AccessFailedCount 自動歸零。
+        var result = await _signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: true);
 
+        // ─── 登入成功 ─────────────────────────────────────
         if (result.Succeeded)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            return (true, user?.FullName);
+            return (true, user?.FullName, false, 0, 0);
         }
 
-        return (false, null);
+        // ─── 帳號被鎖定 ───────────────────────────────────
+        // 計算剩餘鎖定時間，供前端顯示「請在 X 分鐘後重試」
+        if (result.IsLockedOut)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            var lockoutEnd = user != null ? await _userManager.GetLockoutEndDateAsync(user) : null;
+            var remainingMinutes = lockoutEnd.HasValue
+                ? (int)Math.Ceiling((lockoutEnd.Value - DateTimeOffset.UtcNow).TotalMinutes)
+                : 0;
+
+            _logger.LogWarning("帳號 {Email} 因連續登入失敗已被鎖定，剩餘 {Minutes} 分鐘", email, remainingMinutes);
+            return (false, null, true, Math.Max(remainingMinutes, 1), 0);
+        }
+
+        // ─── 密碼錯誤（未鎖定）─────────────────────────────
+        // 計算剩餘可嘗試次數，供前端顯示「還剩 X 次機會」
+        var failedUser = await _userManager.FindByEmailAsync(email);
+        var remainingAttempts = 0;
+
+        if (failedUser != null)
+        {
+            var maxAttempts = _userManager.Options.Lockout.MaxFailedAccessAttempts;
+            var failedCount = await _userManager.GetAccessFailedCountAsync(failedUser);
+            remainingAttempts = maxAttempts - failedCount;
+        }
+
+        return (false, null, false, 0, remainingAttempts);
     }
 
     /// <summary>

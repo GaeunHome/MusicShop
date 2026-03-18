@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
-using System.Security.Claims;
 
 namespace MusicShop.Web.Controllers.Api;
 
@@ -12,7 +11,7 @@ namespace MusicShop.Web.Controllers.Api;
 [ApiController]
 [Route("api/cart")]
 [Authorize]
-public class CartApiController : ControllerBase
+public class CartApiController : BaseApiController
 {
     private readonly ICartService _cartService;
 
@@ -28,7 +27,7 @@ public class CartApiController : ControllerBase
     [HttpGet("count")]
     public async Task<IActionResult> GetCount()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetCurrentUserId();
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
@@ -43,7 +42,7 @@ public class CartApiController : ControllerBase
     [HttpPost("add")]
     public async Task<IActionResult> Add([FromBody] AddToCartRequest request)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetCurrentUserId();
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 

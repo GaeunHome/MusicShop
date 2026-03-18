@@ -48,6 +48,8 @@ namespace MusicShop.Data.Repositories.Implementation
                     .ThenInclude(orderItem => orderItem.Album)
                         .ThenInclude(album => album!.ProductType)
                 .Include(order => order.User)
+                .Include(order => order.UserCoupon)
+                    .ThenInclude(uc => uc!.Coupon)
                 .FirstOrDefaultAsync(order => order.Id == id);
         }
 

@@ -1,0 +1,64 @@
+@model IEnumerable<MusicShop.Service.ViewModels.Admin.AlbumListItemViewModel>
+@{
+    ViewData["Title"] = "商品管理";
+    ViewData["PageId"] = "admin-albums";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>🎵 商品管理</h3>
+        <a asp-action="Create" class="btn btn-primary">➕ 新增商品</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>商品名稱</th>
+                    <th>藝人</th>
+                    <th>分類</th>
+                    <th>價格</th>
+                    <th>庫存</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var album in Model)
+                {
+                    <tr>
+                        <td>@album.Id</td>
+                        <td class="fw-bold">@album.Title</td>
+                        <td>@(album.ArtistName ?? "未設定")</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(album.ArtistCategoryName))
+                            {
+                                <span class="badge bg-primary">@album.ArtistCategoryName</span>
+                            }
+                            @if (!string.IsNullOrEmpty(album.ProductTypeName))
+                            {
+                                <span class="badge bg-secondary">@album.ProductTypeName</span>
+                            }
+                        </td>
+                        <td>@album.FormattedPrice</td>
+                        <td>
+                            <span class="badge @album.StockBadgeClass">@album.StockDisplayText</span>
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@album.Id"
+                               class="btn btn-sm btn-outline-primary">編輯</a>
+                            <form asp-action="Delete" method="post" class="d-inline" id="deleteForm_@album.Id">
+                                <input type="hidden" name="id" value="@album.Id" />
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        data-album-delete
+                                        data-album-title="@album.Title"
+                                        data-album-id="@album.Id">刪除</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+<a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary mt-3">← 返回後台</a>
+

@@ -9,6 +9,8 @@ public class OrderConfirmationViewModel
     public int Id { get; set; }
     public DateTime OrderDate { get; set; }
     public decimal TotalAmount { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal FinalAmount => TotalAmount - DiscountAmount;
     public string PaymentMethodText { get; set; } = string.Empty;
     public string DeliveryMethodText { get; set; } = string.Empty;
     public string StatusText { get; set; } = string.Empty;
@@ -17,6 +19,9 @@ public class OrderConfirmationViewModel
     public List<OrderConfirmationItemViewModel> Items { get; set; } = new();
 
     public string FormattedTotalAmount => TotalAmount.ToString("N0");
+    public string FormattedDiscountAmount => DiscountAmount.ToString("N0");
+    public string FormattedFinalAmount => FinalAmount.ToString("N0");
+    public bool HasDiscount => DiscountAmount > 0;
     public string FormattedOrderDate => OrderDate.ToString("yyyy/MM/dd HH:mm");
 }
 

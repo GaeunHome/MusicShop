@@ -1,0 +1,83 @@
+@model IEnumerable<MusicShop.Service.ViewModels.Admin.CouponListItemViewModel>
+@{
+    ViewData["Title"] = "優惠券管理";
+    ViewData["PageId"] = "admin-coupons";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>🎫 優惠券管理</h3>
+    <a asp-action="Create" class="btn btn-primary">➕ 新增優惠券</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>兌換碼</th>
+                <th>名稱</th>
+                <th>折扣</th>
+                <th>有效天數</th>
+                <th>已發/已用</th>
+                <th>狀態</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td><code>@item.Code</code></td>
+                    <td>@item.Name</td>
+                    <td>@item.DiscountText</td>
+                    <td>@item.ValidDays 天</td>
+                    <td>@item.IssuedCount / @item.UsedCount</td>
+                    <td>
+                        @if (item.IsActive)
+                        {
+                            <span class="badge bg-success">啟用</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">停用</span>
+                        }
+                        @if (item.IsRedeemable)
+                        {
+                            <span class="badge bg-info">可兌換</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">編輯</a>
+                        <a asp-action="Issue" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success">發放</a>
+
+                        <form asp-action="IssueAll" method="post" class="d-inline"
+                              onsubmit="return confirm('確定要統一發放此優惠券給所有使用者嗎？')">
+                            <input type="hidden" name="couponId" value="@item.Id" />
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-info">📢 統一發放</button>
+                        </form>
+
+                        <form asp-action="IssueBirthday" method="post" class="d-inline"
+                              onsubmit="return confirm('確定要發放此優惠券給當月壽星嗎？')">
+                            <input type="hidden" name="couponId" value="@item.Id" />
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-warning">🎂 壽星發放</button>
+                        </form>
+
+                        <form asp-action="Delete" method="post" class="d-inline"
+                              onsubmit="return confirm('確定要刪除此優惠券嗎？')">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger">刪除</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">尚未建立任何優惠券</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

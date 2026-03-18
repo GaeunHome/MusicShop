@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.ViewModels.Account;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Web.Infrastructure;
-using System.Security.Claims;
 
 namespace MusicShop.Controllers;
 
@@ -12,7 +11,7 @@ namespace MusicShop.Controllers;
 /// 使用三層式架構：Controller → Service → Repository
 /// 所有 Identity 操作透過 IUserService 封裝，不直接接觸 Data 層
 /// </summary>
-public class AccountController : Controller
+public class AccountController : BaseController
 {
     private readonly IOrderService _orderService;
     private readonly IUserService _userService;
@@ -57,15 +56,33 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid) return View(model);
 
-        var (success, fullName) = await _userService.LoginAsync(model.Email, model.Password, model.RememberMe);
+        var (success, fullName, isLockedOut, lockoutMinutes, remainingAttempts)
+            = await _userService.LoginAsync(model.Email, model.Password, model.RememberMe);
 
+        // 登入成功
         if (success)
         {
             TempData[TempDataKeys.Success] = $"歡迎回來，{fullName ?? ""}！登入成功。";
             return RedirectToAction("Index", "Home");
         }
 
-        ModelState.AddModelError(string.Empty, "帳號或密碼錯誤");
+        // 帳號被鎖定
+        if (isLockedOut)
+        {
+            TempData[TempDataKeys.Error] = $"帳號已被鎖定，請在 {lockoutMinutes} 分鐘後再試。";
+            return View(model);
+        }
+
+        // 密碼錯誤，顯示剩餘嘗試次數
+        if (remainingAttempts > 0)
+        {
+            TempData[TempDataKeys.Warning] = $"帳號或密碼錯誤，還剩 {remainingAttempts} 次嘗試機會。";
+        }
+        else
+        {
+            TempData[TempDataKeys.Error] = "帳號或密碼錯誤，請重新輸入。";
+        }
+
         return View(model);
     }
 
@@ -88,7 +105,7 @@ public class AccountController : Controller
     [Authorize]
     public async Task<IActionResult> Index()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetCurrentUserId();
         if (string.IsNullOrEmpty(userId))
             return RedirectToAction("Login");
 
@@ -119,7 +136,7 @@ public class AccountController : Controller
     [Authorize]
     public async Task<IActionResult> Edit()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetCurrentUserId();
         if (string.IsNullOrEmpty(userId))
             return RedirectToAction("Login");
 
@@ -140,7 +157,7 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetCurrentUserId();
         if (string.IsNullOrEmpty(userId))
             return RedirectToAction("Login");
 
@@ -176,7 +193,7 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetCurrentUserId();
         if (string.IsNullOrEmpty(userId))
             return RedirectToAction("Login");
 

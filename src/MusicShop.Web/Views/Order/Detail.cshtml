@@ -61,6 +61,66 @@
                             <span class="badge @Model.StatusBadgeClass">@Model.StatusText</span>
                         </div>
                     </div>
+                    <div class="row mb-2">
+                        <div class="col-4">
+                            <strong>付款方式：</strong>
+                        </div>
+                        <div class="col-8">
+                            @Model.PaymentMethodText（@Model.PaymentStatusText）
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4">
+                            <strong>配送方式：</strong>
+                        </div>
+                        <div class="col-8">
+                            @Model.DeliveryMethodText
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 收件資訊 -->
+            <div class="card mb-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">收件資訊</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-4">
+                            <strong>收件人：</strong>
+                        </div>
+                        <div class="col-8">
+                            @Model.ReceiverName
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4">
+                            <strong>聯絡電話：</strong>
+                        </div>
+                        <div class="col-8">
+                            @Model.ReceiverPhone
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4">
+                            <strong>收件地址：</strong>
+                        </div>
+                        <div class="col-8">
+                            @Model.FullAddress
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.OrderNote))
+                    {
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <strong>訂單備註：</strong>
+                            </div>
+                            <div class="col-8 text-muted">
+                                @Model.OrderNote
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -118,10 +178,17 @@
                         <span>商品小計：</span>
                         <span>NT$@Model.FormattedTotalAmount</span>
                     </div>
+                    @if (Model.HasDiscount)
+                    {
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>優惠券折扣：</span>
+                            <span class="text-danger">-NT$@Model.FormattedDiscountAmount</span>
+                        </div>
+                    }
                     <hr>
                     <div class="d-flex justify-content-between">
-                        <strong class="fs-5">訂單總額：</strong>
-                        <strong class="fs-5 text-primary">NT$@Model.FormattedTotalAmount</strong>
+                        <strong class="fs-5">實付金額：</strong>
+                        <strong class="fs-5 text-primary">NT$@Model.FormattedFinalAmount</strong>
                     </div>
                 </div>
             </div>

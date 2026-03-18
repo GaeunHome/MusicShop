@@ -99,6 +99,15 @@ namespace MusicShop.Library.Helpers
         }
 
         /// <summary>
+        /// 取得付款狀態的 Badge CSS 類別
+        /// </summary>
+        public static string GetPaymentBadgeClass(PaymentMethod paymentMethod, OrderStatus status)
+        {
+            var statusText = GetPaymentStatusText(paymentMethod, status);
+            return statusText == "已收到款項" ? "bg-success" : "bg-warning text-dark";
+        }
+
+        /// <summary>
         /// 取得付款方式的顯示文字
         /// </summary>
         public static string GetPaymentMethodText(PaymentMethod method)

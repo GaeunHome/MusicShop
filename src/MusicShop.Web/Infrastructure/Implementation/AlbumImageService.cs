@@ -55,9 +55,9 @@ public class AlbumImageService : IAlbumImageService
         string artistPart = "unknown";
         if (artistId.HasValue)
         {
-            var artist = await _artistService.GetArtistByIdAsync(artistId.Value);
-            if (artist != null)
-                artistPart = Sanitize(artist.Name);
+            var artistName = await _artistService.GetArtistNameByIdAsync(artistId.Value);
+            if (artistName != null)
+                artistPart = Sanitize(artistName);
         }
 
         return Path.Combine(typePart, artistPart, albumId.ToString());

@@ -1,5 +1,5 @@
-using MusicShop.Data.Entities;
 using MusicShop.Library.Enums;
+using MusicShop.Library.Helpers;
 using MusicShop.Service.ViewModels.Admin;
 using MusicShop.Service.ViewModels.Cart;
 using MusicShop.Service.ViewModels.Order;
@@ -19,30 +19,6 @@ namespace MusicShop.Service.Services.Interfaces
         /// <param name="checkoutInfo">結帳資訊</param>
         /// <returns>建立的訂單 ID</returns>
         Task<int> CreateOrderWithFullInfoAsync(string userId, CheckoutViewModel checkoutInfo);
-
-        /// <summary>
-        /// 取得使用者的訂單列表（返回 Entity，僅供 Service 層內部使用）
-        /// Controller 應使用 GetOrderListViewModelsByUserAsync 取代
-        /// </summary>
-        Task<IEnumerable<Order>> GetUserOrdersAsync(string userId);
-
-        /// <summary>
-        /// 取得訂單詳細資訊（返回 Entity，僅供 Service 層內部使用）
-        /// Controller 應使用 GetOrderDetailViewModelAsync 取代
-        /// </summary>
-        Task<Order?> GetOrderDetailAsync(int orderId, string userId);
-
-        /// <summary>
-        /// 取得訂單詳細資訊（管理員用，返回 Entity，僅供 Service 層內部使用）
-        /// Controller 應使用 GetAdminOrderDetailViewModelAsync 取代
-        /// </summary>
-        Task<Order?> GetOrderByIdAsync(int orderId);
-
-        /// <summary>
-        /// 取得所有訂單（管理員用，返回 Entity，僅供 Service 層內部使用）
-        /// Controller 應使用 GetAdminOrderListViewModelsAsync 取代
-        /// </summary>
-        Task<IEnumerable<Order>> GetAllOrdersAsync();
 
         /// <summary>
         /// 更新訂單狀態
@@ -77,7 +53,7 @@ namespace MusicShop.Service.Services.Interfaces
         /// <summary>
         /// 取得最近訂單 ViewModel（供帳號首頁使用）
         /// </summary>
-        Task<List<MusicShop.Service.ViewModels.Account.RecentOrderViewModel>> GetRecentOrderViewModelsAsync(string userId, int count = 5);
+        Task<List<MusicShop.Service.ViewModels.Account.RecentOrderViewModel>> GetRecentOrderViewModelsAsync(string userId, int count = DisplayConstants.RecentOrdersDefaultCount);
 
         /// <summary>
         /// 取得後台訂單列表 ViewModel（管理員用）

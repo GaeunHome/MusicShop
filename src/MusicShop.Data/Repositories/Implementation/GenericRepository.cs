@@ -1,11 +1,15 @@
 using Microsoft.EntityFrameworkCore;
+using MusicShop.Data.Entities;
 using MusicShop.Data.Repositories.Interfaces;
 using System.Linq.Expressions;
 
 namespace MusicShop.Data.Repositories.Implementation
 {
     /// <summary>
-    /// 通用儲存庫實作，提供基本的 CRUD 操作
+    /// 通用儲存庫實作，提供基本的 CRUD 操作。
+    /// 刪除操作會自動判斷實體是否實作 ISoftDeletable：
+    /// - 實作者：透過 DbContext.SaveChangesAsync 攔截器自動轉為軟刪除
+    /// - 未實作者：執行硬刪除（如 CartItem、WishlistItem）
     /// </summary>
     /// <typeparam name="T">實體類型</typeparam>
     public class GenericRepository<T> : IGenericRepository<T> where T : class
@@ -56,12 +60,18 @@ namespace MusicShop.Data.Repositories.Implementation
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// 刪除實體。ISoftDeletable 實體會在 SaveChangesAsync 時自動轉為軟刪除。
+        /// </summary>
         public virtual Task DeleteAsync(T entity)
         {
             _dbSet.Remove(entity);
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// 批次刪除實體。ISoftDeletable 實體會在 SaveChangesAsync 時自動轉為軟刪除。
+        /// </summary>
         public virtual Task DeleteRangeAsync(IEnumerable<T> entities)
         {
             _dbSet.RemoveRange(entities);

@@ -1,0 +1,122 @@
+@{
+    ViewData["Title"] = "後台管理";
+    ViewData["PageId"] = "admin-index";
+}
+
+<h3 class="mb-4">📊 後台管理總覽</h3>
+
+    <div class="row g-4 mb-5">
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="card text-center shadow-sm border-primary">
+                <div class="card-body">
+                    <div class="fs-1">🎵</div>
+                    <h5 class="card-title mt-2">商品數量</h5>
+                    <p class="display-6 fw-bold text-primary">@ViewBag.AlbumCount</p>
+                    <a asp-area="Admin" asp-controller="Album" asp-action="Index" class="btn btn-sm btn-outline-primary">管理商品</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="card text-center shadow-sm border-secondary">
+                <div class="card-body">
+                    <div class="fs-1">🎤</div>
+                    <h5 class="card-title mt-2">藝人數量</h5>
+                    <p class="display-6 fw-bold text-secondary">@ViewBag.ArtistCount</p>
+                    <a asp-area="Admin" asp-controller="Artist" asp-action="Index" class="btn btn-sm btn-outline-secondary">管理藝人</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="card text-center shadow-sm border-success">
+                <div class="card-body">
+                    <div class="fs-1">🏷️</div>
+                    <h5 class="card-title mt-2">分類數量</h5>
+                    <p class="display-6 fw-bold text-success">@ViewBag.CategoryCount</p>
+                    <div class="mt-2">
+                        <a asp-area="Admin" asp-controller="Category" asp-action="Index" class="btn btn-sm btn-outline-success">管理分類</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card text-center shadow-sm border-warning">
+                <div class="card-body">
+                    <div class="fs-1">📦</div>
+                    <h5 class="card-title mt-2">訂單數量</h5>
+                    <p class="display-6 fw-bold text-warning">@ViewBag.OrderCount</p>
+                    <a asp-area="Admin" asp-controller="Order" asp-action="Index" class="btn btn-sm btn-outline-warning">管理訂單</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card text-center shadow-sm border-info">
+                <div class="card-body">
+                    <div class="fs-1">👥</div>
+                    <h5 class="card-title mt-2">會員數量</h5>
+                    <p class="display-6 fw-bold text-info">@ViewBag.UserCount</p>
+                    <a asp-area="Admin" asp-controller="User" asp-action="Index" class="btn btn-sm btn-outline-info">管理使用者</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card text-center shadow-sm" style="border-color:#b19cd9;">
+                <div class="card-body">
+                    <div class="fs-1">🖼️</div>
+                    <h5 class="card-title mt-2">幻燈片數量</h5>
+                    <p class="display-6 fw-bold" style="color:#b19cd9;">@ViewBag.BannerCount</p>
+                    <a asp-area="Admin" asp-controller="Banner" asp-action="Index" class="btn btn-sm btn-outline-secondary">管理幻燈片</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card text-center shadow-sm" style="border-color:#f0ad4e;">
+                <div class="card-body">
+                    <div class="fs-1">⭐</div>
+                    <h5 class="card-title mt-2">精選藝人</h5>
+                    <p class="display-6 fw-bold" style="color:#f0ad4e;">@ViewBag.FeaturedArtistCount</p>
+                    <a asp-area="Admin" asp-controller="FeaturedArtist" asp-action="Index" class="btn btn-sm btn-outline-warning">管理精選藝人</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-6">
+            <div class="card text-center shadow-sm" style="border-color:#e74c3c;">
+                <div class="card-body">
+                    <div class="fs-1">🎟️</div>
+                    <h5 class="card-title mt-2">優惠券數量</h5>
+                    <p class="display-6 fw-bold" style="color:#e74c3c;">@ViewBag.CouponCount</p>
+                    <a asp-area="Admin" asp-controller="Coupon" asp-action="Index" class="btn btn-sm btn-outline-danger">管理優惠券</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 銷售統計 -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-danger">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="fs-1 me-3">💰</div>
+                        <div>
+                            <h5 class="card-title mb-1">總銷售額</h5>
+                            <p class="display-6 fw-bold text-danger mb-0">NT$ @ViewBag.TotalSales?.ToString("N0")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-secondary">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="fs-1 me-3">⏳</div>
+                        <div>
+                            <h5 class="card-title mb-1">待處理訂單</h5>
+                            <p class="display-6 fw-bold text-secondary mb-0">@ViewBag.PendingOrderCount</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+

@@ -46,9 +46,20 @@
                             }
                         </tbody>
                         <tfoot>
+                            @if (Model.HasDiscount)
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-end">商品總計：</td>
+                                    <td>NT$ @Model.FormattedTotalAmount</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end">優惠券折扣：</td>
+                                    <td class="text-danger">-NT$ @Model.FormattedDiscountAmount</td>
+                                </tr>
+                            }
                             <tr>
-                                <td colspan="3" class="text-end fw-bold">總計：</td>
-                                <td class="fw-bold text-primary">NT$ @Model.FormattedTotalAmount</td>
+                                <td colspan="3" class="text-end fw-bold">實付金額：</td>
+                                <td class="fw-bold text-primary">NT$ @Model.FormattedFinalAmount</td>
                             </tr>
                         </tfoot>
                     </table>

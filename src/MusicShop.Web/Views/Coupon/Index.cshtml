@@ -1,0 +1,112 @@
+@model IEnumerable<MusicShop.Service.ViewModels.Coupon.UserCouponViewModel>
+@{
+    ViewData["Title"] = "我的優惠券";
+    ViewData["PageId"] = "coupon-index";
+    var coupons = Model.ToList();
+    var available = coupons.Where(c => c.IsAvailable).ToList();
+    var used = coupons.Where(c => c.IsUsed).ToList();
+    var expired = coupons.Where(c => c.IsExpired).ToList();
+}
+
+<!-- 引用共用的 TempData 通知元件 -->
+<partial name="_TempDataNotifications" />
+
+<div class="container my-5">
+    <div class="page-header mb-4">
+        <h2><i class="bi bi-ticket-perforated me-2"></i>我的優惠券</h2>
+    </div>
+
+    <!-- 兌換碼輸入 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form asp-action="Redeem" method="post" class="d-flex gap-2">
+                @Html.AntiForgeryToken()
+                <input type="text" name="code" class="form-control" placeholder="輸入兌換碼" style="max-width:300px;" required>
+                <button type="submit" class="btn btn-primary">兌換</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 分頁標籤 -->
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-available" type="button">
+                可使用 <span class="badge bg-success">@available.Count</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-used" type="button">
+                已使用 <span class="badge bg-secondary">@used.Count</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-expired" type="button">
+                已過期 <span class="badge bg-danger">@expired.Count</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- 可使用 -->
+        <div class="tab-pane fade show active" id="tab-available">
+            @if (available.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var coupon in available)
+                    {
+                        @await Html.PartialAsync("_CouponCard", coupon)
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-ticket fs-1"></i>
+                    <p class="mt-2">目前沒有可使用的優惠券</p>
+                </div>
+            }
+        </div>
+
+        <!-- 已使用 -->
+        <div class="tab-pane fade" id="tab-used">
+            @if (used.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var coupon in used)
+                    {
+                        @await Html.PartialAsync("_CouponCard", coupon)
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-5">
+                    <p>尚無已使用的優惠券</p>
+                </div>
+            }
+        </div>
+
+        <!-- 已過期 -->
+        <div class="tab-pane fade" id="tab-expired">
+            @if (expired.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var coupon in expired)
+                    {
+                        @await Html.PartialAsync("_CouponCard", coupon)
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-5">
+                    <p>尚無已過期的優惠券</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/coupon.css" asp-append-version="true" />
+}

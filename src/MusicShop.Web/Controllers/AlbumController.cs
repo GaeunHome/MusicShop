@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
-using System.Security.Claims;
 
 namespace MusicShop.Controllers;
 
@@ -8,7 +7,7 @@ namespace MusicShop.Controllers;
 /// 專輯控制器 - 展示層
 /// 負責處理使用者請求與回應
 /// </summary>
-public class AlbumController : Controller
+public class AlbumController : BaseController
 {
     private readonly IAlbumService _albumService;
     private readonly IArtistService _artistService;
@@ -69,7 +68,7 @@ public class AlbumController : Controller
         }
 
         // 傳遞資料給 View
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetCurrentUserId();
         ViewBag.WishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId ?? string.Empty);
 
         ViewBag.Search = search;
@@ -108,7 +107,7 @@ public class AlbumController : Controller
         ViewBag.OgImage = viewModel.FirstImageUrl;
 
         // 傳遞收藏狀態（已登入才需查詢）
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetCurrentUserId();
         var wishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId ?? string.Empty);
         ViewBag.IsInWishlist = wishlistIds.Contains(id);
 
