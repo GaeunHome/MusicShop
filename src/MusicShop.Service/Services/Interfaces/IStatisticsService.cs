@@ -54,5 +54,15 @@ namespace MusicShop.Service.Services.Interfaces
         /// 取得優惠券總數
         /// </summary>
         Task<int> GetCouponCountAsync();
+
+        /// <summary>
+        /// 取得每日銷售趨勢
+        /// </summary>
+        Task<List<(DateTime Date, decimal Amount, int Count)>> GetDailySalesTrendAsync(int days = 30);
+
+        /// <summary>
+        /// 取得熱門商品排行
+        /// </summary>
+        Task<List<(string AlbumTitle, int Quantity)>> GetTopSellingAlbumsAsync(int count = 10);
     }
 }

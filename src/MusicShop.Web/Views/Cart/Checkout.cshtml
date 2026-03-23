@@ -248,45 +248,15 @@
                         </div>
                         <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
 
-                        <!-- 信用卡資訊（條件顯示）-->
+                        <!-- 信用卡付款說明（條件顯示）-->
                         <div id="credit-card-fields" class="mt-3 p-3 bg-light rounded" style="display: none;">
-                            <h6 class="mb-3">信用卡資訊</h6>
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label for="CardNumber" class="form-label required">信用卡號</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="bi bi-credit-card"></i>
-                                        </span>
-                                        <input type="text" class="form-control" id="CardNumber"
-                                               placeholder="1234 5678 9012 3456" maxlength="19" />
-                                    </div>
-                                    <small class="form-text text-muted">請輸入 16 位數卡號</small>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="CardHolderName" class="form-label required">持卡人姓名</label>
-                                    <input type="text" class="form-control" id="CardHolderName"
-                                           placeholder="如卡片上顯示的英文姓名" />
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="CardExpiry" class="form-label required">有效期限</label>
-                                    <input type="text" class="form-control" id="CardExpiry"
-                                           placeholder="MM/YY" maxlength="5" />
-                                    <small class="form-text text-muted">月/年</small>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="CardCVV" class="form-label required">安全碼 (CVV)</label>
-                                    <input type="text" class="form-control" id="CardCVV"
-                                           placeholder="123" maxlength="3" />
-                                    <small class="form-text text-muted">卡片背面 3 碼</small>
-                                </div>
-                            </div>
-                            <div class="alert alert-warning mt-3 mb-0">
+                            <div class="alert alert-info mb-0">
                                 <i class="bi bi-shield-lock me-2"></i>
-                                <small>
-                                    此為模擬金流介面。實際應用會透過第三方金流服務（如綠界、藍新）處理付款，
-                                    信用卡資訊不會儲存在本系統資料庫中。
-                                </small>
+                                <strong>安全線上付款</strong>
+                                <p class="mb-0 mt-2">
+                                    送出訂單後，將導向至綠界 ECPay 安全付款頁面進行信用卡付款。
+                                    您的信用卡資訊由綠界加密處理，本站不會儲存任何卡片資料。
+                                </p>
                             </div>
                         </div>
                     </div>

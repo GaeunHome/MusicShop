@@ -23,10 +23,10 @@ public class EcpayLogisticsService : IEcpayLogisticsService
     {
         _httpClient = httpClient;
 
-        var section = configuration.GetSection("Ecpay");
-        _merchantId = section["MerchantID"] ?? throw new InvalidOperationException("缺少 Ecpay:MerchantID 設定");
-        _hashKey = section["HashKey"] ?? throw new InvalidOperationException("缺少 Ecpay:HashKey 設定");
-        _hashIV = section["HashIV"] ?? throw new InvalidOperationException("缺少 Ecpay:HashIV 設定");
+        var section = configuration.GetSection("EcpayLogistics");
+        _merchantId = section["MerchantID"] ?? throw new InvalidOperationException("缺少 EcpayLogistics:MerchantID 設定");
+        _hashKey = section["HashKey"] ?? throw new InvalidOperationException("缺少 EcpayLogistics:HashKey 設定");
+        _hashIV = section["HashIV"] ?? throw new InvalidOperationException("缺少 EcpayLogistics:HashIV 設定");
 
         var isTest = !bool.TryParse(section["IsTest"], out var parsedIsTest) || parsedIsTest;
         _apiBaseUrl = isTest

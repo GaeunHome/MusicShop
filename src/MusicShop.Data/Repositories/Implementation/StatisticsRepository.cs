@@ -73,4 +73,37 @@ public class StatisticsRepository : IStatisticsRepository
     {
         return await _context.Coupons.CountAsync();
     }
+
+    public async Task<List<(DateTime Date, decimal Amount, int Count)>> GetDailySalesTrendAsync(int days)
+    {
+        var startDate = DateTime.UtcNow.Date.AddDays(-days);
+
+        // 先查詢 DB 取得原始資料，再在記憶體中分組
+        var orders = await _context.Orders
+            .AsNoTracking()
+            .Where(o => o.OrderDate >= startDate
+                     && o.Status != OrderStatus.Cancelled)
+            .Select(o => new { o.OrderDate, o.TotalAmount })
+            .ToListAsync();
+
+        return orders
+            .GroupBy(o => o.OrderDate.Date)
+            .Select(g => (Date: g.Key, Amount: g.Sum(o => o.TotalAmount), Count: g.Count()))
+            .OrderBy(x => x.Date)
+            .ToList();
+    }
+
+    public async Task<List<(string AlbumTitle, int Quantity)>> GetTopSellingAlbumsAsync(int count)
+    {
+        return await _context.OrderItems
+            .AsNoTracking()
+            .Include(oi => oi.Album)
+            .Where(oi => oi.Order!.Status != OrderStatus.Cancelled)
+            .GroupBy(oi => new { oi.AlbumId, oi.Album!.Title })
+            .Select(g => new { AlbumTitle = g.Key.Title, Quantity = g.Sum(oi => oi.Quantity) })
+            .OrderByDescending(x => x.Quantity)
+            .Take(count)
+            .Select(x => ValueTuple.Create(x.AlbumTitle, x.Quantity))
+            .ToListAsync();
+    }
 }

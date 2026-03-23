@@ -165,5 +165,15 @@ namespace MusicShop.Service.Services.Implementation
         {
             return await _unitOfWork.Statistics.GetCouponCountAsync();
         }
+
+        public async Task<List<(DateTime Date, decimal Amount, int Count)>> GetDailySalesTrendAsync(int days = 30)
+        {
+            return await _unitOfWork.Statistics.GetDailySalesTrendAsync(days);
+        }
+
+        public async Task<List<(string AlbumTitle, int Quantity)>> GetTopSellingAlbumsAsync(int count = 10)
+        {
+            return await _unitOfWork.Statistics.GetTopSellingAlbumsAsync(count);
+        }
     }
 }

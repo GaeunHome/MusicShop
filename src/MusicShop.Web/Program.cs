@@ -9,6 +9,8 @@ using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.Services.Implementation;
 using MusicShop.Web.Infrastructure;
 using MusicShop.Web.Infrastructure.Implementation;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using Serilog;
 using Serilog.Events;
 
@@ -22,12 +24,12 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{CorrelationId}] {Message:lj}{NewLine}{Exception}")
     .WriteTo.File(
         path: "logs/app-.log",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 30,
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{CorrelationId}] {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,6 +43,10 @@ builder.Services.Configure<SiteSettings>(builder.Configuration.GetSection("SiteS
 
 // 註冊記憶體快取
 builder.Services.AddMemoryCache();
+
+// 註冊健康檢查（檢測資料庫連線狀態）
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>("database");
 
 // 註冊 DbContext（Scoped）- 每個 HTTP 請求共用一個 DbContext
 // ConfigureWarnings：抑制軟刪除 Global Query Filter 與必要端關聯的警告（事件 10622）。
@@ -86,6 +92,9 @@ builder.Services.AddScoped<IBannerImageService, BannerImageService>();
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
+// 註冊 ECPay 金流服務
+builder.Services.AddScoped<IEcpayPaymentService, EcpayPaymentService>();
+
 // 註冊 ECPay 物流服務（含 HttpClient，設定 30 秒逾時避免請求掛起）
 builder.Services.AddHttpClient<IEcpayLogisticsService, EcpayLogisticsService>(client =>
 {
@@ -118,6 +127,55 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
+
+// =====================================================================
+// 社群登入（Google + LINE Login）
+// 設定值從 appsettings.json 的 Authentication 區段讀取
+// =====================================================================
+var authSection = builder.Configuration.GetSection("Authentication");
+var authBuilder = builder.Services.AddAuthentication();
+
+// Google OAuth 2.0
+if (!string.IsNullOrEmpty(authSection["Google:ClientId"]))
+{
+    authBuilder.AddGoogle(options =>
+    {
+        options.ClientId = authSection["Google:ClientId"]!;
+        options.ClientSecret = authSection["Google:ClientSecret"]!;
+    });
+}
+
+// LINE Login（使用通用 OAuth handler）
+if (!string.IsNullOrEmpty(authSection["LINE:ChannelId"]))
+{
+    authBuilder.AddOAuth("LINE", "LINE", options =>
+    {
+        options.ClientId = authSection["LINE:ChannelId"]!;
+        options.ClientSecret = authSection["LINE:ChannelSecret"]!;
+        options.AuthorizationEndpoint = "https://access.line.me/oauth2/v2.1/authorize";
+        options.TokenEndpoint = "https://api.line.me/oauth2/v2.1/token";
+        options.UserInformationEndpoint = "https://api.line.me/v2/profile";
+        options.CallbackPath = "/signin-line";
+        options.Scope.Add("profile");
+        options.Scope.Add("openid");
+        options.Scope.Add("email");
+
+        options.ClaimActions.MapJsonKey(System.Security.Claims.ClaimTypes.NameIdentifier, "userId");
+        options.ClaimActions.MapJsonKey(System.Security.Claims.ClaimTypes.Name, "displayName");
+        options.ClaimActions.MapJsonKey("picture", "pictureUrl");
+
+        options.Events.OnCreatingTicket = async context =>
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", context.AccessToken);
+            var response = await context.Backchannel.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            var user = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            context.RunClaimActions(user.RootElement);
+        };
+    });
+}
 
 // =====================================================================
 // Cookie 驗證安全設定
@@ -165,6 +223,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     // 自訂名稱可降低被自動化掃描工具識別框架的風險。
     options.Cookie.Name = "MusicShop.Auth";
 });
+
+// 註冊 Response Caching（HTTP 層級快取，搭配 [ResponseCache] 使用）
+builder.Services.AddResponseCaching();
 
 builder.Services.AddControllersWithViews();
 
@@ -227,14 +288,18 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseGlobalExceptionHandler();
 app.UseSecurityHeaders();
+app.UseCorrelationId();
 app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 
 if (!app.Environment.IsDevelopment())
 {
     // HSTS：告知瀏覽器未來 1 年內只能透過 HTTPS 連線（含子網域）
+    // 僅正式環境啟用，避免開發環境因 HSTS 快取導致無法切回 HTTP
     app.UseHsts();
-    app.UseHttpsRedirection();
 }
+
+// HTTP → HTTPS 自動轉導（開發與正式環境皆啟用）
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 // Serilog HTTP 請求日誌（記錄每個請求的方法、路徑、狀態碼與耗時）
@@ -246,11 +311,17 @@ app.UseSerilogRequestLogging(options =>
         if (ex != null) return LogEventLevel.Error;
         if (httpContext.Response.StatusCode >= 500) return LogEventLevel.Error;
         if (httpContext.Response.StatusCode >= 400) return LogEventLevel.Warning;
+        if (httpContext.Request.Path.StartsWithSegments("/health")) return LogEventLevel.Debug;
         return LogEventLevel.Information;
     };
 });
 
 app.UseRouting();
+app.UseResponseCaching();
+
+// 健康檢查端點（供負載均衡器、容器編排工具檢測服務狀態）
+app.MapHealthChecks("/health");
+
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();

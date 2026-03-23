@@ -1,0 +1,72 @@
+@{
+    ViewData["Title"] = "設定 Email 驗證";
+}
+
+<div id="account-edit-page" class="container my-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">首頁</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Account" asp-action="Index">我的帳戶</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Account" asp-action="TwoFactorAuthentication">兩步驟驗證</a></li>
+            <li class="breadcrumb-item active" aria-current="page">設定 Email 驗證</li>
+        </ol>
+    </nav>
+
+    <h1 class="page-title mb-4">設定 Email 驗證碼</h1>
+
+    <div class="row">
+        <div class="col-lg-3 d-none d-lg-block">
+            @await Html.PartialAsync("_AccountMenu")
+        </div>
+
+        <div class="col-lg-9 col-12">
+            <div class="mobile-menu d-lg-none mb-3">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                        設定 Email 驗證
+                    </button>
+                    <ul class="dropdown-menu w-100">
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Index">我的帳戶</a></li>
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Edit">更新個人資訊</a></li>
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">更新密碼</a></li>
+                        <li><a class="dropdown-item active" asp-controller="Account" asp-action="TwoFactorAuthentication">兩步驟驗證</a></li>
+                        <li><a class="dropdown-item" asp-controller="Order" asp-action="Index">訂單查詢</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-envelope-check fs-1 text-primary d-block mb-3"></i>
+                        <p>我們已寄送驗證碼至 <strong>@ViewBag.Email</strong></p>
+                        <p class="text-muted small">請輸入信件中的驗證碼以完成設定</p>
+                    </div>
+
+                    <form asp-action="SetupEmailTwoFactor" method="post">
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                        <div class="mb-3 mx-auto" style="max-width: 300px;">
+                            <input name="code" class="form-control form-control-lg text-center"
+                                   placeholder="請輸入驗證碼" maxlength="10" autocomplete="off" />
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">驗證並啟用</button>
+                            <a asp-action="TwoFactorAuthentication" class="btn btn-outline-secondary ms-2">取消</a>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <small class="text-muted">沒有收到驗證碼？</small>
+                        <a asp-action="SetupEmailTwoFactor" class="small">重新寄送</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" />
+}

@@ -37,6 +37,11 @@ public class UserManagementViewModel
     public bool EmailConfirmed { get; set; }
 
     /// <summary>
+    /// 是否已啟用兩步驟驗證
+    /// </summary>
+    public bool TwoFactorEnabled { get; set; }
+
+    /// <summary>
     /// 是否為管理員
     /// </summary>
     public bool IsAdmin { get; set; }

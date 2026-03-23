@@ -9,6 +9,9 @@
     <a asp-controller="Account" asp-action="ChangePassword" class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["Action"]?.ToString() == "ChangePassword" ? "active" : "")">
         更新密碼
     </a>
+    <a asp-controller="Account" asp-action="TwoFactorAuthentication" class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Account" && (ViewContext.RouteData.Values["Action"]?.ToString() == "TwoFactorAuthentication" || ViewContext.RouteData.Values["Action"]?.ToString() == "SetupAuthenticator" || ViewContext.RouteData.Values["Action"]?.ToString() == "SetupEmailTwoFactor" || ViewContext.RouteData.Values["Action"]?.ToString() == "ShowRecoveryCodes") ? "active" : "")">
+        兩步驟驗證
+    </a>
     <a asp-controller="Order" asp-action="Index" class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Order" ? "active" : "")">
         訂單查詢
     </a>

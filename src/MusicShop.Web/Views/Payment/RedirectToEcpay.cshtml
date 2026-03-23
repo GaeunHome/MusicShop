@@ -1,0 +1,52 @@
+@model MusicShop.Service.Services.Interfaces.EcpayPaymentFormData
+@{
+    ViewData["Title"] = "前往付款";
+    Layout = "_Layout";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="spinner-border text-primary mb-4" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">載入中...</span>
+                    </div>
+                    <h4 class="mb-3">正在導向至綠界付款頁面...</h4>
+                    <p class="text-muted">請稍候，系統正在將您導向至安全的付款頁面。</p>
+                    <p class="text-muted small">若頁面未自動跳轉，請點擊下方按鈕。</p>
+
+                    <form id="ecpayForm" method="post" action="@Model.ActionUrl">
+                        @foreach (var param in Model.Parameters)
+                        {
+                            <input type="hidden" name="@param.Key" value="@param.Value" />
+                        }
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="bi bi-credit-card me-2"></i>前往付款
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 頁面載入後自動提交表單，導向 ECPay 付款頁面
+        // 使用 sessionStorage 防止按返回鍵時重複提交
+        document.addEventListener('DOMContentLoaded', function() {
+            var formId = '@Model.Parameters["MerchantTradeNo"]';
+            var key = 'ecpay_submitted_' + formId;
+
+            if (!sessionStorage.getItem(key)) {
+                sessionStorage.setItem(key, '1');
+                document.getElementById('ecpayForm').submit();
+            } else {
+                // 使用者按了返回鍵回到此頁，導向訂單列表
+                sessionStorage.removeItem(key);
+                window.location.href = '@Url.Action("Index", "Order")';
+            }
+        });
+    </script>
+}

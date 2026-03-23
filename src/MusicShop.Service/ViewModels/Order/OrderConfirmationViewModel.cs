@@ -14,6 +14,7 @@ public class OrderConfirmationViewModel
     public string PaymentMethodText { get; set; } = string.Empty;
     public string DeliveryMethodText { get; set; } = string.Empty;
     public string StatusText { get; set; } = string.Empty;
+    public string StatusBadgeClass { get; set; } = string.Empty;
 
     // 訂單明細
     public List<OrderConfirmationItemViewModel> Items { get; set; } = new();

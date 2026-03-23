@@ -1,10 +1,10 @@
 appsettings.json
+CLAUDE_TEMPLATE.md
 .DS_Store
 *.log
 logs/
-**/bin/
-**/obj/
-img/
 _backup/
 .claude/
+**/bin/
+**/obj/
 **/bin\\Debug/

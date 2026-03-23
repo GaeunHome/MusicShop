@@ -51,5 +51,10 @@ namespace MusicShop.Data.Repositories.Interfaces
         /// 取得使用者訂單統計（總訂單數、總消費金額）
         /// </summary>
         Task<(int TotalOrders, decimal TotalSpent)> GetUserOrderStatsAsync(string userId);
+
+        /// <summary>
+        /// 根據綠界交易編號查詢訂單
+        /// </summary>
+        Task<Order?> GetOrderByMerchantTradeNoAsync(string merchantTradeNo);
     }
 }

@@ -9,6 +9,10 @@ public class AccountIndexViewModel
     public string Email { get; set; } = string.Empty;
     public DateTime RegisteredAt { get; set; }
 
+    // 兩步驟驗證
+    public bool TwoFactorEnabled { get; set; }
+    public string? TwoFactorMethod { get; set; }
+
     // 統計資訊
     public decimal TotalSpent { get; set; }
     public int TotalOrders { get; set; }

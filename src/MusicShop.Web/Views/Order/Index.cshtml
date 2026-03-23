@@ -48,6 +48,9 @@
                             <a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">更新密碼</a>
                         </li>
                         <li>
+                            <a class="dropdown-item" asp-controller="Account" asp-action="TwoFactorAuthentication">兩步驟驗證</a>
+                        </li>
+                        <li>
                             <a class="dropdown-item active" asp-controller="Order" asp-action="Index">訂單查詢</a>
                         </li>
                     </ul>
@@ -132,6 +135,13 @@
                                             <a asp-action="Detail" asp-route-id="@order.Id" class="btn btn-outline-primary">
                                                 查看詳情
                                             </a>
+                                            @if (order.CanRetryPayment)
+                                            {
+                                                <a asp-controller="Payment" asp-action="Checkout" asp-route-orderId="@order.Id"
+                                                   class="btn btn-primary">
+                                                    <i class="bi bi-credit-card me-1"></i>前往付款
+                                                </a>
+                                            }
                                             @if (order.CanCancel)
                                             {
                                                 <form asp-action="Cancel" asp-route-id="@order.Id" method="post" class="d-inline" id="cancelOrderForm_@order.Id">

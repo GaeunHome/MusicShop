@@ -8,7 +8,7 @@
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-5">
+        <div class="col-md-6 col-lg-5">
             <div class="card shadow">
                 <div class="card-body p-4">
                     <h3 class="card-title text-center mb-4">會員登入</h3>
@@ -24,7 +24,12 @@
 
                         <div class="mb-3">
                             <label asp-for="Password" class="form-label required"></label>
-                            <input asp-for="Password" class="form-control" placeholder="請輸入密碼" />
+                            <div class="input-group">
+                                <input asp-for="Password" class="form-control" placeholder="請輸入密碼" />
+                                <button class="password-toggle" type="button" tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 
@@ -45,6 +50,38 @@
                     <div class="text-center mt-2">
                         <small>還沒有帳號？<a asp-action="Register">立即註冊</a></small>
                     </div>
+
+                    @if (ViewBag.ExternalProviders != null && ((IEnumerable<string>)ViewBag.ExternalProviders).Any())
+                    {
+                        <hr class="my-3" />
+                        <p class="text-center text-muted small mb-3">或使用社群帳號登入</p>
+                        <div class="d-grid gap-2">
+                            @foreach (var provider in (IEnumerable<string>)ViewBag.ExternalProviders)
+                            {
+                                <form asp-action="ExternalLogin" method="post">
+                                    <input type="hidden" name="provider" value="@provider" />
+                                    @if (provider == "Google")
+                                    {
+                                        <button type="submit" class="btn btn-danger w-100">
+                                            <i class="bi bi-google me-2"></i>使用 Google 登入
+                                        </button>
+                                    }
+                                    else if (provider == "LINE")
+                                    {
+                                        <button type="submit" class="btn w-100 text-white" style="background-color: #06C755;">
+                                            <i class="bi bi-chat-fill me-2"></i>使用 LINE 登入
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-outline-secondary w-100">
+                                            使用 @provider 登入
+                                        </button>
+                                    }
+                                </form>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
         </div>

@@ -78,6 +78,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // 密碼顯示／隱藏切換
+    document.querySelectorAll('.password-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var input = btn.closest('.input-group').querySelector('input');
+            var icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        });
+    });
+
     // 手機版導覽列子選單展開／收合
     document.querySelectorAll('[data-nav-mobile-toggle]').forEach(function(btn) {
         btn.addEventListener('click', function(e) {

@@ -24,6 +24,7 @@ public class OrderDetailViewModel
     public string StatusDescription { get; set; } = string.Empty;
     public bool IsPending { get; set; }
     public bool CanCancel { get; set; }
+    public bool CanRetryPayment { get; set; }
 
     // 付款與配送
     public string PaymentMethodText { get; set; } = string.Empty;

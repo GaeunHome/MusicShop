@@ -5,7 +5,7 @@
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-5">
+        <div class="col-md-6 col-lg-5">
             <div class="card shadow">
                 <div class="card-body p-4">
                     <h3 class="card-title text-center mb-4">會員註冊</h3>
@@ -54,13 +54,23 @@
 
                         <div class="mb-3">
                             <label asp-for="Password" class="form-label required"></label>
-                            <input asp-for="Password" class="form-control" placeholder="請輸入密碼（至少6個字元）" />
+                            <div class="input-group">
+                                <input asp-for="Password" class="form-control" placeholder="請輸入密碼（至少6個字元）" />
+                                <button class="password-toggle" type="button" tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="ConfirmPassword" class="form-label required"></label>
-                            <input asp-for="ConfirmPassword" class="form-control" placeholder="請再輸入一次密碼" />
+                            <div class="input-group">
+                                <input asp-for="ConfirmPassword" class="form-control" placeholder="請再輸入一次密碼" />
+                                <button class="password-toggle" type="button" tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                         </div>
 

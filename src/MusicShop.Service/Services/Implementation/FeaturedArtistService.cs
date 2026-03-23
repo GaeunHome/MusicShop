@@ -2,6 +2,7 @@ using AutoMapper;
 using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Library.Helpers;
+using MusicShop.Service.Constants;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Service.ViewModels.Admin;
 using MusicShop.Service.ViewModels.Album;
@@ -16,25 +17,32 @@ public class FeaturedArtistService : IFeaturedArtistService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ICacheService _cacheService;
 
-    public FeaturedArtistService(IUnitOfWork unitOfWork, IMapper mapper)
+    public FeaturedArtistService(IUnitOfWork unitOfWork, IMapper mapper, ICacheService cacheService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _cacheService = cacheService;
     }
 
     public async Task<IEnumerable<FeaturedArtistDisplayViewModel>> GetActiveFeaturedArtistDisplaysAsync()
     {
-        var featuredArtists = await _unitOfWork.FeaturedArtists.GetActiveFeaturedArtistsAsync();
+        return await _cacheService.GetOrCreateAsync(
+            CacheKeys.FeaturedArtists,
+            async () =>
+            {
+                var featuredArtists = await _unitOfWork.FeaturedArtists.GetActiveFeaturedArtistsAsync();
 
-        return featuredArtists.Select(fa => new FeaturedArtistDisplayViewModel
-        {
-            ArtistId = fa.ArtistId,
-            ArtistName = fa.Artist.Name,
-            ProfileImageUrl = fa.Artist.ProfileImageUrl,
-            Albums = _mapper.Map<List<AlbumCardViewModel>>(
-                fa.Artist.Albums.OrderByDescending(a => a.CreatedAt).Take(DisplayConstants.FeaturedArtistAlbumsCount).ToList())
-        });
+                return featuredArtists.Select(fa => new FeaturedArtistDisplayViewModel
+                {
+                    ArtistId = fa.ArtistId,
+                    ArtistName = fa.Artist.Name,
+                    ProfileImageUrl = fa.Artist.ProfileImageUrl,
+                    Albums = _mapper.Map<List<AlbumCardViewModel>>(
+                        fa.Artist.Albums.OrderByDescending(a => a.CreatedAt).Take(DisplayConstants.FeaturedArtistAlbumsCount).ToList())
+                });
+            });
     }
 
     public async Task<IEnumerable<FeaturedArtistListItemViewModel>> GetFeaturedArtistListItemsAsync()
@@ -65,6 +73,7 @@ public class FeaturedArtistService : IFeaturedArtistService
         await _unitOfWork.SaveChangesAsync();
 
         vm.Id = entity.Id;
+        _cacheService.RemoveByPrefix(CacheKeys.FeaturedArtistsPrefix);
     }
 
     public async Task UpdateFeaturedArtistAsync(FeaturedArtistFormViewModel vm)
@@ -78,6 +87,8 @@ public class FeaturedArtistService : IFeaturedArtistService
 
         await _unitOfWork.FeaturedArtists.UpdateAsync(existing);
         await _unitOfWork.SaveChangesAsync();
+
+        _cacheService.RemoveByPrefix(CacheKeys.FeaturedArtistsPrefix);
     }
 
     public async Task DeleteFeaturedArtistAsync(int id)
@@ -87,5 +98,7 @@ public class FeaturedArtistService : IFeaturedArtistService
 
         await _unitOfWork.FeaturedArtists.DeleteAsync(entity!);
         await _unitOfWork.SaveChangesAsync();
+
+        _cacheService.RemoveByPrefix(CacheKeys.FeaturedArtistsPrefix);
     }
 }

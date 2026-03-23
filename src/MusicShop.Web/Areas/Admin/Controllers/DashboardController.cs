@@ -34,4 +34,47 @@ public class DashboardController : AdminBaseController
         ViewBag.CouponCount = await _statisticsService.GetCouponCountAsync();
         return View();
     }
+
+    /// <summary>
+    /// 取得銷售趨勢資料（供 Chart.js 使用）
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> SalesTrend(int days = 30)
+    {
+        if (days < 7) days = 7;
+        if (days > 365) days = 365;
+
+        var trend = await _statisticsService.GetDailySalesTrendAsync(days);
+
+        // 補齊沒有訂單的日期（填 0）
+        var startDate = DateTime.UtcNow.Date.AddDays(-days);
+        var allDates = Enumerable.Range(0, days + 1)
+            .Select(i => startDate.AddDays(i))
+            .ToList();
+
+        var trendDict = trend.ToDictionary(t => t.Date, t => t);
+
+        var labels = allDates.Select(d => d.ToString("MM/dd")).ToList();
+        var amounts = allDates.Select(d => trendDict.TryGetValue(d, out var v) ? v.Amount : 0m).ToList();
+        var counts = allDates.Select(d => trendDict.TryGetValue(d, out var v) ? v.Count : 0).ToList();
+
+        return Json(new { labels, amounts, counts });
+    }
+
+    /// <summary>
+    /// 取得熱門商品排行資料（供 Chart.js 使用）
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> TopSellingAlbums(int count = 10)
+    {
+        if (count < 5) count = 5;
+        if (count > 20) count = 20;
+
+        var topAlbums = await _statisticsService.GetTopSellingAlbumsAsync(count);
+
+        var labels = topAlbums.Select(a => a.AlbumTitle).ToList();
+        var quantities = topAlbums.Select(a => a.Quantity).ToList();
+
+        return Json(new { labels, quantities });
+    }
 }

@@ -28,9 +28,10 @@ public interface IUserService
     /// FullName：使用者姓名（成功時）
     /// IsLockedOut：帳號是否被鎖定
     /// LockoutMinutes：剩餘鎖定分鐘數（鎖定時）
-    /// RemainingAttempts：剩餘可嘗試次數（失敗但未鎖定時）
+    /// RemainingAttempts：剩餘可嘗試次數（失敗但未鎖定時，-1 表示 Email 未驗證）
+    /// RequiresTwoFactor：是否需要兩步驟驗證
     /// </returns>
-    Task<(bool Success, string? FullName, bool IsLockedOut, int LockoutMinutes, int RemainingAttempts)> LoginAsync(string email, string password, bool rememberMe);
+    Task<(bool Success, string? FullName, bool IsLockedOut, int LockoutMinutes, int RemainingAttempts, bool RequiresTwoFactor)> LoginAsync(string email, string password, bool rememberMe);
 
     /// <summary>
     /// 登出使用者
@@ -102,6 +103,63 @@ public interface IUserService
     /// </summary>
     Task<bool> IsEmailConfirmedAsync(string userId);
 
+    // ==================== 兩步驟驗證 (2FA) ====================
+
+    /// <summary>
+    /// 取得使用者 2FA 設定狀態
+    /// </summary>
+    Task<TwoFactorStatusViewModel> GetTwoFactorStatusAsync(string userId);
+
+    /// <summary>
+    /// 開始設定 TOTP 驗證器（重設金鑰並產生新的 AuthenticatorUri）
+    /// </summary>
+    Task<SetupAuthenticatorViewModel> SetupAuthenticatorAsync(string userId);
+
+    /// <summary>
+    /// 取得現有的 TOTP 驗證器設定（不重設金鑰，用於驗證失敗後重新顯示）
+    /// </summary>
+    Task<SetupAuthenticatorViewModel> GetAuthenticatorSetupAsync(string userId);
+
+    /// <summary>
+    /// 驗證並啟用 TOTP 驗證器
+    /// </summary>
+    Task<(bool Success, string Message)> EnableAuthenticatorAsync(string userId, string verificationCode);
+
+    /// <summary>
+    /// 寄送 Email 2FA 設定驗證碼
+    /// </summary>
+    Task<(bool Success, string Message, string? Code)> GenerateEmailTwoFactorSetupCodeAsync(string userId);
+
+    /// <summary>
+    /// 確認 Email 2FA 設定
+    /// </summary>
+    Task<(bool Success, string Message)> EnableEmailTwoFactorAsync(string userId, string verificationCode);
+
+    /// <summary>
+    /// 停用 2FA
+    /// </summary>
+    Task<(bool Success, string Message)> DisableTwoFactorAsync(string userId);
+
+    /// <summary>
+    /// 取得等待 2FA 驗證的使用者資訊
+    /// </summary>
+    Task<(string? UserId, string? PreferredMethod, string? Email)> GetTwoFactorUserInfoAsync();
+
+    /// <summary>
+    /// 使用 TOTP 驗證碼完成 2FA 登入
+    /// </summary>
+    Task<(bool Success, string? FullName, bool IsLockedOut, int LockoutMinutes)> TwoFactorAuthenticatorLoginAsync(string code, bool rememberMe);
+
+    /// <summary>
+    /// 使用 Email 驗證碼完成 2FA 登入
+    /// </summary>
+    Task<(bool Success, string? FullName, bool IsLockedOut, int LockoutMinutes)> TwoFactorEmailLoginAsync(string code, bool rememberMe);
+
+    /// <summary>
+    /// 產生並回傳 Email 2FA 登入驗證碼
+    /// </summary>
+    Task<(bool Success, string Message, string? Code)> GenerateTwoFactorEmailCodeAsync();
+
     // ==================== 忘記密碼 ====================
 
     /// <summary>
@@ -113,4 +171,17 @@ public interface IUserService
     /// 使用 Token 重設密碼
     /// </summary>
     Task<(bool Success, string Message)> ResetPasswordAsync(string userId, string token, string newPassword);
+
+    // ==================== 社群登入 ====================
+
+    /// <summary>
+    /// 透過外部登入資訊尋找或建立使用者，並完成登入
+    /// </summary>
+    Task<(bool Success, string? FullName, bool IsNewUser)> ExternalLoginAsync(
+        string provider, string providerKey, string? email, string? name);
+
+    /// <summary>
+    /// 取得已設定的外部登入提供者名稱清單
+    /// </summary>
+    Task<IEnumerable<string>> GetExternalAuthenticationSchemesAsync();
 }

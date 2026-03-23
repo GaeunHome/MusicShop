@@ -178,6 +178,12 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .HasForeignKey(o => o.UserCouponId)
             .OnDelete(DeleteBehavior.NoAction);
 
+        // MerchantTradeNo 唯一索引（過濾 null 值，僅信用卡訂單會有值）
+        builder.Entity<Order>()
+            .HasIndex(o => o.MerchantTradeNo)
+            .IsUnique()
+            .HasFilter("MerchantTradeNo IS NOT NULL");
+
         // PasswordHistory 與 AppUser 關聯
         // 帳號刪除時一併刪除密碼歷史
         builder.Entity<PasswordHistory>()

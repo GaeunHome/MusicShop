@@ -103,6 +103,17 @@ namespace MusicShop.Data.Repositories.Implementation
         }
 
         /// <summary>
+        /// 根據綠界交易編號查詢訂單（含訂單項目與專輯）
+        /// </summary>
+        public async Task<Order?> GetOrderByMerchantTradeNoAsync(string merchantTradeNo)
+        {
+            return await _context.Orders
+                .Include(order => order.OrderItems)
+                    .ThenInclude(orderItem => orderItem.Album)
+                .FirstOrDefaultAsync(order => order.MerchantTradeNo == merchantTradeNo);
+        }
+
+        /// <summary>
         /// 取得使用者的訂單統計（排除已取消訂單）
         /// </summary>
         /// <remarks>

@@ -634,6 +634,22 @@ body > .container {
   }
 }
 
+/* ==================== 密碼顯示切換按鈕 ==================== */
+.password-toggle {
+    background: none;
+    border: 1px solid #d1d5db;
+    border-left: none;
+    color: #6b7280;
+    padding: 0 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle:hover {
+    color: #333;
+}
+
 /* ==================== 必填欄位標記（全域）==================== */
 .form-label.required::after {
     content: " *";

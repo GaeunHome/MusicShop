@@ -89,6 +89,7 @@ public class AlbumController : BaseController
     }
 
     // GET: /Album/Detail/5
+    [ResponseCache(Duration = 60, VaryByQueryKeys = ["id"])]
     public async Task<IActionResult> Detail(int id)
     {
         // 從服務層取得專輯詳情 ViewModel

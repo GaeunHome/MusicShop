@@ -13,6 +13,11 @@ namespace MusicShop.Data.Entities
 
         public Gender? Gender { get; set; }
 
+        /// <summary>
+        /// 偏好的兩步驟驗證方式
+        /// </summary>
+        public TwoFactorMethod PreferredTwoFactorMethod { get; set; } = TwoFactorMethod.None;
+
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
         public ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();

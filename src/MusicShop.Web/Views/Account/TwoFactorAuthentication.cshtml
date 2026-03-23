@@ -1,0 +1,115 @@
+@model MusicShop.Service.ViewModels.Account.TwoFactorStatusViewModel
+@{
+    ViewData["Title"] = "兩步驟驗證";
+}
+
+<div id="account-edit-page" class="container my-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Home" asp-action="Index">首頁</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Account" asp-action="Index">我的帳戶</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">兩步驟驗證</li>
+        </ol>
+    </nav>
+
+    <h1 class="page-title mb-4">兩步驟驗證</h1>
+
+    <div class="row">
+        <div class="col-lg-3 d-none d-lg-block">
+            @await Html.PartialAsync("_AccountMenu")
+        </div>
+
+        <div class="col-lg-9 col-12">
+            <div class="mobile-menu d-lg-none mb-3">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                        兩步驟驗證
+                    </button>
+                    <ul class="dropdown-menu w-100">
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Index">我的帳戶</a></li>
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Edit">更新個人資訊</a></li>
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">更新密碼</a></li>
+                        <li><a class="dropdown-item active" asp-controller="Account" asp-action="TwoFactorAuthentication">兩步驟驗證</a></li>
+                        <li><a class="dropdown-item" asp-controller="Order" asp-action="Index">訂單查詢</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="card">
+                <div class="card-body p-4">
+                    @if (!Model.IsEnabled)
+                    {
+                        <h5 class="mb-3">提升帳戶安全性</h5>
+                        <p class="text-muted mb-4">
+                            兩步驟驗證會在您登入時，除了密碼之外再要求一組驗證碼，大幅降低帳號被盜用的風險。
+                        </p>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-body text-center p-4">
+                                        <i class="bi bi-phone fs-1 text-primary mb-3 d-block"></i>
+                                        <h6>驗證器 App</h6>
+                                        <p class="text-muted small mb-3">使用 Google Authenticator 或 Microsoft Authenticator 產生驗證碼</p>
+                                        <a asp-action="SetupAuthenticator" class="btn btn-primary btn-sm">開始設定</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-body text-center p-4">
+                                        <i class="bi bi-envelope fs-1 text-primary mb-3 d-block"></i>
+                                        <h6>Email 驗證碼</h6>
+                                        <p class="text-muted small mb-3">每次登入時寄送驗證碼至您的 Email</p>
+                                        <a asp-action="SetupEmailTwoFactor" class="btn btn-primary btn-sm">開始設定</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center mb-4">
+                            <i class="bi bi-shield-check fs-3 text-success me-3"></i>
+                            <div>
+                                <h5 class="mb-1">兩步驟驗證已啟用</h5>
+                                <span class="badge bg-primary">
+                                    @(Model.PreferredMethod == "Authenticator" ? "驗證器 App" : "Email 驗證碼")
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <form asp-action="DisableTwoFactor" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">停用兩步驟驗證</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" />
+}

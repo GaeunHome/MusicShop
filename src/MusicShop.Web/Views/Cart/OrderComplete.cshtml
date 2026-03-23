@@ -66,7 +66,7 @@
                 </div>
                 <div class="card-footer text-muted small">
                     訂單時間：@Model.FormattedOrderDate
-                    狀態：<span class="badge bg-warning text-dark">待處理</span>
+                    狀態：<span class="badge @Model.StatusBadgeClass">@Model.StatusText</span>
                 </div>
             </div>
 

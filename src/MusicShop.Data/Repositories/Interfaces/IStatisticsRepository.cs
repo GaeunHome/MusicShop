@@ -54,4 +54,14 @@ public interface IStatisticsRepository
     /// 取得優惠券總數
     /// </summary>
     Task<int> GetCouponCountAsync();
+
+    /// <summary>
+    /// 取得每日銷售趨勢（指定天數內，依日期分組）
+    /// </summary>
+    Task<List<(DateTime Date, decimal Amount, int Count)>> GetDailySalesTrendAsync(int days);
+
+    /// <summary>
+    /// 取得熱門商品排行（依銷售數量）
+    /// </summary>
+    Task<List<(string AlbumTitle, int Quantity)>> GetTopSellingAlbumsAsync(int count);
 }

@@ -30,6 +30,7 @@
                                 <th>Email</th>
                                 <th>手機號碼</th>
                                 <th>Email 驗證</th>
+                                <th>2FA</th>
                                 <th>角色</th>
                                 <th>註冊時間</th>
                                 <th class="text-center">操作</th>
@@ -56,6 +57,16 @@
                                         else
                                         {
                                             <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle"></i> 未驗證</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (user.TwoFactorEnabled)
+                                        {
+                                            <span class="badge bg-success"><i class="bi bi-shield-check"></i> 已啟用</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">未啟用</span>
                                         }
                                     </td>
                                     <td>

@@ -195,6 +195,13 @@
 
             <!-- 操作按鈕 -->
             <div class="d-grid gap-2">
+                @if (Model.CanRetryPayment)
+                {
+                    <a asp-controller="Payment" asp-action="Checkout" asp-route-orderId="@Model.Id"
+                       class="btn btn-primary">
+                        <i class="bi bi-credit-card me-2"></i>前往付款
+                    </a>
+                }
                 @if (Model.CanCancel)
                 {
                     <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" id="cancelOrderFormDetail">

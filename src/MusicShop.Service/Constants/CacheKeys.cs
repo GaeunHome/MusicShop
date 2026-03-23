@@ -16,11 +16,6 @@ public static class CacheKeys
     public const string ArtistCategorySelectItems = "categories:artist:select";
 
     /// <summary>
-    /// 所有商品類型
-    /// </summary>
-    public const string ProductTypes = "categories:product-types";
-
-    /// <summary>
     /// 商品類型父分類
     /// </summary>
     public const string ProductTypeParents = "categories:product-types:parents";
@@ -39,6 +34,16 @@ public static class CacheKeys
     /// 啟用中的幻燈片
     /// </summary>
     public const string Banners = "banners:active";
+
+    /// <summary>
+    /// 啟用中的精選藝人
+    /// </summary>
+    public const string FeaturedArtists = "featured-artists:active";
+
+    /// <summary>
+    /// 精選藝人相關快取前綴（用於批次清除）
+    /// </summary>
+    public const string FeaturedArtistsPrefix = "featured-artists:";
 
     /// <summary>
     /// 分類相關快取前綴（用於批次清除）

@@ -29,14 +29,17 @@
 | **快取** | IMemoryCache | 內建記憶體快取 |
 | **前端** | Razor Views + Bootstrap 5 + jQuery | - |
 | **設計模式** | Repository, UnitOfWork, DI, Factory, BaseController, MVC Area | - |
-| **物流金流** | 綠界 ECPay 物流 API（超商取貨） | logistics API |
+| **社群登入** | Google OAuth 2.0 + LINE Login | OAuth 2.0 |
+| **物流金流** | 綠界 ECPay（超商取貨 + 信用卡付款） | All-in-One API |
 
 ## 核心功能
 
 | 模組 | 功能 | 狀態 | 說明 |
 |------|------|------|------|
 | **使用者系統** | 註冊/登入/登出 | ✅ | ASP.NET Core Identity |
+| | 社群登入（Google / LINE） | ✅ | OAuth 2.0 第三方登入 |
 | | 個人資料管理 | ✅ | 姓名、電話、生日、性別 |
+| | 兩步驟驗證（2FA） | ✅ | TOTP 驗證器應用程式 |
 | | 訂單歷史查詢 | ✅ | 僅能查看自己的訂單 |
 | **專輯展示** | 列表瀏覽 | ✅ | 響應式卡片設計 |
 | | 雙分類篩選 | ✅ | 藝人分類 + 商品類型（階層式） |
@@ -51,6 +54,9 @@
 | | 訂單追蹤 | ✅ | 5 種狀態（待處理→已完成） |
 | | 訂單時間軸 | ✅ | 視覺化訂單進度 |
 | | 超商門市選取 | ✅ | 綠界 ECPay 物流 API |
+| | 信用卡付款 | ✅ | 綠界 ECPay All-in-One 金流 |
+| | 付款失敗回滾 | ✅ | 取消訂單 + 恢復庫存 + 退還優惠券 |
+| | 未完成付款自動取消 | ✅ | 信用卡訂單 15 分鐘逾時自動取消 |
 | **優惠券系統** | 後台優惠券 CRUD | ✅ | 固定金額 / 百分比折扣 |
 | | 兌換碼兌換 | ✅ | 使用者輸入兌換碼領取 |
 | | 統一發放 / 壽星發放 | ✅ | 管理員一鍵發放給全部使用者或當月壽星 |
@@ -69,7 +75,8 @@
 | **效能與品質** | MemoryCache 快取 | ✅ | 分類與商品類型快取 |
 | | 全域例外處理 | ✅ | GlobalExceptionMiddleware |
 | | SEO 優化 | ✅ | Open Graph + Schema.org |
-| **待開發** | Email 通知 | ⏳ | 待開發 |
+| | 速率限制 | ✅ | 分級限流（一般 100 / API 30 / Auth 10 req/min） |
+| | 安全標頭 | ✅ | CSP、X-Frame-Options、X-Content-Type-Options 等 |
 
 ## 系統架構
 
@@ -130,16 +137,34 @@ cd MusicShop
   "ConnectionStrings": {
     "DefaultConnection": "Server=<伺服器>;Database=kalbum;User Id=<帳號>;Password=<密碼>;TrustServerCertificate=True;"
   },
-  "Ecpay": {
-    "MerchantID": "YOUR_MERCHANT_ID",
-    "HashKey": "YOUR_HASH_KEY",
-    "HashIV": "YOUR_HASH_IV",
+  "EcpayPayment": {
+    "MerchantID": "YOUR_PAYMENT_MERCHANT_ID",
+    "HashKey": "YOUR_PAYMENT_HASH_KEY",
+    "HashIV": "YOUR_PAYMENT_HASH_IV",
     "IsTest": true
+  },
+  "EcpayLogistics": {
+    "MerchantID": "YOUR_LOGISTICS_MERCHANT_ID",
+    "HashKey": "YOUR_LOGISTICS_HASH_KEY",
+    "HashIV": "YOUR_LOGISTICS_HASH_IV",
+    "IsTest": true
+  },
+  "Authentication": {
+    "Google": {
+      "ClientId": "YOUR_GOOGLE_CLIENT_ID",
+      "ClientSecret": "YOUR_GOOGLE_CLIENT_SECRET"
+    },
+    "LINE": {
+      "ChannelId": "YOUR_LINE_CHANNEL_ID",
+      "ChannelSecret": "YOUR_LINE_CHANNEL_SECRET"
+    }
   }
 }
 ```
 
-> **ECPay 設定說明**：`IsTest: true` 使用綠界測試環境，`false` 切換正式環境。商家金鑰請至[綠界科技後台](https://www.ecpay.com.tw/)取得。
+> **ECPay 設定說明**：金流與物流使用不同的 MerchantID。`IsTest: true` 使用綠界測試環境，`false` 切換正式環境。商家金鑰請至[綠界科技後台](https://www.ecpay.com.tw/)取得。
+>
+> **社群登入設定**：Google OAuth 2.0 至 [Google Cloud Console](https://console.cloud.google.com/) 設定；LINE Login 至 [LINE Developers Console](https://developers.line.biz/) 設定。
 
 #### 3. 還原套件與建立資料庫
 ```bash
@@ -245,6 +270,34 @@ MusicShop/
 | UserCoupon ↔ Order (雙向可選) | NoAction |
 
 ## 版本歷史
+
+### v1.8.0 (2026-03-23) - ECPay 信用卡金流串接、社群登入、程式碼品質審查
+
+#### ECPay 信用卡付款整合
+- 串接綠界 All-in-One 金流 API（測試環境 MerchantID `3002607`）
+- 新增 `EcpayPaymentService`：參數建構、SHA-256 CheckMacValue 產生與驗證
+- 新增 `PaymentController`：Checkout（建立付款）、PaymentNotify（Server 回呼）、PaymentResult（使用者導回）
+- CheckMacValue 驗證使用 `CryptographicOperations.FixedTimeEquals` 防止 Timing Attack
+- 金額驗證、MerchantID 驗證、冪等性檢查，確保付款安全
+- ECPay 金流與物流拆分為獨立設定區段（`EcpayPayment` / `EcpayLogistics`）
+
+#### 付款失敗與逾時處理
+- 信用卡付款失敗自動回滾：取消訂單 + 恢復庫存 + 退還優惠券（交易保護）
+- 信用卡未付款訂單 15 分鐘自動取消（Lazy Evaluation 模式，無需背景排程）
+- 訂單列表與詳情頁顯示「等待付款」狀態與「前往付款」重試按鈕
+- ECPay 付款頁返回鍵處理：sessionStorage 防止重複提交，自動導回訂單列表
+
+#### 社群登入
+- Google OAuth 2.0 登入整合
+- LINE Login OAuth 2.0 登入整合（自訂 OAuth Handler + UserInfo API）
+- 登入頁面新增 Google / LINE 社群登入按鈕
+
+#### 程式碼品質審查（v1.8.0）
+- 全面審查三層式架構合規性、async/await 模式、錯誤處理一致性
+- 識別並記錄 Controller Delete 方法缺少 try-catch、CouponService N+1 查詢等改善項目
+- 安全標頭 CSP 新增 ECPay 付款網域白名單
+- 結構化日誌修正（UserService 字串插值改為 Serilog 佔位符）
+- 移除未使用程式碼（`EcpaySettings.cs`、`CacheKeys.ProductTypes`）
 
 ### v1.7.2 (2026-03-18) - 程式碼品質審查、管理員 Email 確認、安全強化
 
@@ -371,8 +424,11 @@ MusicShop/
 | **CSRF 防護** | `[ValidateAntiForgeryToken]` + `SameSite=Lax` |
 | **SQL 注入防護** | EF Core 參數化查詢 |
 | **XSS 防護** | Razor 自動編碼 + Cookie HttpOnly |
+| **速率限制** | 分級限流：一般 100 / API 30 / Auth 10 req/min |
+| **安全標頭** | CSP、X-Frame-Options、X-Content-Type-Options、Referrer-Policy |
 | **敏感資訊保護** | `appsettings.json` 已加入 `.gitignore` |
 | **權限控制** | `[Authorize]` + 角色驗證（Admin/User） |
+| **金流安全** | CheckMacValue SHA-256 驗證 + FixedTimeEquals 防 Timing Attack |
 | **並發控制** | 樂觀並發（`[Timestamp]` RowVersion） |
 | **交易保護** | 資料庫交易確保原子性（ACID） |
 | **軟刪除** | `ISoftDeletable` + Global Query Filter，保留資料完整性 |
@@ -384,10 +440,10 @@ MusicShop/
 
 ## 授權
 
-此專案為學習與教育用途。
+此專案為本人學習用途，無任何商業用途。
 
 ## 相關連結
 
 - [CLAUDE.md](/CLAUDE.md) - Claude Code 專案指引
 - [appsettings.example.json](/appsettings.example.json) - 設定檔範例
-- [K-MONSTAR](https://www.k-monstar.com/) - 靈感來源（韓國音樂專輯線上商店）
+- [K-MONSTAR](https://www.k-monstar.com/)[微樂客](https://www.willmusic.com.tw/) - 靈感來源與商品圖片（韓國音樂專輯線上商店）

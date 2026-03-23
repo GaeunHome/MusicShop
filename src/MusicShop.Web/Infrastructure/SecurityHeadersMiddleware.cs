@@ -60,7 +60,7 @@ public class SecurityHeadersMiddleware
             "connect-src 'self'; " +
             "frame-ancestors 'none'; " +
             "base-uri 'self'; " +
-            "form-action 'self'");
+            "form-action 'self' https://accounts.google.com https://access.line.me https://payment-stage.ecpay.com.tw https://payment.ecpay.com.tw");
 
         await _next(context);
     }

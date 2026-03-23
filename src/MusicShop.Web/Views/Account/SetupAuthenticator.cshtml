@@ -1,0 +1,86 @@
+@model MusicShop.Service.ViewModels.Account.SetupAuthenticatorViewModel
+@{
+    ViewData["Title"] = "設定驗證器";
+}
+
+<div id="account-edit-page" class="container my-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">首頁</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Account" asp-action="Index">我的帳戶</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Account" asp-action="TwoFactorAuthentication">兩步驟驗證</a></li>
+            <li class="breadcrumb-item active" aria-current="page">設定驗證器</li>
+        </ol>
+    </nav>
+
+    <h1 class="page-title mb-4">設定驗證器 App</h1>
+
+    <div class="row">
+        <div class="col-lg-3 d-none d-lg-block">
+            @await Html.PartialAsync("_AccountMenu")
+        </div>
+
+        <div class="col-lg-9 col-12">
+            <div class="mobile-menu d-lg-none mb-3">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                        設定驗證器
+                    </button>
+                    <ul class="dropdown-menu w-100">
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Index">我的帳戶</a></li>
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Edit">更新個人資訊</a></li>
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">更新密碼</a></li>
+                        <li><a class="dropdown-item active" asp-controller="Account" asp-action="TwoFactorAuthentication">兩步驟驗證</a></li>
+                        <li><a class="dropdown-item" asp-controller="Order" asp-action="Index">訂單查詢</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body p-4">
+                    <h5 class="mb-3">步驟 1：下載驗證器 App</h5>
+                    <p class="text-muted mb-4">
+                        請在手機上下載 <strong>Google Authenticator</strong> 或 <strong>Microsoft Authenticator</strong>。
+                    </p>
+
+                    <h5 class="mb-3">步驟 2：掃描 QR Code</h5>
+                    <p class="text-muted mb-3">使用驗證器 App 掃描以下 QR Code：</p>
+                    <div class="text-center mb-3">
+                        <img src="data:image/png;base64,@Model.QrCodeBase64" alt="QR Code" class="border rounded p-2" style="max-width: 200px;" />
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="text-muted small mb-1">無法掃描？請手動輸入此金鑰：</p>
+                        <div class="bg-light border rounded p-2 text-center">
+                            <code class="fs-6">@Model.SharedKey</code>
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3">步驟 3：輸入驗證碼</h5>
+                    <p class="text-muted mb-3">輸入驗證器 App 上顯示的 6 位數驗證碼以完成設定：</p>
+
+                    <form asp-action="SetupAuthenticator" method="post">
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                        <div class="mb-3" style="max-width: 300px;">
+                            <input asp-for="VerificationCode" class="form-control form-control-lg text-center"
+                                   placeholder="000000" maxlength="6" autocomplete="off" />
+                            <span asp-validation-for="VerificationCode" class="text-danger small"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">驗證並啟用</button>
+                        <a asp-action="TwoFactorAuthentication" class="btn btn-outline-secondary ms-2">取消</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

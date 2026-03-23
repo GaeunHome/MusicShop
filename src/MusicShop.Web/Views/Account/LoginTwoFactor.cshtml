@@ -1,0 +1,63 @@
+@model MusicShop.Service.ViewModels.Account.TwoFactorLoginViewModel
+@{
+    ViewData["Title"] = "兩步驟驗證";
+}
+
+<partial name="_TempDataNotifications" />
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h3 class="card-title text-center mb-4">兩步驟驗證</h3>
+
+                    @if (Model.Method == "Email")
+                    {
+                        <p class="text-center text-muted mb-4">
+                            我們已寄送驗證碼至 <strong>@ViewBag.MaskedEmail</strong>
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted mb-4">
+                            請開啟您的驗證器 App，輸入顯示的 6 位數驗證碼
+                        </p>
+                    }
+
+                    <form asp-action="LoginTwoFactor" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <input type="hidden" asp-for="RememberMe" />
+                        <input type="hidden" asp-for="Method" />
+
+                        <div class="mb-3">
+                            <input asp-for="Code" class="form-control form-control-lg text-center"
+                                   placeholder="請輸入 6 位數驗證碼" maxlength="6" autocomplete="off" autofocus />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary">驗證</button>
+                        </div>
+                    </form>
+
+                    @if (Model.Method == "Email")
+                    {
+                        <div class="text-center mt-3">
+                            <form asp-action="ResendTwoFactorCode" method="post" class="d-inline">
+                                <input type="hidden" name="rememberMe" value="@Model.RememberMe" />
+                                <button type="submit" class="btn btn-link btn-sm p-0">重新寄送驗證碼</button>
+                            </form>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

@@ -166,7 +166,7 @@ public class CouponService : ICouponService
             return (false, "無效的兌換碼");
 
         if (!coupon.IsActive)
-            return (false, "此優惠券已停用");
+            return (false, "此優惠券目前無法使用");
 
         if (!coupon.IsRedeemable)
             return (false, "此優惠券不支援兌換碼兌換");

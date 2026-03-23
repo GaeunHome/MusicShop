@@ -264,6 +264,9 @@ namespace MusicShop.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<int>("PreferredTwoFactorMethod")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("RegisteredAt")
                         .HasColumnType("datetime2");
 
@@ -578,6 +581,10 @@ namespace MusicShop.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("MerchantTradeNo")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
@@ -636,6 +643,10 @@ namespace MusicShop.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MerchantTradeNo")
+                        .IsUnique()
+                        .HasFilter("MerchantTradeNo IS NOT NULL");
 
                     b.HasIndex("UserCouponId");
 

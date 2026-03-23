@@ -302,6 +302,9 @@ namespace MusicShop.Service.Services.Implementation
         {
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
 
+            // 自動取消逾時未付款的信用卡訂單
+            await AutoCancelExpiredCreditCardOrdersAsync(userId);
+
             var orders = await _unitOfWork.Orders.GetOrdersByUserIdAsync(userId);
 
             return orders.Select(order =>
@@ -314,12 +317,13 @@ namespace MusicShop.Service.Services.Implementation
                     OrderDate = order.OrderDate,
                     TotalAmount = order.TotalAmount,
                     DiscountAmount = order.DiscountAmount,
-                    StatusText = OrderHelper.GetOrderStatusText(order.Status),
+                    StatusText = OrderHelper.GetOrderStatusText(order.Status, order.PaymentMethod),
                     StatusBadgeClass = OrderHelper.GetOrderStatusBadgeClass(order.Status),
                     PaymentMethodText = OrderHelper.GetPaymentMethodText(order.PaymentMethod),
                     DeliveryMethodText = OrderHelper.GetDeliveryMethodText(order.DeliveryMethod),
                     PaymentStatusText = OrderHelper.GetPaymentStatusText(order.PaymentMethod, order.Status),
                     CanCancel = order.Status == OrderStatus.Pending || order.Status == OrderStatus.Paid,
+                    CanRetryPayment = OrderHelper.CanRetryPayment(order.Status, order.PaymentMethod),
                     Items = topItems,
                     TotalItemCount = order.OrderItems.Count
                 };
@@ -348,11 +352,12 @@ namespace MusicShop.Service.Services.Implementation
                 TotalAmount = order.TotalAmount,
                 DiscountAmount = order.DiscountAmount,
                 Status = order.Status,
-                StatusText = OrderHelper.GetOrderStatusText(order.Status),
+                StatusText = OrderHelper.GetOrderStatusText(order.Status, order.PaymentMethod),
                 StatusBadgeClass = OrderHelper.GetOrderStatusBadgeClass(order.Status),
-                StatusDescription = OrderHelper.GetOrderStatusDescription(order.Status),
+                StatusDescription = OrderHelper.GetOrderStatusDescription(order.Status, order.PaymentMethod),
                 IsPending = order.Status == OrderStatus.Pending,
                 CanCancel = order.Status == OrderStatus.Pending || order.Status == OrderStatus.Paid,
+                CanRetryPayment = OrderHelper.CanRetryPayment(order.Status, order.PaymentMethod),
                 PaymentMethodText = OrderHelper.GetPaymentMethodText(order.PaymentMethod),
                 DeliveryMethodText = OrderHelper.GetDeliveryMethodText(order.DeliveryMethod),
                 PaymentStatusText = OrderHelper.GetPaymentStatusText(order.PaymentMethod, order.Status),
@@ -389,6 +394,7 @@ namespace MusicShop.Service.Services.Implementation
                 PaymentMethodText = OrderHelper.GetPaymentMethodText(order.PaymentMethod),
                 DeliveryMethodText = OrderHelper.GetDeliveryMethodText(order.DeliveryMethod),
                 StatusText = OrderHelper.GetOrderStatusText(order.Status),
+                StatusBadgeClass = OrderHelper.GetOrderStatusBadgeClass(order.Status),
                 Items = items
             };
         }
@@ -463,6 +469,61 @@ namespace MusicShop.Service.Services.Implementation
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
 
             return await _unitOfWork.Orders.GetUserOrderStatsAsync(userId);
+        }
+
+        /// <summary>
+        /// 自動取消逾時未付款的信用卡訂單
+        /// 信用卡訂單超過 30 分鐘仍為 Pending 狀態，自動取消並恢復庫存
+        /// </summary>
+        private async Task AutoCancelExpiredCreditCardOrdersAsync(string userId)
+        {
+            var orders = await _unitOfWork.Orders.GetOrdersByUserIdAsync(userId);
+            var cutoffTime = DateTime.UtcNow.AddMinutes(-OrderHelper.CreditCardPaymentTimeoutMinutes);
+
+            var expiredOrders = orders.Where(o =>
+                o.Status == OrderStatus.Pending &&
+                o.PaymentMethod == PaymentMethod.CreditCard &&
+                o.OrderDate < cutoffTime).ToList();
+
+            foreach (var order in expiredOrders)
+            {
+                try
+                {
+                    // 需要追蹤的實體，重新從 DB 取得（GetOrdersByUserIdAsync 用了 AsNoTracking）
+                    var trackedOrder = await _unitOfWork.Orders.GetOrderByIdAsync(order.Id);
+                    if (trackedOrder == null || trackedOrder.Status != OrderStatus.Pending) continue;
+
+                    await _unitOfWork.BeginTransactionAsync();
+
+                    foreach (var orderItem in trackedOrder.OrderItems)
+                    {
+                        var album = await _unitOfWork.Albums.GetAlbumByIdAsync(orderItem.AlbumId);
+                        if (album != null)
+                        {
+                            album.Stock += orderItem.Quantity;
+                            await _unitOfWork.Albums.UpdateAlbumAsync(album);
+                        }
+                    }
+
+                    if (trackedOrder.UserCouponId.HasValue)
+                        await _couponService.ReleaseCouponAsync(trackedOrder.UserCouponId.Value);
+
+                    trackedOrder.Status = OrderStatus.Cancelled;
+                    trackedOrder.UpdatedAt = DateTime.UtcNow;
+                    await _unitOfWork.Orders.UpdateOrderAsync(trackedOrder);
+
+                    await _unitOfWork.CommitAsync();
+
+                    _logger.LogInformation(
+                        "信用卡訂單逾時自動取消：OrderId={OrderId}, 建立時間={OrderDate}",
+                        trackedOrder.Id, trackedOrder.OrderDate);
+                }
+                catch (Exception ex)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    _logger.LogError(ex, "自動取消逾時訂單失敗：OrderId={OrderId}", order.Id);
+                }
+            }
         }
 
         /// <summary>

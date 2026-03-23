@@ -67,6 +67,18 @@ namespace MusicShop.Library.Helpers
         }
 
         /// <summary>
+        /// 取得訂單狀態的顯示文字（含付款方式判斷）
+        /// 信用卡未付款的訂單顯示「等待付款」而非「待處理」
+        /// </summary>
+        public static string GetOrderStatusText(OrderStatus status, PaymentMethod paymentMethod)
+        {
+            if (status == OrderStatus.Pending && paymentMethod == PaymentMethod.CreditCard)
+                return "等待付款";
+
+            return GetOrderStatusText(status);
+        }
+
+        /// <summary>
         /// 取得訂單狀態的說明文字
         /// </summary>
         public static string GetOrderStatusDescription(OrderStatus status)
@@ -81,6 +93,30 @@ namespace MusicShop.Library.Helpers
                 _ => ""
             };
         }
+
+        /// <summary>
+        /// 取得訂單狀態的說明文字（含付款方式判斷）
+        /// </summary>
+        public static string GetOrderStatusDescription(OrderStatus status, PaymentMethod paymentMethod)
+        {
+            if (status == OrderStatus.Pending && paymentMethod == PaymentMethod.CreditCard)
+                return "訂單已建立，等待信用卡付款。超過 15 分鐘未付款將自動取消。";
+
+            return GetOrderStatusDescription(status);
+        }
+
+        /// <summary>
+        /// 判斷訂單是否可以重新付款（信用卡 + 待處理）
+        /// </summary>
+        public static bool CanRetryPayment(OrderStatus status, PaymentMethod paymentMethod)
+        {
+            return status == OrderStatus.Pending && paymentMethod == PaymentMethod.CreditCard;
+        }
+
+        /// <summary>
+        /// 信用卡訂單未付款的逾時時間（分鐘）
+        /// </summary>
+        public const int CreditCardPaymentTimeoutMinutes = 15;
 
         /// <summary>
         /// 取得訂單狀態的 Badge CSS 類別

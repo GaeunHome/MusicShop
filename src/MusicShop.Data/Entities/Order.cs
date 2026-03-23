@@ -65,6 +65,13 @@ namespace MusicShop.Data.Entities
         [Required]
         public PaymentMethod PaymentMethod { get; set; }
 
+        /// <summary>
+        /// 綠界金流交易編號（用於 ECPay 回調時反查訂單）
+        /// 格式：MS{orderId}T{unix_seconds}，最長 20 字元
+        /// </summary>
+        [StringLength(20)]
+        public string? MerchantTradeNo { get; set; }
+
         // ==================== 發票資訊 ====================
         [Required]
         public InvoiceType InvoiceType { get; set; }

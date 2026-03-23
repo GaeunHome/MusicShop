@@ -23,6 +23,8 @@ public class OrderListItemViewModel
 
     // 是否可取消（待處理或已付款狀態）
     public bool CanCancel { get; set; }
+    // 是否可重新付款（信用卡 + 待處理）
+    public bool CanRetryPayment { get; set; }
 
     // 訂單商品摘要（最多顯示 3 筆）
     public List<OrderItemSummaryViewModel> Items { get; set; } = new();
