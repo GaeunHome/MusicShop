@@ -5,6 +5,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Library.Enums;
+using MusicShop.Library.Helpers;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Web.Infrastructure;
 
@@ -23,10 +24,10 @@ public class OrderController : AdminBaseController
     }
 
     // ─── 訂單列表 ─────────────────────────────────────────
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1)
     {
-        var orders = await _orderService.GetAdminOrderListViewModelsAsync();
-        return View(orders);
+        var pagedOrders = await _orderService.GetAdminOrderListPagedAsync(page, DisplayConstants.AdminOrderPageSize);
+        return View(pagedOrders);
     }
 
     // ─── 訂單詳情 ─────────────────────────────────────────
@@ -51,6 +52,12 @@ public class OrderController : AdminBaseController
     {
         try
         {
+            if (!Enum.IsDefined(typeof(OrderStatus), status))
+            {
+                TempData[TempDataKeys.Error] = "無效的訂單狀態";
+                return RedirectToAction(nameof(Detail), new { id = orderId });
+            }
+
             await _orderService.UpdateOrderStatusAsync(orderId, (OrderStatus)status);
             TempData[TempDataKeys.Success] = "訂單狀態更新成功！";
         }

@@ -38,4 +38,17 @@ public static class PriceExtensions
     {
         return $"NT$ {price.ToString("N0")}";
     }
+
+    /// <summary>
+    /// 將百分比折扣值轉換為台灣「X 折」格式
+    /// 例如：DiscountValue = 10（折 10%）→ 回傳 "9 折"
+    ///       DiscountValue = 15（折 15%）→ 回傳 "8.5 折"
+    /// </summary>
+    /// <param name="discountPercentage">折扣百分比（例如 10 代表折 10%）</param>
+    /// <returns>台灣折數文字（例如 "9 折"）</returns>
+    public static string ToTaiwanDiscount(this decimal discountPercentage)
+    {
+        var fold = (100 - discountPercentage) / 10m;
+        return $"{fold:G} 折";
+    }
 }

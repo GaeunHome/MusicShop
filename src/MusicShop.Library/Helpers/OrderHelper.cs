@@ -1,13 +1,13 @@
 using MusicShop.Library.Enums;
 
-namespace MusicShop.Library.Helpers
+namespace MusicShop.Library.Helpers;
+
+/// <summary>
+/// 訂單相關的輔助方法
+/// 集中管理訂單業務邏輯，避免在 View 層撰寫複雜邏輯
+/// </summary>
+public static class OrderHelper
 {
-    /// <summary>
-    /// 訂單相關的輔助方法
-    /// 集中管理訂單業務邏輯，避免在 View 層撰寫複雜邏輯
-    /// </summary>
-    public static class OrderHelper
-    {
         /// <summary>
         /// 取得付款狀態的顯示文字
         /// 根據付款方式和訂單狀態共同判斷
@@ -276,4 +276,3 @@ namespace MusicShop.Library.Helpers
             return $"{GetLabel()} ({Description})";
         }
     }
-}

@@ -104,7 +104,7 @@ public class CouponService : ICouponService
         var coupon = await _unitOfWork.Coupons.GetByIdAsync(id);
         ValidationHelper.ValidateEntityExists(coupon, "優惠券", id);
 
-        _logger.LogInformation("優惠券刪除：CouponId={CouponId}, Code={Code}", coupon!.Code, id);
+        _logger.LogInformation("優惠券刪除：CouponId={CouponId}, Code={Code}", id, coupon!.Code);
         await _unitOfWork.Coupons.DeleteAsync(coupon);
         await _unitOfWork.SaveChangesAsync();
     }
@@ -229,6 +229,10 @@ public class CouponService : ICouponService
 
         var currentYear = DateTime.UtcNow.Year;
 
+        // 一次查詢取得今年已領取的使用者 ID，避免在迴圈中逐一查詢（N+1）
+        var receivedUserIds = await _unitOfWork.Coupons
+            .GetReceivedUserIdsAsync(couponId, CouponSource.AdminGrant, currentYear);
+
         // 取得所有使用者
         var allUsers = _userManager.Users.ToList();
 
@@ -236,11 +240,7 @@ public class CouponService : ICouponService
 
         foreach (var user in allUsers)
         {
-            // 排除今年已透過統一發放領取過的使用者
-            var alreadyReceived = await _unitOfWork.Coupons
-                .HasUserReceivedCouponAsync(user.Id, couponId, CouponSource.AdminGrant, currentYear);
-
-            if (alreadyReceived) continue;
+            if (receivedUserIds.Contains(user.Id)) continue;
 
             userCouponsToAdd.Add(new UserCoupon
             {
@@ -271,43 +271,48 @@ public class CouponService : ICouponService
         var currentMonth = DateTime.UtcNow.Month;
         var currentYear = DateTime.UtcNow.Year;
 
+        // 一次查詢取得今年已領取的使用者 ID，避免在迴圈中逐一查詢（N+1）
+        var receivedUserIds = await _unitOfWork.Coupons
+            .GetReceivedUserIdsAsync(couponId, CouponSource.BirthdayGift, currentYear);
+
         // 查詢當月壽星
         var birthdayUsers = _userManager.Users
             .Where(u => u.Birthday.HasValue && u.Birthday.Value.Month == currentMonth)
             .ToList();
 
-        var issuedCount = 0;
+        var userCouponsToAdd = new List<UserCoupon>();
 
         foreach (var user in birthdayUsers)
         {
-            // 排除今年已領取者
-            var alreadyReceived = await _unitOfWork.Coupons
-                .HasUserReceivedCouponAsync(user.Id, couponId, CouponSource.BirthdayGift, currentYear);
+            if (receivedUserIds.Contains(user.Id)) continue;
 
-            if (alreadyReceived) continue;
-
-            var userCoupon = new UserCoupon
+            userCouponsToAdd.Add(new UserCoupon
             {
                 UserId = user.Id,
                 CouponId = couponId,
                 IssuedAt = DateTime.UtcNow,
                 ExpiresAt = DateTime.UtcNow.AddDays(coupon.ValidDays),
                 Source = CouponSource.BirthdayGift
-            };
-
-            await _unitOfWork.Coupons.AddUserCouponAsync(userCoupon);
-            issuedCount++;
+            });
         }
 
-        if (issuedCount > 0)
+        if (userCouponsToAdd.Count > 0)
+        {
+            await _unitOfWork.Coupons.AddUserCouponsRangeAsync(userCouponsToAdd);
             await _unitOfWork.SaveChangesAsync();
+        }
 
-        _logger.LogInformation("生日優惠券發放：CouponId={CouponId}, 當月壽星={Count}", couponId, issuedCount);
-        return issuedCount;
+        _logger.LogInformation("生日優惠券發放：CouponId={CouponId}, 當月壽星={Count}", couponId, userCouponsToAdd.Count);
+        return userCouponsToAdd.Count;
     }
 
     // ==================== 訂單整合 ====================
 
+    /// <summary>
+    /// 標記優惠券為已使用。
+    /// 注意：此方法不呼叫 SaveChangesAsync()，預期由呼叫端（OrderService）
+    /// 在外層交易中統一提交，確保訂單建立與優惠券標記的原子性。
+    /// </summary>
     public async Task MarkCouponAsUsedAsync(int userCouponId, int orderId)
     {
         var userCoupon = await _unitOfWork.Coupons.GetUserCouponByIdAsync(userCouponId);
@@ -321,6 +326,11 @@ public class CouponService : ICouponService
         await _unitOfWork.Coupons.UpdateUserCouponAsync(userCoupon);
     }
 
+    /// <summary>
+    /// 釋放（退還）已使用的優惠券。
+    /// 注意：此方法不呼叫 SaveChangesAsync()，預期由呼叫端（OrderService）
+    /// 在外層交易中統一提交，確保訂單取消與優惠券退還的原子性。
+    /// </summary>
     public async Task ReleaseCouponAsync(int userCouponId)
     {
         var userCoupon = await _unitOfWork.Coupons.GetUserCouponByIdAsync(userCouponId);

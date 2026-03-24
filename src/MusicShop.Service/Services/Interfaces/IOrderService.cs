@@ -61,6 +61,11 @@ namespace MusicShop.Service.Services.Interfaces
         Task<List<AdminOrderListItemViewModel>> GetAdminOrderListViewModelsAsync();
 
         /// <summary>
+        /// 取得後台訂單分頁列表 ViewModel（管理員用）
+        /// </summary>
+        Task<PagedResult<AdminOrderListItemViewModel>> GetAdminOrderListPagedAsync(int page, int pageSize);
+
+        /// <summary>
         /// 取得後台訂單詳情 ViewModel（管理員用，不驗證使用者）
         /// </summary>
         Task<AdminOrderDetailViewModel?> GetAdminOrderDetailViewModelAsync(int orderId);

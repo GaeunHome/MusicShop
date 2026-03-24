@@ -1,4 +1,5 @@
 using MusicShop.Library.Enums;
+using MusicShop.Library.Helpers;
 
 namespace MusicShop.Service.ViewModels.Coupon;
 
@@ -23,7 +24,7 @@ public class AvailableCouponViewModel
         {
             var discount = DiscountType == DiscountType.FixedAmount
                 ? $"折 NT$ {DiscountValue:N0}"
-                : $"打 {(100 - DiscountValue) / 10m:G} 折";
+                : $"打 {DiscountValue.ToTaiwanDiscount()}";
             var expiry = ExpiresAt.ToLocalTime().ToString("MM/dd");
             return $"{CouponName}（{discount}，{expiry} 到期）";
         }

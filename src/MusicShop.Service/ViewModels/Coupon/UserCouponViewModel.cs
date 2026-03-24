@@ -1,4 +1,5 @@
 using MusicShop.Library.Enums;
+using MusicShop.Library.Helpers;
 
 namespace MusicShop.Service.ViewModels.Coupon;
 
@@ -37,8 +38,8 @@ public class UserCouponViewModel
     public string DiscountText => DiscountType == DiscountType.FixedAmount
         ? $"折 NT$ {DiscountValue:N0}"
         : MaxDiscountAmount.HasValue
-            ? $"打 {(100 - DiscountValue) / 10m:G} 折（最高折 NT$ {MaxDiscountAmount:N0}）"
-            : $"打 {(100 - DiscountValue) / 10m:G} 折";
+            ? $"打 {DiscountValue.ToTaiwanDiscount()}（最高折 NT$ {MaxDiscountAmount:N0}）"
+            : $"打 {DiscountValue.ToTaiwanDiscount()}";
 
     /// <summary>
     /// 來源文字

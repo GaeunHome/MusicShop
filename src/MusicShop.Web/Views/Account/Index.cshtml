@@ -54,6 +54,17 @@
                 </div>
             </div>
 
+            <!-- 個人資料完整度提醒 -->
+            @if (!Model.IsProfileComplete)
+            {
+                <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>個人資料尚未完整</strong> — 缺少：@string.Join("、", Model.MissingProfileItems)。
+                    <a asp-action="Edit" class="alert-link">前往補充</a>，享受完整的購物體驗與生日優惠。
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
             <!-- 會員資訊卡片 -->
             <div class="account-info-card card mb-4">
                 <div class="card-body">

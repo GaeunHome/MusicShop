@@ -1,11 +1,10 @@
-namespace MusicShop.Library.Enums
+namespace MusicShop.Library.Enums;
+
+/// <summary>
+/// 付款方式
+/// </summary>
+public enum PaymentMethod
 {
-    /// <summary>
-    /// 付款方式
-    /// </summary>
-    public enum PaymentMethod
-    {
-        CashOnDelivery = 0, // 貨到付款
-        CreditCard = 1      // 信用卡
-    }
+    CashOnDelivery = 0, // 貨到付款
+    CreditCard = 1      // 信用卡
 }

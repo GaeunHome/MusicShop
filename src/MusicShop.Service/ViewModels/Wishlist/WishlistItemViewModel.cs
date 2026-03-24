@@ -1,3 +1,5 @@
+using MusicShop.Library.Helpers;
+
 namespace MusicShop.Service.ViewModels.Wishlist;
 
 /// <summary>
@@ -15,9 +17,9 @@ public class WishlistItemViewModel
     public int Stock { get; set; }
     public DateTime AddedAt { get; set; }
 
-    public bool IsInStock => Stock > 0;
-    public bool IsSoldOut => Stock <= 0;
-    public bool IsLowStock => Stock > 0 && Stock <= 5;
+    public bool IsInStock => Stock.IsInStock();
+    public bool IsSoldOut => Stock.IsSoldOut();
+    public bool IsLowStock => Stock.IsLowStock();
     public string FormattedPrice => $"NT${Price.ToString("N0")}";
-    public string StockStatusText => Stock <= 0 ? "已售完" : Stock <= 5 ? $"僅剩 {Stock} 件" : "有庫存";
+    public string StockStatusText => Stock.GetStockStatusShortText();
 }

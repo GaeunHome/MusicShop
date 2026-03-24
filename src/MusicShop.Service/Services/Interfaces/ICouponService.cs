@@ -79,12 +79,14 @@ public interface ICouponService
     // ==================== 訂單整合 ====================
 
     /// <summary>
-    /// 標記優惠券已使用（建立訂單時呼叫）
+    /// 標記優惠券已使用（建立訂單時呼叫）。
+    /// 不會自行呼叫 SaveChangesAsync，由呼叫端在交易中統一提交。
     /// </summary>
     Task MarkCouponAsUsedAsync(int userCouponId, int orderId);
 
     /// <summary>
-    /// 退還優惠券（取消訂單時呼叫）
+    /// 退還優惠券（取消訂單時呼叫）。
+    /// 不會自行呼叫 SaveChangesAsync，由呼叫端在交易中統一提交。
     /// </summary>
     Task ReleaseCouponAsync(int userCouponId);
 }

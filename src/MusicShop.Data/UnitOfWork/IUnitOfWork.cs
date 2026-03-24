@@ -20,6 +20,7 @@ namespace MusicShop.Data.UnitOfWork
         IWishlistRepository Wishlists { get; }
         IFeaturedArtistRepository FeaturedArtists { get; }
         ICouponRepository Coupons { get; }
+        IPasswordHistoryRepository PasswordHistories { get; }
 
         /// <summary>
         /// 開始資料庫交易

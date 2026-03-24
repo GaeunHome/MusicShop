@@ -67,6 +67,28 @@ namespace MusicShop.Data.Repositories.Implementation
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// 取得分頁訂單列表（後台管理用），依下單時間倒序
+        /// </summary>
+        public async Task<(IEnumerable<Order> Orders, int TotalCount)> GetOrdersPagedAsync(int page, int pageSize)
+        {
+            var query = _context.Orders
+                .AsNoTracking()
+                .Include(order => order.User)
+                .Include(order => order.OrderItems)
+                    .ThenInclude(orderItem => orderItem.Album)
+                .OrderByDescending(order => order.OrderDate);
+
+            var totalCount = await query.CountAsync();
+
+            var orders = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (orders, totalCount);
+        }
+
         public async Task<Order> CreateOrderAsync(Order order)
         {
             await _context.Orders.AddAsync(order);

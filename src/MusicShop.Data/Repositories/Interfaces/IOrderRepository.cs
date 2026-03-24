@@ -23,6 +23,11 @@ namespace MusicShop.Data.Repositories.Interfaces
         Task<IEnumerable<Order>> GetAllOrdersAsync();
 
         /// <summary>
+        /// 取得分頁訂單列表（管理員用）
+        /// </summary>
+        Task<(IEnumerable<Order> Orders, int TotalCount)> GetOrdersPagedAsync(int page, int pageSize);
+
+        /// <summary>
         /// 建立訂單
         /// </summary>
         Task<Order> CreateOrderAsync(Order order);

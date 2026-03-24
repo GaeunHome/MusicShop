@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MusicShop.Data;
 using MusicShop.Data.Entities;
+using MusicShop.Data.UnitOfWork;
 using MusicShop.Library.Enums;
 using MusicShop.Library.Helpers;
 using MusicShop.Service.Services.Interfaces;
@@ -19,7 +19,7 @@ public class UserService : IUserService
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly SignInManager<AppUser> _signInManager;
-    private readonly ApplicationDbContext _dbContext;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<UserService> _logger;
 
     /// <summary>
@@ -30,12 +30,12 @@ public class UserService : IUserService
     public UserService(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
-        ApplicationDbContext dbContext,
+        IUnitOfWork unitOfWork,
         ILogger<UserService> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _dbContext = dbContext;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
@@ -169,19 +169,26 @@ public class UserService : IUserService
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null) return null;
 
+        // 判斷是否僅有社群登入（無密碼）
+        var hasPassword = await _userManager.HasPasswordAsync(user);
+        var logins = await _userManager.GetLoginsAsync(user);
+
         return new EditProfileViewModel
         {
             FullName = user.FullName ?? "",
-            Email = user.Email ?? "",
-            PhoneNumber = user.PhoneNumber ?? "",
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
             Birthday = user.Birthday,
             Gender = user.Gender,
-            RegisteredAt = user.RegisteredAt
+            RegisteredAt = user.RegisteredAt,
+            IsExternalOnly = !hasPassword && logins.Count > 0
         };
     }
 
     /// <summary>
     /// 更新使用者個人資料
+    /// Email 為選填：社群登入使用者可能沒有 Email，
+    /// 只有在使用者主動提供 Email 時才更新 Email 和 UserName。
     /// </summary>
     public async Task<(bool Success, IEnumerable<string> Errors)> UpdateProfileAsync(string userId, EditProfileViewModel model)
     {
@@ -190,11 +197,26 @@ public class UserService : IUserService
             return (false, new[] { "找不到使用者" });
 
         user.FullName = model.FullName;
-        user.Email = model.Email;
-        user.UserName = model.Email;
-        user.PhoneNumber = model.PhoneNumber;
+        user.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : model.PhoneNumber;
         user.Birthday = model.Birthday;
         user.Gender = model.Gender;
+
+        // Email 處理：只有在使用者提供新 Email 時才更新
+        if (!string.IsNullOrWhiteSpace(model.Email))
+        {
+            var emailChanged = !string.Equals(user.Email, model.Email, StringComparison.OrdinalIgnoreCase);
+            if (emailChanged)
+            {
+                // 檢查 Email 是否已被其他帳號使用
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null && existingUser.Id != userId)
+                    return (false, new[] { "此電子郵件已被其他帳號使用" });
+
+                user.Email = model.Email;
+                user.UserName = model.Email;
+                user.EmailConfirmed = false; // 新 Email 需要重新驗證
+            }
+        }
 
         var result = await _userManager.UpdateAsync(user);
 
@@ -205,14 +227,20 @@ public class UserService : IUserService
     }
 
     /// <summary>
-    /// 取得使用者帳戶摘要資訊
+    /// 取得使用者帳戶摘要資訊（含個人資料完整度）
     /// </summary>
-    public async Task<(string FullName, string Email, DateTime RegisteredAt)?> GetAccountSummaryAsync(string userId)
+    public async Task<(string FullName, string? Email, DateTime RegisteredAt, bool HasPhone, bool HasBirthday)?> GetAccountSummaryAsync(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null) return null;
 
-        return (user.FullName ?? "訪客", user.Email ?? "", user.RegisteredAt);
+        return (
+            user.FullName ?? "訪客",
+            user.Email,
+            user.RegisteredAt,
+            !string.IsNullOrEmpty(user.PhoneNumber),
+            user.Birthday.HasValue
+        );
     }
 
     /// <summary>
@@ -713,11 +741,8 @@ public class UserService : IUserService
         var passwordHasher = new PasswordHasher<AppUser>();
 
         // 取得最近 N 筆密碼歷史
-        var recentPasswords = await _dbContext.PasswordHistories
-            .Where(ph => ph.UserId == user.Id)
-            .OrderByDescending(ph => ph.CreatedAt)
-            .Take(PasswordHistoryCount)
-            .ToListAsync();
+        var recentPasswords = await _unitOfWork.PasswordHistories
+            .GetRecentByUserIdAsync(user.Id, PasswordHistoryCount);
 
         // 比對每一筆歷史密碼
         foreach (var history in recentPasswords)
@@ -735,26 +760,17 @@ public class UserService : IUserService
     /// </summary>
     private async Task SavePasswordHistoryAsync(string userId, string passwordHash)
     {
-        _dbContext.PasswordHistories.Add(new PasswordHistory
+        await _unitOfWork.PasswordHistories.AddAsync(new PasswordHistory
         {
             UserId = userId,
             PasswordHash = passwordHash,
             CreatedAt = DateTime.UtcNow
         });
-        await _dbContext.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync();
 
         // 清理超出保留筆數的舊記錄
-        var oldRecords = await _dbContext.PasswordHistories
-            .Where(ph => ph.UserId == userId)
-            .OrderByDescending(ph => ph.CreatedAt)
-            .Skip(PasswordHistoryCount)
-            .ToListAsync();
-
-        if (oldRecords.Count > 0)
-        {
-            _dbContext.PasswordHistories.RemoveRange(oldRecords);
-            await _dbContext.SaveChangesAsync();
-        }
+        await _unitOfWork.PasswordHistories.RemoveOldRecordsAsync(userId, PasswordHistoryCount);
+        await _unitOfWork.SaveChangesAsync();
     }
 
     // ==================== 社群登入 ====================

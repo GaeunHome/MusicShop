@@ -49,9 +49,9 @@ public interface IUserService
     Task<(bool Success, IEnumerable<string> Errors)> UpdateProfileAsync(string userId, EditProfileViewModel model);
 
     /// <summary>
-    /// 取得使用者帳戶摘要資訊（姓名、Email、註冊日期）
+    /// 取得使用者帳戶摘要資訊（姓名、Email、註冊日期、個人資料完整度）
     /// </summary>
-    Task<(string FullName, string Email, DateTime RegisteredAt)?> GetAccountSummaryAsync(string userId);
+    Task<(string FullName, string? Email, DateTime RegisteredAt, bool HasPhone, bool HasBirthday)?> GetAccountSummaryAsync(string userId);
 
     /// <summary>
     /// 取得所有使用者及其角色資訊

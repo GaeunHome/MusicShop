@@ -14,6 +14,7 @@ namespace MusicShop.Data.Repositories.Implementation
         public async Task<IEnumerable<Banner>> GetActiveBannersAsync()
         {
             return await _context.Banners
+                .AsNoTracking()
                 .Where(b => b.IsActive)
                 .Include(b => b.Album)
                 .OrderBy(b => b.DisplayOrder)
@@ -23,6 +24,7 @@ namespace MusicShop.Data.Repositories.Implementation
         public async Task<IEnumerable<Banner>> GetAllOrderedAsync()
         {
             return await _context.Banners
+                .AsNoTracking()
                 .Include(b => b.Album)
                 .OrderBy(b => b.DisplayOrder)
                 .ToListAsync();

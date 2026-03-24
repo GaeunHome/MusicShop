@@ -14,6 +14,7 @@ public class FeaturedArtistRepository : GenericRepository<FeaturedArtist>, IFeat
     public async Task<IEnumerable<FeaturedArtist>> GetActiveFeaturedArtistsAsync()
     {
         return await _context.FeaturedArtists
+            .AsNoTracking()
             .Where(fa => fa.IsActive)
             .Include(fa => fa.Artist)
                 .ThenInclude(a => a.Albums)
@@ -24,6 +25,7 @@ public class FeaturedArtistRepository : GenericRepository<FeaturedArtist>, IFeat
     public async Task<IEnumerable<FeaturedArtist>> GetAllOrderedAsync()
     {
         return await _context.FeaturedArtists
+            .AsNoTracking()
             .Include(fa => fa.Artist)
                 .ThenInclude(a => a.Albums)
             .OrderBy(fa => fa.DisplayOrder)

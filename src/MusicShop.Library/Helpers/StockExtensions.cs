@@ -61,6 +61,45 @@ public static class StockExtensions
     }
 
     /// <summary>
+    /// 取得庫存狀態 Badge CSS 類別（用於後台列表）
+    /// </summary>
+    public static string GetStockBadgeClass(this int stock)
+    {
+        if (stock.IsSoldOut())
+            return "bg-danger";
+        else if (stock.IsLowStock())
+            return "bg-warning text-dark";
+        else
+            return "bg-success";
+    }
+
+    /// <summary>
+    /// 取得後台庫存顯示文字（含低庫存標記）
+    /// </summary>
+    public static string GetAdminStockDisplayText(this int stock)
+    {
+        if (stock.IsSoldOut())
+            return "已售完";
+        else if (stock.IsLowStock())
+            return $"{stock}（低庫存）";
+        else
+            return stock.ToString();
+    }
+
+    /// <summary>
+    /// 取得前台庫存狀態簡短文字
+    /// </summary>
+    public static string GetStockStatusShortText(this int stock)
+    {
+        if (stock.IsSoldOut())
+            return "已售完";
+        else if (stock.IsLowStock())
+            return $"僅剩 {stock} 件";
+        else
+            return "有庫存";
+    }
+
+    /// <summary>
     /// 取得庫存狀態圖示
     /// </summary>
     public static string GetStockStatusIcon(this int stock)

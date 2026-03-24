@@ -1,11 +1,11 @@
-namespace MusicShop.Library.Helpers
+namespace MusicShop.Library.Helpers;
+
+/// <summary>
+/// 台灣縣市鄉鎮市區資料類別
+/// 提供縣市、鄉鎮市區、郵遞區號對應
+/// </summary>
+public static class TaiwanDistricts
 {
-    /// <summary>
-    /// 台灣縣市鄉鎮市區資料類別
-    /// 提供縣市、鄉鎮市區、郵遞區號對應
-    /// </summary>
-    public static class TaiwanDistricts
-    {
         /// <summary>
         /// 縣市清單
         /// </summary>
@@ -291,4 +291,3 @@ namespace MusicShop.Library.Helpers
             return false;
         }
     }
-}

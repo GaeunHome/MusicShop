@@ -221,10 +221,12 @@ public class AccountController : BaseController
         }
 
         if (isNewUser)
-            TempData[TempDataKeys.Success] = $"歡迎加入，{fullName}！已透過 {provider} 建立帳號。";
-        else
-            TempData[TempDataKeys.Success] = $"歡迎回來，{fullName}！";
+        {
+            TempData[TempDataKeys.Success] = $"歡迎加入，{fullName}！已透過 {provider} 建立帳號。建議您補充個人資料以獲得完整的購物體驗。";
+            return RedirectToAction(nameof(Edit));
+        }
 
+        TempData[TempDataKeys.Success] = $"歡迎回來，{fullName}！";
         return RedirectToAction("Index", "Home");
     }
 
@@ -322,6 +324,8 @@ public class AccountController : BaseController
             FullName = summary.Value.FullName,
             Email = summary.Value.Email,
             RegisteredAt = summary.Value.RegisteredAt,
+            HasPhone = summary.Value.HasPhone,
+            HasBirthday = summary.Value.HasBirthday,
             TwoFactorEnabled = twoFactorStatus.IsEnabled,
             TwoFactorMethod = twoFactorStatus.PreferredMethod,
             TotalSpent = totalSpent,
@@ -352,7 +356,11 @@ public class AccountController : BaseController
     public async Task<IActionResult> Edit(EditProfileViewModel model)
     {
         if (!ModelState.IsValid)
+        {
+            // 重新填充 View 層所需的非表單屬性
+            await PopulateEditProfileViewPropertiesAsync(model);
             return View(model);
+        }
 
         var userId = GetAuthorizedUserId();
 
@@ -367,7 +375,22 @@ public class AccountController : BaseController
         foreach (var error in errors)
             ModelState.AddModelError(string.Empty, error);
 
+        await PopulateEditProfileViewPropertiesAsync(model);
         return View(model);
+    }
+
+    /// <summary>
+    /// 填充編輯個人資料頁面的非表單屬性（IsExternalOnly、RegisteredAt）
+    /// </summary>
+    private async Task PopulateEditProfileViewPropertiesAsync(EditProfileViewModel model)
+    {
+        var userId = GetAuthorizedUserId();
+        var fullProfile = await _userService.GetEditProfileAsync(userId);
+        if (fullProfile != null)
+        {
+            model.IsExternalOnly = fullProfile.IsExternalOnly;
+            model.RegisteredAt = fullProfile.RegisteredAt;
+        }
     }
 
     // GET: /Account/ChangePassword
@@ -479,7 +502,7 @@ public class AccountController : BaseController
 
         // 寄送驗證碼 Email
         var summary = await _userService.GetAccountSummaryAsync(userId);
-        if (summary != null && code != null)
+        if (summary != null && code != null && !string.IsNullOrEmpty(summary.Value.Email))
         {
             await _emailService.SendEmailAsync(summary.Value.Email, "MusicShop - 兩步驟驗證設定",
                 $@"<h3>兩步驟驗證設定</h3>

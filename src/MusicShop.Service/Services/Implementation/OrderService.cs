@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
@@ -159,6 +160,12 @@ namespace MusicShop.Service.Services.Implementation
                     createdOrder.Id, userId, totalAmount, discountAmount, orderItems.Count);
 
                 return createdOrder.Id;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                _logger.LogWarning(ex, "訂單建立失敗（庫存並發衝突）：UserId={UserId}", userId);
+                throw new InvalidOperationException("庫存已被其他訂單更新，請重新確認購物車後再次下單。", ex);
             }
             catch (Exception ex)
             {
@@ -415,6 +422,26 @@ namespace MusicShop.Service.Services.Implementation
                 StatusText = OrderHelper.GetOrderStatusText(order.Status),
                 StatusBadgeClass = OrderHelper.GetOrderStatusBadgeClass(order.Status)
             }).ToList();
+        }
+
+        public async Task<PagedResult<AdminOrderListItemViewModel>> GetAdminOrderListPagedAsync(int page, int pageSize)
+        {
+            var (orders, totalCount) = await _unitOfWork.Orders.GetOrdersPagedAsync(page, pageSize);
+
+            var items = orders.Select(order => new AdminOrderListItemViewModel
+            {
+                Id = order.Id,
+                UserEmail = order.User?.Email ?? "未知",
+                OrderDate = order.OrderDate,
+                TotalAmount = order.TotalAmount,
+                DiscountAmount = order.DiscountAmount,
+                PaymentMethodText = OrderHelper.GetPaymentMethodText(order.PaymentMethod),
+                PaymentBadgeClass = OrderHelper.GetPaymentBadgeClass(order.PaymentMethod, order.Status),
+                StatusText = OrderHelper.GetOrderStatusText(order.Status),
+                StatusBadgeClass = OrderHelper.GetOrderStatusBadgeClass(order.Status)
+            });
+
+            return new PagedResult<AdminOrderListItemViewModel>(items, totalCount, page, pageSize);
         }
 
         public async Task<AdminOrderDetailViewModel?> GetAdminOrderDetailViewModelAsync(int orderId)

@@ -191,6 +191,21 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .WithMany()
             .HasForeignKey(ph => ph.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== 效能索引 =====
+        // 頻繁以 UserId 查詢的資料表加入索引，加速購物車、訂單、優惠券等查詢
+
+        builder.Entity<CartItem>()
+            .HasIndex(c => c.UserId);
+
+        builder.Entity<Order>()
+            .HasIndex(o => o.UserId);
+
+        builder.Entity<OrderItem>()
+            .HasIndex(oi => oi.OrderId);
+
+        builder.Entity<UserCoupon>()
+            .HasIndex(uc => uc.UserId);
     }
 
     /// <summary>

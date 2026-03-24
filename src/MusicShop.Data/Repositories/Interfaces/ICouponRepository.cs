@@ -36,6 +36,12 @@ public interface ICouponRepository : IGenericRepository<Coupon>
     Task<bool> HasUserReceivedCouponAsync(string userId, int couponId, CouponSource source, int year);
 
     /// <summary>
+    /// 批次取得已領取過特定優惠券的使用者 ID 集合（指定來源、指定年份）
+    /// 用於避免在迴圈中逐一查詢造成 N+1 問題
+    /// </summary>
+    Task<HashSet<string>> GetReceivedUserIdsAsync(int couponId, CouponSource source, int year);
+
+    /// <summary>
     /// 新增使用者優惠券
     /// </summary>
     Task AddUserCouponAsync(UserCoupon userCoupon);

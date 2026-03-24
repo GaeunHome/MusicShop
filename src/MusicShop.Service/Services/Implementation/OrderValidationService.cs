@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using MusicShop.Data.Entities;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Service.Services.Interfaces;
@@ -83,17 +84,24 @@ public class OrderValidationService : IOrderValidationService
 
     /// <summary>
     /// 扣除訂單項目的庫存
-    /// 使用快取避免重複查詢資料庫
+    /// 使用快取避免重複查詢資料庫。
+    /// Album Entity 已配置 [Timestamp] RowVersion 樂觀並發控制，
+    /// 若其他交易同時修改了同一筆 Album，SaveChangesAsync 時會拋出
+    /// DbUpdateConcurrencyException，由外層交易捕獲並 Rollback，防止超賣。
     /// </summary>
     public async Task DeductStockAsync(List<OrderItem> orderItems, Dictionary<int, Album> albumCache)
     {
         foreach (var orderItem in orderItems)
         {
-            if (albumCache.TryGetValue(orderItem.AlbumId, out var album))
-            {
-                album.Stock -= orderItem.Quantity;
-                await _unitOfWork.Albums.UpdateAlbumAsync(album);
-            }
+            if (!albumCache.TryGetValue(orderItem.AlbumId, out var album))
+                continue;
+
+            // 扣除前再次確認庫存充足（防止在驗證與扣除之間庫存被其他請求改變）
+            if (album.Stock < orderItem.Quantity)
+                throw new InvalidOperationException($"專輯「{album.Title}」庫存不足，目前庫存: {album.Stock}");
+
+            album.Stock -= orderItem.Quantity;
+            await _unitOfWork.Albums.UpdateAlbumAsync(album);
         }
     }
 }

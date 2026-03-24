@@ -21,6 +21,7 @@ public class CouponRepository : GenericRepository<Coupon>, ICouponRepository
     public async Task<IEnumerable<Coupon>> GetAllOrderedAsync()
     {
         return await _context.Coupons
+            .AsNoTracking()
             .Include(c => c.UserCoupons)
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
@@ -29,6 +30,7 @@ public class CouponRepository : GenericRepository<Coupon>, ICouponRepository
     public async Task<IEnumerable<UserCoupon>> GetUserCouponsAsync(string userId)
     {
         return await _context.UserCoupons
+            .AsNoTracking()
             .Where(uc => uc.UserId == userId)
             .Include(uc => uc.Coupon)
             .OrderByDescending(uc => uc.IssuedAt)
@@ -45,6 +47,7 @@ public class CouponRepository : GenericRepository<Coupon>, ICouponRepository
     public async Task<IEnumerable<UserCoupon>> GetAvailableUserCouponsAsync(string userId)
     {
         return await _context.UserCoupons
+            .AsNoTracking()
             .Where(uc => uc.UserId == userId && !uc.IsUsed && uc.ExpiresAt > DateTime.UtcNow)
             .Include(uc => uc.Coupon)
             .OrderBy(uc => uc.ExpiresAt)
@@ -58,6 +61,18 @@ public class CouponRepository : GenericRepository<Coupon>, ICouponRepository
                 && uc.CouponId == couponId
                 && uc.Source == source
                 && uc.IssuedAt.Year == year);
+    }
+
+    public async Task<HashSet<string>> GetReceivedUserIdsAsync(int couponId, CouponSource source, int year)
+    {
+        var userIds = await _context.UserCoupons
+            .Where(uc => uc.CouponId == couponId
+                && uc.Source == source
+                && uc.IssuedAt.Year == year)
+            .Select(uc => uc.UserId)
+            .ToListAsync();
+
+        return new HashSet<string>(userIds);
     }
 
     public async Task AddUserCouponAsync(UserCoupon userCoupon)

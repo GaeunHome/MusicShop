@@ -34,4 +34,9 @@ public static class DisplayConstants
     /// 後台藝人列表每頁顯示筆數
     /// </summary>
     public const int AdminArtistPageSize = 10;
+
+    /// <summary>
+    /// 後台訂單列表每頁顯示筆數
+    /// </summary>
+    public const int AdminOrderPageSize = 20;
 }

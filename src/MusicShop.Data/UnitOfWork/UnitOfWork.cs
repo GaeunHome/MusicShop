@@ -25,6 +25,7 @@ namespace MusicShop.Data.UnitOfWork
         private IWishlistRepository? _wishlists;
         private IFeaturedArtistRepository? _featuredArtists;
         private ICouponRepository? _coupons;
+        private IPasswordHistoryRepository? _passwordHistories;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -45,6 +46,7 @@ namespace MusicShop.Data.UnitOfWork
         public IWishlistRepository Wishlists => _wishlists ??= new WishlistRepository(_context);
         public IFeaturedArtistRepository FeaturedArtists => _featuredArtists ??= new FeaturedArtistRepository(_context);
         public ICouponRepository Coupons => _coupons ??= new CouponRepository(_context);
+        public IPasswordHistoryRepository PasswordHistories => _passwordHistories ??= new PasswordHistoryRepository(_context);
 
         /// <summary>
         /// 開始資料庫交易（同一時間僅支援一個活躍交易）
