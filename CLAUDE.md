@@ -2,9 +2,9 @@
 
 此檔案為 Claude Code (claude.ai/code) 在此專案中工作時的指引文件。
 
-MusicShop 是基於 ASP.NET Core MVC (.NET 10.0) 的線上音樂專輯商店。具備使用者認證、專輯瀏覽、購物車、訂單管理、後台管理與收藏清單功能。
+MusicShop 是基於 ASP.NET Core MVC (.NET 10.0) 的線上音樂專輯商店。具備使用者認證、專輯瀏覽、購物車、訂單管理、後台管理、收藏清單、優惠券系統、金流物流整合與系統參數管理功能。
 
-**版本：v1.9.0**
+**版本：v1.9.2**
 
 ## 建置指令
 
@@ -33,17 +33,18 @@ dotnet ef database drop
 ```
 src/
 ├── MusicShop.Web/        # 展示層
-│   ├── Controllers/      # 前台控制器（Home, Album, Cart, Order, Account, Wishlist）
-│   ├── Areas/Admin/      # 後台管理 Area（Dashboard, Album, Artist, Category, Order, User, Banner, FeaturedArtist, Coupon）
+│   ├── Controllers/      # 前台控制器（Home, Album, Cart, Order, Account, Wishlist, Payment, Coupon）
+│   │   └── Api/          # RESTful API 控制器（CartApi, AlbumApi, WishlistApi, CouponApi）
+│   ├── Areas/Admin/      # 後台管理 Area（Dashboard, Album, Artist, Category, Order, User, Banner, FeaturedArtist, Coupon, SystemSetting）
 │   ├── Views/            # 前台視圖
 │   ├── Infrastructure/   # Web 層基礎設施
 │   └── wwwroot/          # 靜態資源
-├── MusicShop.Service/    # 商業邏輯層：Services/, ViewModels/, Mapper/
+├── MusicShop.Service/    # 商業邏輯層：Services/, ViewModels/, Mapper/, Constants/
 ├── MusicShop.Data/       # 資料存取層：Entities/, Repositories/, UnitOfWork/
 └── MusicShop.Library/    # 共用工具層：Helpers/, Enums/
 ```
 
-> **`Infrastructure/`** 集中放置 Web 層基礎設施：圖片上傳服務、ViewComponent、全域例外中間件、設定模型、常數等。
+> **`Infrastructure/`** 集中放置 Web 層基礎設施：圖片上傳服務、ViewComponent、全域例外中間件、維護模式中間件、安全標頭中間件、設定模型、常數等。
 > 判斷標準：不是業務邏輯、但 Web 層運作需要的東西，都放這裡。
 
 > **`Areas/Admin/`** 後台管理使用 MVC Area 獨立拆分，每個功能模組一個 Controller。
@@ -75,6 +76,7 @@ src/
 ## 命名規範
 
 - Service：介面 `I{Feature}Service` → 實作 `{Feature}Service`（在 `Services/Interfaces/` 和 `Services/Implementation/`）
+- Provider：介面 `I{Feature}Provider` → 實作 `{Feature}Provider`（如 `ISiteSettingsProvider`，用於聚合多來源的設定資料）
 - Repository：介面 `I{Entity}Repository` → 實作 `{Entity}Repository`，泛型用 `IGenericRepository<T>`
 - Controller：前台 `{Feature}Controller`、API `{Feature}ApiController`、後台同名但在 `Areas/Admin/` 下
 - ViewModel：依用途加後綴 — `CardViewModel`（卡片）、`DetailViewModel`（詳情）、`FormViewModel`（表單）、`ListItemViewModel`（列表項）、`IndexViewModel`（索引頁）
@@ -85,6 +87,13 @@ src/
 - Controller Action：`Index`、`Detail`、`Create`（GET/POST）、`Edit`（GET/POST）、`Delete`
 - 私有欄位 `_camelCase`，常數 `PascalCase`，命名空間與資料夾結構一致
 - View `{Action}.cshtml`、Partial `_{Name}.cshtml`、CSS 元件 `components/{name}.css`、JS 功能 `features/{feature}/{name}.js`
+
+## 角色系統
+
+- **User**：一般使用者，前台功能
+- **Admin**：管理員，可存取 `/Admin/` 後台所有功能
+- **SuperAdmin**：超級管理員，額外可存取系統參數管理、切換 SuperAdmin 角色
+- 後台統一使用 `[Authorize(Roles = "Admin")]`，系統參數管理使用 `[Authorize(Roles = "SuperAdmin")]`
 
 ## 資料庫
 
@@ -131,6 +140,7 @@ src/
 - **DO** Controller 中萃取重複邏輯為私有輔助方法。
 - **DO** 使用 Serilog 結構化日誌，以 `{PropertyName}` 佔位符傳遞參數（如 `_logger.LogInformation("商品已新增：{AlbumId}", id)`）。
 - **DO** 日誌等級：Debug（開發除錯）、Info（業務事件）、Warning（可恢復異常）、Error（系統錯誤）。
+- **DO** 日誌中避免記錄 PII（個人識別資訊），如使用者 Email、密碼、完整姓名等。
 - **DON'T** 在 Controller 中重複撰寫驗證邏輯，統一由 Service 層處理。
 
 ## 前端規範
@@ -142,11 +152,11 @@ wwwroot/
 ├── css/
 │   ├── site.css              # 全域樣式
 │   ├── variables.css         # CSS 自訂屬性（色彩、間距、字型）
-│   ├── components/           # 可複用元件樣式（pagination.css, skeleton.css 等）
-│   └── pages/                # 頁面專屬樣式（admin.css, account.css 等）
+│   ├── components/           # 可複用元件樣式（pagination.css, skeleton.css, order-timeline.css 等）
+│   └── pages/                # 頁面專屬樣式（admin.css, account.css, album-detail.css 等）
 ├── js/
 │   ├── core/                 # 全域初始化與工具（init.js, site.js, notifications.js）
-│   ├── features/             # 功能模組，按 feature 分資料夾（cart/, search/, album/ 等）
+│   ├── features/             # 功能模組，按 feature 分資料夾（cart/, search/, album/, checkout/ 等）
 │   ├── admin/                # 後台專用腳本
 │   └── utils/                # 通用工具函式
 └── images/
@@ -166,16 +176,33 @@ wwwroot/
 - 表單寬度：`col-md-6 col-lg-5`（平板半寬、桌面窄化）
 - 側邊選單：桌面 `d-none d-lg-block`，手機改用 Dropdown
 
+## 中間件管線
+
+依序註冊（順序重要）：
+
+1. `GlobalExceptionMiddleware` — 全域例外攔截
+2. `SecurityHeadersMiddleware` — 安全標頭（CSP、X-Frame-Options 等）
+3. `CorrelationIdMiddleware` — 請求關聯識別碼
+4. `StatusCodePages` — 狀態碼錯誤頁面
+5. `ResponseCompression` — Brotli + Gzip 壓縮
+6. `StaticFiles` — 靜態資源
+7. `SerilogRequestLogging` — 請求日誌
+8. `RateLimiter` — 速率限制
+9. `Authentication` / `Authorization` — 身份驗證與授權
+10. `MaintenanceModeMiddleware` — 維護模式（需在 Auth 之後，判斷 SuperAdmin 放行）
+
 ## 安全性
 
 - `appsettings.json` 已加入 `.gitignore`，絕不提交含真實密碼/連線字串的設定檔
-- 需登入的功能加 `[Authorize]`，後台加 `[Authorize(Roles = "Admin")]`
+- 需登入的功能加 `[Authorize]`，後台加 `[Authorize(Roles = "Admin")]`，系統參數加 `[Authorize(Roles = "SuperAdmin")]`
 - 操作購物車/訂單時驗證當前使用者權限，防止越權存取
 - POST 請求使用 `[ValidateAntiForgeryToken]` 防止 CSRF
 - Cookie 驗證已設定 HttpOnly、Secure、SameSite、自訂名稱與過期時間
 - 帳號鎖定機制：連續 3 次登入失敗鎖定 5 分鐘，防止暴力破解
 - 速率限制：一般頁面 100 req/min（Sliding Window）、API 30 req/min（Sliding Window）、Auth 10 req/min（Fixed Window）
-- Security Headers：`X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、CSP
+- Security Headers：`X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、CSP、`Referrer-Policy`
+- 金流驗證：CheckMacValue SHA-256 + `FixedTimeEquals` 防 Timing Attack
+- 密碼歷史：`PasswordHistory` 防止重複使用舊密碼
 - 正式環境建議使用環境變數或 Azure Key Vault 管理敏感資訊
 
 ## 開發注意事項
@@ -184,5 +211,7 @@ wwwroot/
 - 後台路由：`{area:exists}/{controller=Dashboard}/{action=Index}/{id?}`
 - 首次 `dotnet ef database update` 後會自動執行 `DbInitializer`（建立角色、管理員帳戶、種子資料）
 - 管理員帳戶設定從 `appsettings.json` 的 `AdminSettings` 區段讀取
+- 超級管理員帳戶設定從 `appsettings.json` 的 `SuperAdminSettings` 區段讀取
+- 站台設定由 `ISiteSettingsProvider` 提供，優先讀取資料庫 `SystemSetting`，缺少時回退至 `appsettings.json` 的 `SiteSettings` 區段
 - 目前無測試專案
 - HTTPS 重新導向已在 `Program.cs` 中註解
