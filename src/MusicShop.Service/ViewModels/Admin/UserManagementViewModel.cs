@@ -47,6 +47,11 @@ public class UserManagementViewModel
     public bool IsAdmin { get; set; }
 
     /// <summary>
+    /// 是否為超級管理員
+    /// </summary>
+    public bool IsSuperAdmin { get; set; }
+
+    /// <summary>
     /// 使用者擁有的所有角色
     /// </summary>
     public List<string> Roles { get; set; } = new List<string>();

@@ -43,6 +43,16 @@ body > .container {
   text-align: start;
 }
 
+/* ==================== 全站公告橫幅 ==================== */
+
+.announcement-bar {
+  background: var(--color-warning, #fff3cd);
+  color: #664d03;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-bottom: 1px solid #ffecb5;
+}
+
 /* ==================== 導覽列樣式 ==================== */
 
 /* 頂部紫色資訊列 */

@@ -86,6 +86,8 @@ builder.Services.AddScoped<IBannerService, BannerService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IFeaturedArtistService, FeaturedArtistService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<ISystemSettingService, SystemSettingService>();
+builder.Services.AddScoped<ISiteSettingsProvider, SiteSettingsProvider>();
 
 // 註冊 Web 層基礎設施服務
 builder.Services.AddScoped<IAlbumImageService, AlbumImageService>();
@@ -401,6 +403,9 @@ app.MapHealthChecks("/health");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// 維護模式（需在 Authentication/Authorization 之後，才能判斷使用者角色）
+app.UseMaintenanceMode();
 
 app.MapStaticAssets();
 

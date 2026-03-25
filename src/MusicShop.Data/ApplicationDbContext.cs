@@ -20,6 +20,7 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
     public DbSet<Coupon> Coupons { get; set; }
     public DbSet<UserCoupon> UserCoupons { get; set; }
     public DbSet<PasswordHistory> PasswordHistories { get; set; }
+    public DbSet<SystemSetting> SystemSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -191,6 +192,29 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .WithMany()
             .HasForeignKey(ph => ph.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // SystemSetting Key 唯一索引
+        builder.Entity<SystemSetting>()
+            .HasIndex(s => s.Key)
+            .IsUnique();
+
+        builder.Entity<SystemSetting>()
+            .Property(s => s.Key)
+            .HasMaxLength(100)
+            .IsRequired();
+
+        builder.Entity<SystemSetting>()
+            .Property(s => s.Value)
+            .IsRequired();
+
+        builder.Entity<SystemSetting>()
+            .Property(s => s.ValueType)
+            .HasMaxLength(20)
+            .HasDefaultValue("string");
+
+        builder.Entity<SystemSetting>()
+            .Property(s => s.Group)
+            .HasMaxLength(50);
 
         // ===== 效能索引 =====
         // 頻繁以 UserId 查詢的資料表加入索引，加速購物車、訂單、優惠券等查詢

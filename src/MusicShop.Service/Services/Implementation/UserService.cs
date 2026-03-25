@@ -286,6 +286,7 @@ public class UserService : IUserService
                 EmailConfirmed = user.EmailConfirmed,
                 TwoFactorEnabled = user.TwoFactorEnabled,
                 IsAdmin = roleList.Contains("Admin"),
+                IsSuperAdmin = roleList.Contains("SuperAdmin"),
                 Roles = roleList
             };
         }).ToList();
@@ -331,6 +332,56 @@ public class UserService : IUserService
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             _logger.LogError("指派 {UserId} 的 Admin 角色失敗：{Errors}", user.Id, errors);
             return (false, $"指派管理員權限失敗：{errors}");
+        }
+    }
+
+    /// <summary>
+    /// 切換使用者的超級管理員角色（僅 SuperAdmin 可操作）
+    /// 指派 SuperAdmin 時同時確保擁有 Admin 角色；移除 SuperAdmin 時保留 Admin 角色
+    /// </summary>
+    public async Task<(bool Success, string Message)> ToggleSuperAdminRoleAsync(string userId, string currentAdminId)
+    {
+        if (string.IsNullOrEmpty(userId))
+            return (false, "無效的使用者 ID");
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            return (false, "找不到指定的使用者");
+
+        if (currentAdminId == userId)
+            return (false, "您不能移除自己的超級管理員權限");
+
+        var isSuperAdmin = await _userManager.IsInRoleAsync(user, "SuperAdmin");
+
+        if (isSuperAdmin)
+        {
+            var result = await _userManager.RemoveFromRoleAsync(user, "SuperAdmin");
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("使用者 {UserId} 的 SuperAdmin 角色已被移除", user.Id);
+                return (true, $"已移除 {user.Email} 的超級管理員權限");
+            }
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            _logger.LogError("移除 {UserId} 的 SuperAdmin 角色失敗：{Errors}", user.Id, errors);
+            return (false, $"移除超級管理員權限失敗：{errors}");
+        }
+        else
+        {
+            // 指派 SuperAdmin 時確保同時擁有 Admin 角色
+            if (!await _userManager.IsInRoleAsync(user, "Admin"))
+            {
+                await _userManager.AddToRoleAsync(user, "Admin");
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, "SuperAdmin");
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("使用者 {UserId} 已被指派 SuperAdmin 角色", user.Id);
+                return (true, $"已將 {user.Email} 設為超級管理員");
+            }
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            _logger.LogError("指派 {UserId} 的 SuperAdmin 角色失敗：{Errors}", user.Id, errors);
+            return (false, $"指派超級管理員權限失敗：{errors}");
         }
     }
 

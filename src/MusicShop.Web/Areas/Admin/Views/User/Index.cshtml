@@ -42,7 +42,11 @@
                                 <tr>
                                     <td>
                                         <strong>@user.FullName</strong>
-                                        @if (user.IsAdmin)
+                                        @if (user.IsSuperAdmin)
+                                        {
+                                            <span class="badge bg-dark ms-2">超級管理員</span>
+                                        }
+                                        else if (user.IsAdmin)
                                         {
                                             <span class="badge bg-danger ms-2">管理員</span>
                                         }
@@ -116,6 +120,28 @@
                                                 </button>
                                             }
                                         </form>
+                                        @* 切換超級管理員角色按鈕（僅 SuperAdmin 可見）*@
+                                        @if (User.IsInRole("SuperAdmin"))
+                                        {
+                                            <form asp-action="ToggleSuperAdminRole" method="post" class="d-inline">
+                                                <input type="hidden" name="userId" value="@user.UserId" />
+                                                @Html.AntiForgeryToken()
+                                                @if (user.IsSuperAdmin)
+                                                {
+                                                    <button type="submit" class="btn btn-sm btn-outline-dark"
+                                                            onclick="return confirm('確定要移除 @user.Email 的超級管理員權限嗎？')">
+                                                        <i class="bi bi-shield-slash"></i> 移除超管
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="submit" class="btn btn-sm btn-dark"
+                                                            onclick="return confirm('確定要將 @user.Email 設為超級管理員嗎？')">
+                                                        <i class="bi bi-shield-lock"></i> 設為超管
+                                                    </button>
+                                                }
+                                            </form>
+                                        }
                                     </td>
                                 </tr>
                             }
@@ -135,6 +161,8 @@
                 <li>點擊「移除管理員」可以將管理員降級為一般使用者</li>
                 <li>您不能移除自己的管理員權限</li>
                 <li>新註冊的使用者會自動獲得 "User" 角色</li>
+                <li>超級管理員可以指派或移除其他使用者的超級管理員權限</li>
+                <li>設為超級管理員時會自動同時指派管理員角色</li>
             </ul>
         </div>
     </div>

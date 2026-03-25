@@ -54,4 +54,14 @@ public static class CacheKeys
     /// 幻燈片相關快取前綴（用於批次清除）
     /// </summary>
     public const string BannersPrefix = "banners:";
+
+    /// <summary>
+    /// 網站設定（從資料庫 SystemSettings 載入）
+    /// </summary>
+    public const string SiteSettings = "system:site-settings";
+
+    /// <summary>
+    /// 系統設定相關快取前綴（用於批次清除）
+    /// </summary>
+    public const string SystemPrefix = "system:";
 }

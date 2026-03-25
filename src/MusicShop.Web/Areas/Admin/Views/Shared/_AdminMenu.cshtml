@@ -47,5 +47,12 @@
            class="list-group-item list-group-item-action @(currentController == "Coupon" ? "active" : "")">
             <i class="bi bi-ticket-perforated"></i> 優惠券管理
         </a>
+        @if (User.IsInRole("SuperAdmin"))
+        {
+            <a asp-area="Admin" asp-controller="SystemSetting" asp-action="Index"
+               class="list-group-item list-group-item-action @(currentController == "SystemSetting" ? "active" : "")">
+                <i class="bi bi-gear"></i> 系統參數
+            </a>
+        }
     </div>
 </div>

@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    修正 .NET 10 + EF Core Tools 的已知問題：
+    dotnet ef 會在 bin/Debug/net10.0/ 下產生巢狀的 bin/Debug/net10.0/ 目錄，
+    導致 MSBuild 嘗試從不存在的路徑複製檔案而失敗。
+    此 Target 在建置前自動清除該殘留目錄。
+  -->
+  <Target Name="CleanNestedBinDirectory" BeforeTargets="Build">
+    <RemoveDir Directories="$(OutputPath)bin" Condition="Exists('$(OutputPath)bin')" />
+  </Target>
+</Project>

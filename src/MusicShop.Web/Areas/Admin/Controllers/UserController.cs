@@ -3,6 +3,7 @@
 // Area: Admin
 // ─────────────────────────────────────────────────────────────
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Web.Infrastructure;
@@ -42,6 +43,33 @@ public class UserController : AdminBaseController
         }
 
         var (success, message) = await _userService.ToggleAdminRoleAsync(userId, currentAdminId);
+
+        if (success)
+        {
+            TempData[TempDataKeys.Success] = message;
+        }
+        else
+        {
+            TempData[TempDataKeys.Error] = message;
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    // ─── 切換超級管理員角色（僅 SuperAdmin 可操作）─────────
+    [HttpPost, ValidateAntiForgeryToken]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> ToggleSuperAdminRole(string userId)
+    {
+        var currentAdminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(currentAdminId))
+        {
+            TempData[TempDataKeys.Error] = "無法取得當前使用者資訊";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var (success, message) = await _userService.ToggleSuperAdminRoleAsync(userId, currentAdminId);
 
         if (success)
         {

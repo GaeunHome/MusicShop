@@ -21,6 +21,7 @@ namespace MusicShop.Data.UnitOfWork
         IFeaturedArtistRepository FeaturedArtists { get; }
         ICouponRepository Coupons { get; }
         IPasswordHistoryRepository PasswordHistories { get; }
+        ISystemSettingRepository SystemSettings { get; }
 
         /// <summary>
         /// 開始資料庫交易

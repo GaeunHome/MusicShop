@@ -27,6 +27,7 @@ namespace MusicShop.Data.UnitOfWork
         private IFeaturedArtistRepository? _featuredArtists;
         private ICouponRepository? _coupons;
         private IPasswordHistoryRepository? _passwordHistories;
+        private ISystemSettingRepository? _systemSettings;
 
         public UnitOfWork(IDbContextFactory<ApplicationDbContext> contextFactory)
         {
@@ -48,6 +49,7 @@ namespace MusicShop.Data.UnitOfWork
         public IFeaturedArtistRepository FeaturedArtists => _featuredArtists ??= new FeaturedArtistRepository(_context);
         public ICouponRepository Coupons => _coupons ??= new CouponRepository(_context);
         public IPasswordHistoryRepository PasswordHistories => _passwordHistories ??= new PasswordHistoryRepository(_context);
+        public ISystemSettingRepository SystemSettings => _systemSettings ??= new SystemSettingRepository(_context);
 
         /// <summary>
         /// 開始資料庫交易（同一時間僅支援一個活躍交易）

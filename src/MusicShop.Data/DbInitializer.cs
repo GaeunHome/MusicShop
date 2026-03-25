@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MusicShop.Data.Entities;
 
@@ -25,6 +26,7 @@ public static class DbInitializer
         // Identity 操作（角色、管理員）自帶交易管理，不需要額外包裝
         await CreateRolesAsync(roleManager);
         await CreateDefaultAdminAsync(userManager, configuration);
+        await CreateDefaultSuperAdminAsync(userManager, configuration);
 
         // 種子資料使用交易確保原子性
         await using var transaction = await context.Database.BeginTransactionAsync();
@@ -32,6 +34,7 @@ public static class DbInitializer
         {
             await CreateDefaultCategoriesAsync(context);
             await CreateDefaultArtistsAsync(context);
+            await CreateDefaultSystemSettingsAsync(context);
             await transaction.CommitAsync();
         }
         catch
@@ -46,7 +49,7 @@ public static class DbInitializer
     /// </summary>
     private static async Task CreateRolesAsync(RoleManager<IdentityRole> roleManager)
     {
-        string[] roleNames = { "User", "Admin" };
+        string[] roleNames = { "User", "Admin", "SuperAdmin" };
 
         foreach (var roleName in roleNames)
         {
@@ -125,6 +128,168 @@ public static class DbInitializer
                 await userManager.AddToRoleAsync(adminUser, "Admin");
                 Console.WriteLine($"已將 Admin 角色指派給現有帳戶 '{adminEmail}'");
             }
+        }
+    }
+
+    /// <summary>
+    /// 建立預設超級管理員帳戶（從 appsettings.json 讀取）
+    /// SuperAdmin 同時擁有 Admin + SuperAdmin 兩個角色，可存取所有後台功能
+    /// </summary>
+    private static async Task CreateDefaultSuperAdminAsync(
+        UserManager<AppUser> userManager,
+        IConfiguration configuration)
+    {
+        var superAdminEmail = configuration["SuperAdminSettings:Email"];
+        var superAdminPassword = configuration["SuperAdminSettings:Password"];
+        var superAdminFullName = configuration["SuperAdminSettings:FullName"] ?? "超級管理員";
+
+        if (string.IsNullOrEmpty(superAdminEmail) || string.IsNullOrEmpty(superAdminPassword))
+        {
+            Console.WriteLine("警告：未在設定檔中找到超級管理員資訊，跳過建立預設超級管理員");
+            return;
+        }
+
+        var superAdminUser = await userManager.FindByEmailAsync(superAdminEmail);
+
+        if (superAdminUser == null)
+        {
+            superAdminUser = new AppUser
+            {
+                UserName = superAdminEmail,
+                Email = superAdminEmail,
+                FullName = superAdminFullName,
+                EmailConfirmed = true
+            };
+
+            var result = await userManager.CreateAsync(superAdminUser, superAdminPassword);
+
+            if (result.Succeeded)
+            {
+                Console.WriteLine($"超級管理員帳戶 '{superAdminEmail}' 建立成功");
+
+                // 同時指派 Admin 和 SuperAdmin 角色
+                await userManager.AddToRoleAsync(superAdminUser, "Admin");
+                await userManager.AddToRoleAsync(superAdminUser, "SuperAdmin");
+                Console.WriteLine($"已將 Admin + SuperAdmin 角色指派給 '{superAdminEmail}'");
+            }
+            else
+            {
+                Console.WriteLine($"超級管理員帳戶建立失敗：{string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+        }
+        else
+        {
+            // 確保現有帳戶擁有 Admin 和 SuperAdmin 角色
+            if (!await userManager.IsInRoleAsync(superAdminUser, "Admin"))
+            {
+                await userManager.AddToRoleAsync(superAdminUser, "Admin");
+            }
+            if (!await userManager.IsInRoleAsync(superAdminUser, "SuperAdmin"))
+            {
+                await userManager.AddToRoleAsync(superAdminUser, "SuperAdmin");
+                Console.WriteLine($"已將 SuperAdmin 角色指派給現有帳戶 '{superAdminEmail}'");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 建立預設系統參數
+    /// </summary>
+    private static async Task CreateDefaultSystemSettingsAsync(ApplicationDbContext context)
+    {
+        // 檢查資料表是否已存在（Migration 可能尚未套用）
+        var tableExists = await context.Database
+            .SqlQueryRaw<int>("SELECT CASE WHEN EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'SystemSettings') THEN 1 ELSE 0 END AS [Value]")
+            .OrderBy(x => x)
+            .FirstOrDefaultAsync();
+
+        if (tableExists == 0)
+        {
+            Console.WriteLine("SystemSettings 資料表尚未建立，跳過系統參數種子資料（請執行 dotnet ef database update）");
+            return;
+        }
+
+        // 預設系統參數清單（每次啟動會自動補缺，不會覆蓋已存在的值）
+        var defaultSettings = new List<SystemSetting>
+        {
+            // ===== 網站設定（對應原 appsettings.json SiteSettings）=====
+            new SystemSetting { Key = "site.name", Value = "MusicShop", Description = "網站名稱", Group = "網站設定", ValueType = "string" },
+            new SystemSetting { Key = "site.customer_service_phone", Value = "02-2732-9768", Description = "客服電話", Group = "網站設定", ValueType = "string" },
+            new SystemSetting { Key = "site.customer_service_hours", Value = "09:00-19:00", Description = "客服時間", Group = "網站設定", ValueType = "string" },
+            new SystemSetting { Key = "site.customer_service_email", Value = "help@musicshop.com", Description = "客服信箱", Group = "網站設定", ValueType = "string" },
+            new SystemSetting { Key = "site.company_tax_id", Value = "12345678", Description = "公司統一編號", Group = "網站設定", ValueType = "string" },
+            new SystemSetting { Key = "site.membership_id", Value = "MS202601", Description = "會員編號（頂部資訊列顯示）", Group = "網站設定", ValueType = "string" },
+
+            new SystemSetting { Key = "site.maintenance_mode", Value = "false", Description = "是否進入維護模式", Group = "網站設定", ValueType = "bool" },
+            new SystemSetting { Key = "site.maintenance_message", Value = "網站維護中，請稍後再試", Description = "維護模式顯示訊息", Group = "網站設定", ValueType = "string" },
+            new SystemSetting { Key = "site.announcement", Value = "", Description = "全站公告（頂部橫幅，空值不顯示）", Group = "網站設定", ValueType = "string" },
+
+            // ===== 社群媒體（對應原 appsettings.json SiteSettings.SocialMedia）=====
+            new SystemSetting { Key = "site.social.facebook", Value = "https://facebook.com", Description = "Facebook 粉絲專頁連結", Group = "社群媒體", ValueType = "string" },
+            new SystemSetting { Key = "site.social.instagram", Value = "https://instagram.com", Description = "Instagram 帳號連結", Group = "社群媒體", ValueType = "string" },
+            new SystemSetting { Key = "site.social.line", Value = "https://line.me", Description = "LINE 官方帳號連結", Group = "社群媒體", ValueType = "string" },
+            new SystemSetting { Key = "site.social.youtube", Value = "", Description = "YouTube 頻道連結", Group = "社群媒體", ValueType = "string" },
+            new SystemSetting { Key = "site.social.twitter", Value = "", Description = "X (Twitter) 連結", Group = "社群媒體", ValueType = "string" },
+
+            // ===== 頁尾連結（對應原 appsettings.json SiteSettings.FooterLinks）=====
+            new SystemSetting { Key = "site.footer.about", Value = "#", Description = "關於我們頁面連結", Group = "頁尾連結", ValueType = "string" },
+            new SystemSetting { Key = "site.footer.refund_policy", Value = "#", Description = "退款政策頁面連結", Group = "頁尾連結", ValueType = "string" },
+            new SystemSetting { Key = "site.footer.terms", Value = "#", Description = "服務條款頁面連結", Group = "頁尾連結", ValueType = "string" },
+            new SystemSetting { Key = "site.footer.privacy", Value = "#", Description = "隱私權政策頁面連結", Group = "頁尾連結", ValueType = "string" },
+            new SystemSetting { Key = "site.footer.faq", Value = "#", Description = "常見問題頁面連結", Group = "頁尾連結", ValueType = "string" },
+
+            // ===== SMTP 郵件設定（對應原 appsettings.json SmtpSettings，不含密碼）=====
+            new SystemSetting { Key = "smtp.from_name", Value = "MusicShop", Description = "寄件者名稱", Group = "郵件設定", ValueType = "string" },
+
+            // ===== 訂單設定 =====
+            new SystemSetting { Key = "order.shipping_fee", Value = "60", Description = "訂單運費（元）", Group = "訂單設定", ValueType = "decimal" },
+            new SystemSetting { Key = "order.free_shipping_threshold", Value = "1000", Description = "免運門檻金額（元）", Group = "訂單設定", ValueType = "decimal" },
+            new SystemSetting { Key = "order.auto_cancel_hours", Value = "24", Description = "未付款訂單自動取消時數", Group = "訂單設定", ValueType = "int" },
+            new SystemSetting { Key = "order.min_order_amount", Value = "0", Description = "最低訂購金額（元）", Group = "訂單設定", ValueType = "decimal" },
+
+            // ===== 優惠券設定 =====
+            new SystemSetting { Key = "coupon.max_per_order", Value = "1", Description = "每筆訂單最多使用幾張優惠券", Group = "優惠券設定", ValueType = "int" },
+            new SystemSetting { Key = "coupon.new_user_enabled", Value = "true", Description = "是否啟用新會員優惠券", Group = "優惠券設定", ValueType = "bool" },
+            new SystemSetting { Key = "coupon.new_user_discount", Value = "50", Description = "新會員優惠券折抵金額", Group = "優惠券設定", ValueType = "decimal" },
+
+            // ===== 顯示設定（對應 DisplayConstants 中可調整的數值）=====
+            new SystemSetting { Key = "display.albums_per_page", Value = "12", Description = "前台商品列表每頁顯示筆數", Group = "顯示設定", ValueType = "int" },
+            new SystemSetting { Key = "display.related_albums_count", Value = "8", Description = "商品詳情頁相關商品顯示數量", Group = "顯示設定", ValueType = "int" },
+            new SystemSetting { Key = "display.featured_artist_albums_count", Value = "4", Description = "精選藝人區塊每位藝人顯示的專輯數", Group = "顯示設定", ValueType = "int" },
+            new SystemSetting { Key = "display.recent_orders_count", Value = "5", Description = "最近訂單預設顯示筆數", Group = "顯示設定", ValueType = "int" },
+            new SystemSetting { Key = "display.admin_artist_page_size", Value = "10", Description = "後台藝人列表每頁顯示筆數", Group = "顯示設定", ValueType = "int" },
+            new SystemSetting { Key = "display.admin_order_page_size", Value = "20", Description = "後台訂單列表每頁顯示筆數", Group = "顯示設定", ValueType = "int" },
+            new SystemSetting { Key = "display.new_arrivals_count", Value = "8", Description = "首頁新品上架顯示數量", Group = "顯示設定", ValueType = "int" },
+            new SystemSetting { Key = "display.home_banner_interval", Value = "5000", Description = "首頁 Banner 輪播間隔（毫秒）", Group = "顯示設定", ValueType = "int" },
+
+            // ===== SEO 設定 =====
+            new SystemSetting { Key = "seo.meta_description", Value = "線上音樂專輯商店", Description = "首頁 meta description", Group = "SEO 設定", ValueType = "string" },
+            new SystemSetting { Key = "seo.meta_keywords", Value = "音樂,專輯,唱片,CD", Description = "首頁 meta keywords", Group = "SEO 設定", ValueType = "string" },
+            new SystemSetting { Key = "seo.og_image", Value = "", Description = "Open Graph 預設圖片 URL", Group = "SEO 設定", ValueType = "string" },
+
+            // ===== 安全設定 =====
+            new SystemSetting { Key = "security.max_failed_attempts", Value = "3", Description = "登入失敗鎖定次數", Group = "安全設定", ValueType = "int" },
+            new SystemSetting { Key = "security.lockout_minutes", Value = "5", Description = "帳號鎖定時間（分鐘）", Group = "安全設定", ValueType = "int" },
+            new SystemSetting { Key = "security.password_min_length", Value = "6", Description = "密碼最小長度", Group = "安全設定", ValueType = "int" },
+
+            // ===== 金流設定（僅測試模式旗標，不含金鑰）=====
+            new SystemSetting { Key = "ecpay.is_test", Value = "true", Description = "ECPay 是否為測試模式", Group = "金流設定", ValueType = "bool" }
+        };
+
+        // 補缺模式：只新增資料庫中尚未存在的 Key，不覆蓋已修改的值
+        var existingKeys = context.SystemSettings
+            .Select(s => s.Key)
+            .ToHashSet();
+
+        var missingSettings = defaultSettings
+            .Where(s => !existingKeys.Contains(s.Key))
+            .ToList();
+
+        if (missingSettings.Any())
+        {
+            context.SystemSettings.AddRange(missingSettings);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"已補建 {missingSettings.Count} 組系統參數：{string.Join(", ", missingSettings.Select(s => s.Key))}");
         }
     }
 

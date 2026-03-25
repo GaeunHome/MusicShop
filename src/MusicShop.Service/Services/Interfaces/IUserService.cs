@@ -73,6 +73,11 @@ public interface IUserService
     Task<(bool Success, string Message)> AdminConfirmEmailAsync(string userId);
 
     /// <summary>
+    /// 切換使用者的超級管理員角色（僅 SuperAdmin 可操作）
+    /// </summary>
+    Task<(bool Success, string Message)> ToggleSuperAdminRoleAsync(string userId, string currentAdminId);
+
+    /// <summary>
     /// 更新使用者密碼
     /// </summary>
     /// <param name="userId">使用者 ID</param>
