@@ -53,14 +53,7 @@
                 </div>
             </div>
 
-            <!-- 成功訊息 -->
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @TempData["Success"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
+            <partial name="_TempDataNotifications" />
 
             <!-- 社群登入使用者資料補充提示 -->
             @if (Model.IsExternalOnly && !Model.IsProfileComplete)

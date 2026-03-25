@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
+using MusicShop.Service.ViewModels.Payment;
 using MusicShop.Web.Infrastructure;
 
 namespace MusicShop.Controllers;
@@ -48,7 +49,14 @@ public class PaymentController : BaseController
             var formData = await _ecpayPaymentService.BuildPaymentFormDataAsync(
                 orderId, returnUrl, orderResultUrl);
 
-            return View("RedirectToEcpay", formData);
+            // 將 Service 層的回傳資料轉為 ViewModel，避免 View 直接依賴 Service 介面
+            var viewModel = new EcpayPaymentFormViewModel
+            {
+                ActionUrl = formData.ActionUrl,
+                Parameters = formData.Parameters
+            };
+
+            return View("RedirectToEcpay", viewModel);
         }
         catch (InvalidOperationException ex)
         {

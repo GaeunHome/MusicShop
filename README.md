@@ -117,7 +117,7 @@ SQL Server
 | 項目 | 需求 |
 |------|------|
 | **.NET SDK** | 10.0+ |
-| **SQL Server** | 2019+ |
+| **SQL Server** | 2022 |
 | **作業系統** | Windows / macOS (含 Apple Silicon) / Linux |
 | **編輯器** | Visual Studio Code 或 Visual Studio 2025 |
 

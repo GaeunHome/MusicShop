@@ -331,3 +331,15 @@
         font-size: 14px;
     }
 }
+
+/* ==================== 商品卡片：預設封面佔位（無圖片時） ==================== */
+.album-placeholder-bg {
+    background: linear-gradient(135deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);
+}
+
+/* 商品卡片：已售完遮罩 */
+.sold-out-overlay {
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+}

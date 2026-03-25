@@ -191,22 +191,10 @@ namespace MusicShop.Service.Services.Implementation
                 {
                     await _unitOfWork.BeginTransactionAsync();
 
-                    // 1. 恢復庫存
-                    foreach (var orderItem in order.OrderItems)
-                    {
-                        var album = await _unitOfWork.Albums.GetAlbumByIdAsync(orderItem.AlbumId);
-                        if (album != null)
-                        {
-                            album.Stock += orderItem.Quantity;
-                            await _unitOfWork.Albums.UpdateAlbumAsync(album);
-                        }
-                    }
+                    // 1. 恢復庫存與退還優惠券
+                    await RestoreOrderResourcesAsync(order);
 
-                    // 2. 退還優惠券（若有使用）
-                    if (order.UserCouponId.HasValue)
-                        await _couponService.ReleaseCouponAsync(order.UserCouponId.Value);
-
-                    // 3. 更新訂單狀態
+                    // 2. 更新訂單狀態
                     order.Status = status;
                     order.UpdatedAt = DateTime.UtcNow;
                     await _unitOfWork.Orders.UpdateOrderAsync(order);
@@ -262,23 +250,10 @@ namespace MusicShop.Service.Services.Implementation
             {
                 await _unitOfWork.BeginTransactionAsync();
 
-                // 1. 恢復庫存：將每筆訂單明細的數量加回對應專輯的庫存
-                //    使用 null 檢查是因為專輯可能已被管理員刪除（此時無需恢復）
-                foreach (var orderItem in order.OrderItems)
-                {
-                    var album = await _unitOfWork.Albums.GetAlbumByIdAsync(orderItem.AlbumId);
-                    if (album != null)
-                    {
-                        album.Stock += orderItem.Quantity;
-                        await _unitOfWork.Albums.UpdateAlbumAsync(album);
-                    }
-                }
+                // 1. 恢復庫存與退還優惠券
+                await RestoreOrderResourcesAsync(order);
 
-                // 2. 退還優惠券（若有使用）
-                if (order.UserCouponId.HasValue)
-                    await _couponService.ReleaseCouponAsync(order.UserCouponId.Value);
-
-                // 3. 更新訂單狀態
+                // 2. 更新訂單狀態
                 order.Status = OrderStatus.Cancelled;
                 order.UpdatedAt = DateTime.UtcNow;
                 await _unitOfWork.Orders.UpdateOrderAsync(order);
@@ -415,7 +390,7 @@ namespace MusicShop.Service.Services.Implementation
             return orders.Select(order => new AdminOrderListItemViewModel
             {
                 Id = order.Id,
-                UserEmail = order.User?.Email ?? "未知",
+                UserEmail = order.User?.Email ?? DisplayConstants.Unknown,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 DiscountAmount = order.DiscountAmount,
@@ -433,7 +408,7 @@ namespace MusicShop.Service.Services.Implementation
             var items = orders.Select(order => new AdminOrderListItemViewModel
             {
                 Id = order.Id,
-                UserEmail = order.User?.Email ?? "未知",
+                UserEmail = order.User?.Email ?? DisplayConstants.Unknown,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 DiscountAmount = order.DiscountAmount,
@@ -463,7 +438,7 @@ namespace MusicShop.Service.Services.Implementation
                 TotalAmount = order.TotalAmount,
                 DiscountAmount = order.DiscountAmount,
                 Status = order.Status,
-                UserEmail = order.User?.Email ?? "未知",
+                UserEmail = order.User?.Email ?? DisplayConstants.Unknown,
                 UserFullName = order.User?.FullName,
                 PaymentMethodText = OrderHelper.GetPaymentMethodText(order.PaymentMethod),
                 PaymentBadgeClass = OrderHelper.GetPaymentBadgeClass(order.PaymentMethod, order.Status),
@@ -525,18 +500,7 @@ namespace MusicShop.Service.Services.Implementation
 
                     await _unitOfWork.BeginTransactionAsync();
 
-                    foreach (var orderItem in trackedOrder.OrderItems)
-                    {
-                        var album = await _unitOfWork.Albums.GetAlbumByIdAsync(orderItem.AlbumId);
-                        if (album != null)
-                        {
-                            album.Stock += orderItem.Quantity;
-                            await _unitOfWork.Albums.UpdateAlbumAsync(album);
-                        }
-                    }
-
-                    if (trackedOrder.UserCouponId.HasValue)
-                        await _couponService.ReleaseCouponAsync(trackedOrder.UserCouponId.Value);
+                    await RestoreOrderResourcesAsync(trackedOrder);
 
                     trackedOrder.Status = OrderStatus.Cancelled;
                     trackedOrder.UpdatedAt = DateTime.UtcNow;
@@ -554,6 +518,29 @@ namespace MusicShop.Service.Services.Implementation
                     _logger.LogError(ex, "自動取消逾時訂單失敗：OrderId={OrderId}", order.Id);
                 }
             }
+        }
+
+        /// <summary>
+        /// 恢復訂單的庫存與優惠券（取消訂單時的反向操作）
+        /// 將每筆訂單明細的數量加回對應專輯的庫存，並退還已使用的優惠券。
+        /// 注意：此方法不包含交易管理，呼叫端需自行處理交易。
+        /// </summary>
+        private async Task RestoreOrderResourcesAsync(Order order)
+        {
+            // 恢復庫存：使用 null 檢查是因為專輯可能已被管理員刪除（此時無需恢復）
+            foreach (var orderItem in order.OrderItems)
+            {
+                var album = await _unitOfWork.Albums.GetAlbumByIdAsync(orderItem.AlbumId);
+                if (album != null)
+                {
+                    album.Stock += orderItem.Quantity;
+                    await _unitOfWork.Albums.UpdateAlbumAsync(album);
+                }
+            }
+
+            // 退還優惠券（若有使用）
+            if (order.UserCouponId.HasValue)
+                await _couponService.ReleaseCouponAsync(order.UserCouponId.Value);
         }
 
         /// <summary>

@@ -10,6 +10,7 @@ using MusicShop.Service.ViewModels.Home;
 using MusicShop.Service.ViewModels.Shared;
 using MusicShop.Service.ViewModels.Order;
 using MusicShop.Service.ViewModels.Wishlist;
+using MusicShop.Library.Helpers;
 
 namespace MusicShop.Service.Mapper
 {
@@ -107,7 +108,7 @@ namespace MusicShop.Service.Mapper
             // ==================== Cart 映射 ====================
             CreateMap<CartItem, CartItemViewModel>()
                 .ForMember(d => d.AlbumTitle,
-                    o => o.MapFrom(s => s.Album != null ? s.Album.Title : "未知商品"))
+                    o => o.MapFrom(s => s.Album != null ? s.Album.Title : DisplayConstants.UnknownProduct))
                 .ForMember(d => d.CoverImageUrl,
                     o => o.MapFrom(s => s.Album != null ? s.Album.CoverImageUrl : null))
                 .ForMember(d => d.Price,
@@ -118,7 +119,7 @@ namespace MusicShop.Service.Mapper
             // ==================== Wishlist 映射 ====================
             CreateMap<WishlistItem, WishlistItemViewModel>()
                 .ForMember(d => d.AlbumTitle,
-                    o => o.MapFrom(s => s.Album != null ? s.Album.Title : "未知商品"))
+                    o => o.MapFrom(s => s.Album != null ? s.Album.Title : DisplayConstants.UnknownProduct))
                 .ForMember(d => d.ArtistName,
                     o => o.MapFrom(s => s.Album != null && s.Album.Artist != null
                         ? s.Album.Artist.Name : null))
@@ -137,7 +138,7 @@ namespace MusicShop.Service.Mapper
             CreateMap<Coupon, CouponFormViewModel>();
 
             CreateMap<UserCoupon, UserCouponViewModel>()
-                .ForMember(d => d.CouponName, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.Name : "未知"))
+                .ForMember(d => d.CouponName, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.Name : DisplayConstants.Unknown))
                 .ForMember(d => d.CouponDescription, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.Description : null))
                 .ForMember(d => d.CouponCode, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.Code : ""))
                 .ForMember(d => d.DiscountType, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.DiscountType : DiscountType.FixedAmount))
@@ -146,7 +147,7 @@ namespace MusicShop.Service.Mapper
 
             CreateMap<UserCoupon, AvailableCouponViewModel>()
                 .ForMember(d => d.UserCouponId, o => o.MapFrom(s => s.Id))
-                .ForMember(d => d.CouponName, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.Name : "未知"))
+                .ForMember(d => d.CouponName, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.Name : DisplayConstants.Unknown))
                 .ForMember(d => d.DiscountType, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.DiscountType : DiscountType.FixedAmount))
                 .ForMember(d => d.DiscountValue, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.DiscountValue : 0m))
                 .ForMember(d => d.MaxDiscountAmount, o => o.MapFrom(s => s.Coupon != null ? s.Coupon.MaxDiscountAmount : null));
@@ -163,17 +164,17 @@ namespace MusicShop.Service.Mapper
             // ==================== Order 子項目映射 ====================
             CreateMap<OrderItem, OrderItemViewModel>()
                 .ForMember(d => d.AlbumTitle,
-                    o => o.MapFrom(s => s.Album != null ? s.Album.Title : "未知商品"))
+                    o => o.MapFrom(s => s.Album != null ? s.Album.Title : DisplayConstants.UnknownProduct))
                 .ForMember(d => d.CoverImageUrl,
                     o => o.MapFrom(s => s.Album != null ? s.Album.CoverImageUrl : null));
 
             CreateMap<OrderItem, OrderItemSummaryViewModel>()
                 .ForMember(d => d.AlbumTitle,
-                    o => o.MapFrom(s => s.Album != null ? s.Album.Title : "未知商品"));
+                    o => o.MapFrom(s => s.Album != null ? s.Album.Title : DisplayConstants.UnknownProduct));
 
             CreateMap<OrderItem, OrderConfirmationItemViewModel>()
                 .ForMember(d => d.AlbumTitle,
-                    o => o.MapFrom(s => s.Album != null ? s.Album.Title : "未知商品"));
+                    o => o.MapFrom(s => s.Album != null ? s.Album.Title : DisplayConstants.UnknownProduct));
         }
 
         /// <summary>

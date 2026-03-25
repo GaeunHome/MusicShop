@@ -804,3 +804,20 @@ body > .container {
     background-color: #704a7f;
     color: white;
 }
+
+/* ==================== LINE 社群登入按鈕 ==================== */
+.btn-line {
+    background-color: #06C755;
+    color: white;
+}
+
+.btn-line:hover {
+    background-color: #05b34c;
+    color: white;
+}
+
+/* ==================== 大尺寸 Spinner ==================== */
+.spinner-lg {
+    width: 3rem;
+    height: 3rem;
+}

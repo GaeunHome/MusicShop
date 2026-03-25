@@ -15,6 +15,7 @@ namespace MusicShop.Service.ViewModels.Admin
         public int? AlbumId { get; set; }
 
         [Display(Name = "顯示順序")]
+        [Range(0, int.MaxValue, ErrorMessage = "顯示順序不可為負數")]
         public int DisplayOrder { get; set; } = 0;
 
         [Display(Name = "立即顯示/顯示中")]

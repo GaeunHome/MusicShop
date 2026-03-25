@@ -39,4 +39,14 @@ public static class DisplayConstants
     /// 後台訂單列表每頁顯示筆數
     /// </summary>
     public const int AdminOrderPageSize = 20;
+
+    /// <summary>
+    /// 商品不存在時的預設顯示文字
+    /// </summary>
+    public const string UnknownProduct = "未知商品";
+
+    /// <summary>
+    /// 通用「未知」預設顯示文字
+    /// </summary>
+    public const string Unknown = "未知";
 }

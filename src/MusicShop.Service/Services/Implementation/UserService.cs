@@ -83,7 +83,7 @@ public class UserService : IUserService
             // 記錄初始密碼到歷史
             await SavePasswordHistoryAsync(user.Id, user.PasswordHash!);
 
-            _logger.LogInformation("使用者 {Email} 註冊成功，等待 Email 驗證", user.Email);
+            _logger.LogInformation("使用者 {UserId} 註冊成功，等待 Email 驗證", user.Id);
             return (true, user.Id, Enumerable.Empty<string>());
         }
 
@@ -99,7 +99,7 @@ public class UserService : IUserService
         var checkUser = await _userManager.FindByEmailAsync(email);
         if (checkUser != null && !await _userManager.IsEmailConfirmedAsync(checkUser))
         {
-            _logger.LogWarning("使用者 {Email} 嘗試登入但 Email 尚未驗證", email);
+            _logger.LogWarning("登入嘗試失敗：Email 尚未驗證");
             return (false, null, false, 0, -1, false); // -1 表示未驗證
         }
 
@@ -120,7 +120,7 @@ public class UserService : IUserService
         // ─── 需要兩步驟驗證 ─────────────────────────────────
         if (result.RequiresTwoFactor)
         {
-            _logger.LogInformation("使用者 {Email} 密碼驗證通過，等待兩步驟驗證", email);
+            _logger.LogInformation("登入嘗試：密碼驗證通過，等待兩步驟驗證");
             return (false, null, false, 0, 0, true);
         }
 
@@ -134,7 +134,7 @@ public class UserService : IUserService
                 ? (int)Math.Ceiling((lockoutEnd.Value - DateTimeOffset.UtcNow).TotalMinutes)
                 : 0;
 
-            _logger.LogWarning("帳號 {Email} 因連續登入失敗已被鎖定，剩餘 {Minutes} 分鐘", email, remainingMinutes);
+            _logger.LogWarning("帳號因連續登入失敗已被鎖定，剩餘 {Minutes} 分鐘", remainingMinutes);
             return (false, null, true, Math.Max(remainingMinutes, 1), 0, false);
         }
 
@@ -294,11 +294,11 @@ public class UserService : IUserService
             var result = await _userManager.RemoveFromRoleAsync(user, "Admin");
             if (result.Succeeded)
             {
-                _logger.LogInformation("使用者 {Email} 的 Admin 角色已被移除", user.Email);
+                _logger.LogInformation("使用者 {UserId} 的 Admin 角色已被移除", user.Id);
                 return (true, $"已移除 {user.Email} 的管理員權限");
             }
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            _logger.LogError("移除 {Email} 的 Admin 角色失敗：{Errors}", user.Email, errors);
+            _logger.LogError("移除 {UserId} 的 Admin 角色失敗：{Errors}", user.Id, errors);
             return (false, $"移除管理員權限失敗：{errors}");
         }
         else
@@ -306,11 +306,11 @@ public class UserService : IUserService
             var result = await _userManager.AddToRoleAsync(user, "Admin");
             if (result.Succeeded)
             {
-                _logger.LogInformation("使用者 {Email} 已被指派 Admin 角色", user.Email);
+                _logger.LogInformation("使用者 {UserId} 已被指派 Admin 角色", user.Id);
                 return (true, $"已將 {user.Email} 設為管理員");
             }
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            _logger.LogError("指派 {Email} 的 Admin 角色失敗：{Errors}", user.Email, errors);
+            _logger.LogError("指派 {UserId} 的 Admin 角色失敗：{Errors}", user.Id, errors);
             return (false, $"指派管理員權限失敗：{errors}");
         }
     }
@@ -336,7 +336,7 @@ public class UserService : IUserService
 
         if (result.Succeeded)
         {
-            _logger.LogInformation("管理員手動確認使用者 Email：{Email}", user.Email);
+            _logger.LogInformation("管理員手動確認使用者 Email：{UserId}", user.Id);
             return (true, $"已手動確認 {user.Email} 的 Email");
         }
 
@@ -376,12 +376,12 @@ public class UserService : IUserService
             var updatedUser = await _userManager.FindByIdAsync(userId);
             await SavePasswordHistoryAsync(userId, updatedUser!.PasswordHash!);
 
-            _logger.LogInformation("使用者 {Email} 已成功更新密碼", user.Email);
+            _logger.LogInformation("使用者 {UserId} 已成功更新密碼", user.Id);
             return (true, "密碼更新成功");
         }
 
         var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-        _logger.LogWarning("使用者 {Email} 更新密碼失敗：{Errors}", user.Email, errors);
+        _logger.LogWarning("使用者 {UserId} 更新密碼失敗：{Errors}", user.Id, errors);
 
         if (result.Errors.Any(e => e.Code == "PasswordMismatch"))
             return (false, "目前密碼不正確");
@@ -415,11 +415,11 @@ public class UserService : IUserService
         {
             // 驗證成功後自動登入
             await _signInManager.SignInAsync(user, isPersistent: false);
-            _logger.LogInformation("使用者 {Email} 已完成 Email 驗證", user.Email);
+            _logger.LogInformation("使用者 {UserId} 已完成 Email 驗證", user.Id);
             return (true, "Email 驗證成功！歡迎加入 MusicShop");
         }
 
-        _logger.LogWarning("使用者 {Email} Email 驗證失敗", user.Email);
+        _logger.LogWarning("使用者 {UserId} Email 驗證失敗", user.Id);
         return (false, "驗證連結已失效，請重新申請");
     }
 
@@ -454,7 +454,7 @@ public class UserService : IUserService
         }
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        _logger.LogInformation("使用者 {Email} 申請密碼重設", email);
+        _logger.LogInformation("使用者 {UserId} 申請密碼重設", user.Id);
         return (token, user.Id);
     }
 
@@ -477,12 +477,12 @@ public class UserService : IUserService
             var updatedUser = await _userManager.FindByIdAsync(userId);
             await SavePasswordHistoryAsync(userId, updatedUser!.PasswordHash!);
 
-            _logger.LogInformation("使用者 {Email} 已成功重設密碼", user.Email);
+            _logger.LogInformation("使用者 {UserId} 已成功重設密碼", user.Id);
             return (true, "密碼重設成功，請使用新密碼登入");
         }
 
         var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-        _logger.LogWarning("使用者 {Email} 重設密碼失敗：{Errors}", user.Email, errors);
+        _logger.LogWarning("使用者 {UserId} 重設密碼失敗：{Errors}", user.Id, errors);
 
         if (result.Errors.Any(e => e.Code == "InvalidToken"))
             return (false, "重設連結已失效，請重新申請");
@@ -581,7 +581,7 @@ public class UserService : IUserService
         user.PreferredTwoFactorMethod = TwoFactorMethod.Authenticator;
         await _userManager.UpdateAsync(user);
 
-        _logger.LogInformation("使用者 {Email} 已啟用 TOTP 兩步驟驗證", user.Email);
+        _logger.LogInformation("使用者 {UserId} 已啟用 TOTP 兩步驟驗證", user.Id);
         return (true, "兩步驟驗證已啟用");
     }
 
@@ -618,7 +618,7 @@ public class UserService : IUserService
         user.PreferredTwoFactorMethod = TwoFactorMethod.Email;
         await _userManager.UpdateAsync(user);
 
-        _logger.LogInformation("使用者 {Email} 已啟用 Email 兩步驟驗證", user.Email);
+        _logger.LogInformation("使用者 {UserId} 已啟用 Email 兩步驟驗證", user.Id);
         return (true, "兩步驟驗證已啟用");
     }
 
@@ -640,7 +640,7 @@ public class UserService : IUserService
         // 重設驗證器金鑰
         await _userManager.ResetAuthenticatorKeyAsync(user);
 
-        _logger.LogInformation("使用者 {Email} 已停用兩步驟驗證", user.Email);
+        _logger.LogInformation("使用者 {UserId} 已停用兩步驟驗證", user.Id);
         return (true, "兩步驟驗證已停用");
     }
 
@@ -823,12 +823,12 @@ public class UserService : IUserService
             await _userManager.AddToRoleAsync(user, "User");
 
             isNewUser = true;
-            _logger.LogInformation("透過 {Provider} 建立新帳號：{Email}", provider, email ?? user.UserName);
+            _logger.LogInformation("透過 {Provider} 建立新帳號：{UserId}", provider, user.Id);
         }
 
         // 登入
         await _signInManager.SignInAsync(user, isPersistent: false);
-        _logger.LogInformation("使用者 {Email} 透過 {Provider} 登入成功", user.Email ?? user.UserName, provider);
+        _logger.LogInformation("使用者 {UserId} 透過 {Provider} 登入成功", user.Id, provider);
 
         return (true, user.FullName, isNewUser);
     }

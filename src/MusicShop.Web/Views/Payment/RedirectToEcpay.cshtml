@@ -1,4 +1,4 @@
-@model MusicShop.Service.Services.Interfaces.EcpayPaymentFormData
+@model MusicShop.Service.ViewModels.Payment.EcpayPaymentFormViewModel
 @{
     ViewData["Title"] = "前往付款";
     Layout = "_Layout";
@@ -9,7 +9,7 @@
         <div class="col-md-6 text-center">
             <div class="card shadow">
                 <div class="card-body p-5">
-                    <div class="spinner-border text-primary mb-4" role="status" style="width: 3rem; height: 3rem;">
+                    <div class="spinner-border text-primary mb-4 spinner-lg" role="status">
                         <span class="visually-hidden">載入中...</span>
                     </div>
                     <h4 class="mb-3">正在導向至綠界付款頁面...</h4>
