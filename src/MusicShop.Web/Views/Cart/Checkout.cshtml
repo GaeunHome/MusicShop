@@ -57,6 +57,12 @@
                                 <span asp-validation-for="ReceiverPhone" class="text-danger small"></span>
                                 <small class="form-text text-muted">手機：09XXXXXXXX 或 市話：XX-XXXXXXXX</small>
                             </div>
+                            <div class="col-md-6">
+                                <label asp-for="ContactEmail" class="form-label">聯絡 Email</label>
+                                <input asp-for="ContactEmail" class="form-control" type="email" placeholder="用於接收訂單通知（選填）" />
+                                <span asp-validation-for="ContactEmail" class="text-danger small"></span>
+                                <small class="form-text text-muted">如未填寫，將以帳號 Email 寄送通知</small>
+                            </div>
                         </div>
                     </div>
                 </div>

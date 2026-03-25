@@ -76,6 +76,12 @@
                     <dt class="col-sm-4">聯絡電話</dt>
                     <dd class="col-sm-8">@Model.ReceiverPhone</dd>
 
+                    @if (!string.IsNullOrEmpty(Model.ContactEmail))
+                    {
+                    <dt class="col-sm-4">聯絡 Email</dt>
+                    <dd class="col-sm-8">@Model.ContactEmail</dd>
+                    }
+
                     <dt class="col-sm-4">配送方式</dt>
                     <dd class="col-sm-8">@Model.DeliveryMethodText</dd>
 

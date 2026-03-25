@@ -217,7 +217,7 @@ public class CouponService : ICouponService
         await _unitOfWork.Coupons.AddUserCouponAsync(userCoupon);
         await _unitOfWork.SaveChangesAsync();
 
-        _logger.LogInformation("優惠券發放：CouponId={CouponId}, 發放給={UserEmail}", couponId, userEmail);
+        _logger.LogInformation("優惠券發放：CouponId={CouponId}, UserId={UserId}", couponId, user.Id);
         return (true, $"已成功發放「{coupon.Name}」給 {userEmail}");
     }
 

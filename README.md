@@ -3,7 +3,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-MVC-512BD4)](https://docs.microsoft.com/aspnet/core/)
 [![EF Core](https://img.shields.io/badge/EF%20Core-10.0-512BD4)](https://docs.microsoft.com/ef/core/)
-[![SQL Server](https://img.shields.io/badge/SQL%20Server-2019+-CC2927)](https://www.microsoft.com/sql-server/)
+[![SQL Server](https://img.shields.io/badge/SQL%20Server-2022-CC2927)](https://www.microsoft.com/sql-server/)
 
 一個基於 ASP.NET Core MVC 開發的線上音樂專輯電子商務平台，採用三層式架構設計，提供完整的購物與後台管理功能。
 
@@ -23,7 +23,7 @@
 |------|------|------|
 | **框架** | ASP.NET Core MVC | .NET 10.0 |
 | **架構模式** | 三層式架構 | Controller → Service → Repository |
-| **資料庫** | SQL Server | 2019+ |
+| **資料庫** | SQL Server | 2022 |
 | **ORM** | Entity Framework Core | 10.0.3 |
 | **認證** | ASP.NET Core Identity | Cookie 認證 |
 | **快取** | IMemoryCache | 內建記憶體快取 |
@@ -271,111 +271,13 @@ MusicShop/
 
 ## 版本歷史
 
-### v1.8.0 (2026-03-23) - ECPay 信用卡金流串接、社群登入、程式碼品質審查
-
-#### ECPay 信用卡付款整合
-- 串接綠界 All-in-One 金流 API（測試環境 MerchantID `3002607`）
-- 新增 `EcpayPaymentService`：參數建構、SHA-256 CheckMacValue 產生與驗證
-- 新增 `PaymentController`：Checkout（建立付款）、PaymentNotify（Server 回呼）、PaymentResult（使用者導回）
-- CheckMacValue 驗證使用 `CryptographicOperations.FixedTimeEquals` 防止 Timing Attack
-- 金額驗證、MerchantID 驗證、冪等性檢查，確保付款安全
-- ECPay 金流與物流拆分為獨立設定區段（`EcpayPayment` / `EcpayLogistics`）
-
-#### 付款失敗與逾時處理
-- 信用卡付款失敗自動回滾：取消訂單 + 恢復庫存 + 退還優惠券（交易保護）
-- 信用卡未付款訂單 15 分鐘自動取消（Lazy Evaluation 模式，無需背景排程）
-- 訂單列表與詳情頁顯示「等待付款」狀態與「前往付款」重試按鈕
-- ECPay 付款頁返回鍵處理：sessionStorage 防止重複提交，自動導回訂單列表
-
-#### 社群登入
-- Google OAuth 2.0 登入整合
-- LINE Login OAuth 2.0 登入整合（自訂 OAuth Handler + UserInfo API）
-- 登入頁面新增 Google / LINE 社群登入按鈕
-
-#### 程式碼品質審查（v1.8.0）
-- 全面審查三層式架構合規性、async/await 模式、錯誤處理一致性
-- 識別並記錄 Controller Delete 方法缺少 try-catch、CouponService N+1 查詢等改善項目
-- 安全標頭 CSP 新增 ECPay 付款網域白名單
-- 結構化日誌修正（UserService 字串插值改為 Serilog 佔位符）
-- 移除未使用程式碼（`EcpaySettings.cs`、`CacheKeys.ProductTypes`）
-
-### v1.7.2 (2026-03-18) - 程式碼品質審查、管理員 Email 確認、安全強化
-
-#### 程式碼品質全面審查
-- AlbumController 重構：15+ ViewBag 改為強型別 `AlbumIndexViewModel`
-- AutoMapper 集中化：Artist、ArtistCategory、ProductType、Album 新增 `SelectItemViewModel` 映射，取代手動 `.Select()`
-- 移除 6 個 Service 未使用的 `ILogger` 注入（ArtistCategory、ProductType、Banner、Wishlist 等）
-- CSS `!important` 清理：mega-menu 區段 23 處改為高特異性選擇器
-- CSS 變數統一：search-suggestions 硬編碼色值改用 `var(--color-primary)`
-- JS 重構：購物車 3 個 toggle 函式合併為泛用 `initRadioToggle()`，確認對話框統一使用 `showConfirm()`
-- `DisplayConstants` 新增 `AlbumPageSize`、`AdminArtistPageSize` 常數
-- CartController 例外處理：generic `catch (Exception)` 改為具體例外類型
-- FeaturedArtistService 補上 `ValidationHelper.ValidateId()` 驗證
-
-#### 後台管理員手動確認 Email
-- 新增 `AdminConfirmEmailAsync()` 方法，管理員可手動確認使用者 Email 驗證
-- 後台使用者列表新增 Email 驗證狀態欄位與「確認 Email」操作按鈕
-- 解決舊帳號因 Email 未驗證無法登入的問題
-
-#### 安全強化
-- 新增 `SecurityHeadersMiddleware`：X-Content-Type-Options、X-Frame-Options、Referrer-Policy 等安全標頭
-- 新增密碼歷史記錄（`PasswordHistory` 實體），防止重複使用近期密碼
-- 新增忘記密碼 / 重設密碼流程（`ForgotPassword`、`ResetPassword` 頁面）
-- 新增 Email 驗證註冊確認頁面（`RegisterConfirmation`）
-- 新增 SMTP Email 服務（`SmtpEmailService`）
-- 樂觀並發控制：Order、Artist、Coupon 新增 `[Timestamp] RowVersion`
-- `GlobalExceptionMiddleware` 增強錯誤處理
-- `BaseApiController` 新增安全基底
-
-### v1.7.1 (2026-03-18) - 優惠券系統完善、訂單詳情強化、程式碼品質審查
-
-#### 優惠券系統修復與強化
-- 修復結帳使用優惠券導致訂單錯誤的 Bug（交易內 SaveChanges 取得訂單 ID）
-- 所有訂單頁面顯示折扣後實付金額（前台 3 頁 + 後台 2 頁 + 帳號首頁）
-- 前台/後台取消訂單均自動退還優惠券（後台 `UpdateOrderStatusAsync` 補上恢復庫存與退券邏輯）
-- 新增「統一發放」功能，管理員可一鍵發放優惠券給所有使用者
-
-#### 訂單詳情資訊完善
-- 前台訂單詳情新增：收件人資訊、配送地址、付款方式、訂單備註
-- 後台訂單詳情全面重構為分類卡片佈局：基本資訊、會員、收件人與配送、付款、發票、備註、商品明細、金額摘要（含優惠券名稱）、狀態管理
-
-#### 程式碼品質全面審查
-- 統一 EF Core 版本（Data 10.0.0 → 10.0.3，與 Web 一致）
-- 修正 `CouponRepository.UpdateUserCouponAsync` 的錯誤 async 模式
-- 刪除未使用的 `AlbumIndexViewModel`
-- 硬編碼 magic numbers 提取為 `DisplayConstants` 常數（`Take(8)`, `Take(4)`, `Take(3)`, `count=5`）
-- CSS class 邏輯從 OrderService 移至 `OrderHelper.GetPaymentBadgeClass()`
-- CouponService / FeaturedArtistService 手動 `.Select()` 映射改為 AutoMapper
-- MapperProfile 新增 Coupon 相關 4 組映射
-- 清理 `artist.js` 未使用的 `initCreate/initEdit` 方法
-- 後台表單版面寬度調整（移除多餘的 `row justify-content-center` 和 `max-width:640px` 限制）
-
-### v1.7.0 (2026-03-18) - Cookie 安全強化、軟刪除機制、MVC Area 拆分
-
-#### Cookie 驗證安全強化
-- Cookie 新增 `HttpOnly`、`Secure`、`SameSite=Lax` 安全屬性，防止 XSS 竊取 Session 與 CSRF 攻擊
-- 自訂 Cookie 名稱 `MusicShop.Auth`，避免預設名稱暴露技術棧
-- Cookie 過期時間設為 2 小時 + 滑動過期，閒置自動登出
-- Identity 帳號鎖定策略：連續 5 次登入失敗鎖定 15 分鐘，防止暴力破解
-
-#### 軟刪除（Soft Delete）機制
-- 新增 `ISoftDeletable` 介面（`IsDeleted` + `DeletedAt` 欄位）
-- 6 個實體實作軟刪除：Album、Artist、Order、Banner、ProductType、ArtistCategory
-- `ApplicationDbContext` 覆寫 `SaveChangesAsync`，自動攔截刪除操作轉為軟刪除
-- EF Core Global Query Filter 自動過濾已刪除資料，需查詢時用 `.IgnoreQueryFilters()`
-- CartItem、WishlistItem、OrderItem 維持硬刪除（暫存性質）
-
-#### MVC Area 拆分
-- 後台管理從單一 `AdminController`（partial class）重構為 `Areas/Admin/` Area
-- 拆分為 7 個獨立 Controller：Dashboard、Album、Artist、Category、Order、User、Banner
-- 路由格式：`/Admin/{Controller}/{Action}/{id?}`（如 `/Admin/Album/Edit/5`）
-- Action 名稱簡化：`AlbumCreate` → `Create`、`AlbumEdit` → `Edit` 等
-- 刪除舊的 `Controllers/Admin/` partial class 檔案與 `Views/Admin/` 目錄
-
-### 歷史版本摘要（v1.0.0 ~ v1.6.3）
-
 | 版本 | 日期 | 主要內容 |
 |------|------|---------|
+| **v1.9.0** | 2026-03-24 | 全面程式碼審查、架構修正、效能優化與社群登入改善 |
+| **v1.8.0** | 2026-03-23 | ECPay 信用卡金流串接、社群登入（Google / LINE）、付款失敗自動回滾、程式碼品質審查 |
+| **v1.7.2** | 2026-03-18 | 程式碼品質審查、管理員 Email 確認、安全強化（SecurityHeaders、密碼歷史、SMTP） |
+| **v1.7.1** | 2026-03-18 | 優惠券系統修復與統一發放、訂單詳情強化、程式碼品質審查 |
+| **v1.7.0** | 2026-03-18 | Cookie 安全強化、軟刪除機制（ISoftDeletable）、MVC Area 拆分 |
 | **v1.6.3** | 2026-03-17 | 購物車 API 化（AJAX 不跳轉）、Badge 即時更新、前端程式碼審查與清理 |
 | **v1.6.2** | 2026-03-17 | 藝人管理強化（分頁、篩選、上下架）、修復 Wishlist 與訂單 Bug |
 | **v1.6.1** | 2026-03-17 | 商品分頁瀏覽、MemoryCache 快取、全域例外處理、SEO 優化、訂單時間軸 |

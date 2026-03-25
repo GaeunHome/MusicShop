@@ -17,6 +17,11 @@ namespace MusicShop.Service.ViewModels.Cart
         [Display(Name = "收件人姓名")]
         public string ReceiverName { get; set; } = string.Empty;
 
+        [EmailAddress(ErrorMessage = "請輸入有效的電子郵件地址")]
+        [StringLength(256)]
+        [Display(Name = "聯絡 Email")]
+        public string? ContactEmail { get; set; }
+
         [Required(ErrorMessage = "請輸入收件人電話")]
         [StringLength(20, ErrorMessage = "電話號碼不可超過 20 個字元")]
         [RegularExpression(@"^09\d{8}$|^\d{2,4}-\d{6,8}$", ErrorMessage = "請輸入有效的台灣電話號碼（手機：09XXXXXXXX 或 市話：XX-XXXXXXXX）")]

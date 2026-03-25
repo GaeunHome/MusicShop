@@ -48,11 +48,14 @@ builder.Services.AddMemoryCache();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>("database");
 
-// 註冊 DbContext（Scoped）- 每個 HTTP 請求共用一個 DbContext
+// 註冊 DbContextFactory - 由 UnitOfWork 透過 Factory 建立 DbContext 實例，
+// 明確控制 DbContext 的生命週期與資源釋放。
+// AddDbContextFactory 同時也會將 ApplicationDbContext 註冊為 Scoped 服務，
+// 因此 Identity、健康檢查等直接注入 DbContext 的元件不受影響。
 // ConfigureWarnings：抑制軟刪除 Global Query Filter 與必要端關聯的警告（事件 10622）。
 // CartItem/OrderItem/WishlistItem 的 AlbumId 及 UserCoupon 的 CouponId 為必要 FK，
 // 但 Album/Coupon 使用軟刪除不會真正消失，故此警告為已知的設計選擇，可安全忽略。
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
            .ConfigureWarnings(w => w.Ignore(new EventId(10622))));
 
@@ -146,6 +149,8 @@ if (!string.IsNullOrEmpty(authSection["Google:ClientId"]))
 }
 
 // LINE Login（使用通用 OAuth handler）
+// LINE 的 email 不在 /v2/profile API 中，而是包含在 Token 回應的 id_token（JWT）裡，
+// 因此需要在 OnCreatingTicket 中解析 id_token 的 payload 來提取 email。
 if (!string.IsNullOrEmpty(authSection["LINE:ChannelId"]))
 {
     authBuilder.AddOAuth("LINE", "LINE", options =>
@@ -166,13 +171,66 @@ if (!string.IsNullOrEmpty(authSection["LINE:ChannelId"]))
 
         options.Events.OnCreatingTicket = async context =>
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", context.AccessToken);
-            var response = await context.Backchannel.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
 
-            var user = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-            context.RunClaimActions(user.RootElement);
+            // 1. 從 /v2/profile 取得基本資料（userId、displayName、pictureUrl）
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", context.AccessToken);
+                var response = await context.Backchannel.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+
+                var user = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                context.RunClaimActions(user.RootElement);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "LINE Profile API 呼叫失敗");
+                throw;
+            }
+
+            // 2. 從 id_token（JWT）解析 email
+            // LINE 的 email 只存在於 OpenID Connect 的 id_token 中，不在 profile API 回應裡。
+            // id_token 是透過 HTTPS 從 LINE Token Endpoint 直接取得，已具備傳輸層安全性。
+            var idToken = context.TokenResponse?.Response?.RootElement.GetProperty("id_token").GetString();
+            if (!string.IsNullOrEmpty(idToken))
+            {
+                try
+                {
+                    var parts = idToken.Split('.');
+                    if (parts.Length == 3)
+                    {
+                        // JWT payload 是 Base64Url 編碼，需補齊 padding 後解碼
+                        var payload = parts[1];
+                        payload = payload.Replace('-', '+').Replace('_', '/');
+                        switch (payload.Length % 4)
+                        {
+                            case 2: payload += "=="; break;
+                            case 3: payload += "="; break;
+                        }
+
+                        var jsonBytes = Convert.FromBase64String(payload);
+                        var claims = System.Text.Json.JsonDocument.Parse(jsonBytes);
+
+                        if (claims.RootElement.TryGetProperty("email", out var emailElement))
+                        {
+                            var email = emailElement.GetString();
+                            if (!string.IsNullOrEmpty(email))
+                            {
+                                context.Identity?.AddClaim(new System.Security.Claims.Claim(
+                                    System.Security.Claims.ClaimTypes.Email, email));
+                                logger.LogDebug("已從 LINE id_token 取得 email");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // email 取得失敗不應阻斷登入流程，使用者可稍後補填
+                    logger.LogWarning(ex, "LINE id_token 解析失敗，將以無 email 狀態建立帳號");
+                }
+            }
         };
     });
 }

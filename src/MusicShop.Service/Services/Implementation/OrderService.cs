@@ -103,6 +103,7 @@ namespace MusicShop.Service.Services.Implementation
                 // 收件人資訊
                 ReceiverName = checkoutInfo.ReceiverName,
                 ReceiverPhone = checkoutInfo.ReceiverPhone,
+                ContactEmail = checkoutInfo.ContactEmail,
 
                 // 收件地址
                 City = checkoutInfo.City,
@@ -371,6 +372,7 @@ namespace MusicShop.Service.Services.Implementation
                 DeliveryStatusText = OrderHelper.GetDeliveryStatusText(order.Status),
                 ReceiverName = order.ReceiverName,
                 ReceiverPhone = order.ReceiverPhone,
+                ContactEmail = order.ContactEmail,
                 FullAddress = BuildFullAddress(order),
                 OrderNote = order.OrderNote,
                 Items = items
@@ -470,6 +472,7 @@ namespace MusicShop.Service.Services.Implementation
                 DeliveryStatusText = OrderHelper.GetDeliveryStatusText(order.Status),
                 ReceiverName = order.ReceiverName,
                 ReceiverPhone = order.ReceiverPhone,
+                ContactEmail = order.ContactEmail,
                 FullAddress = BuildFullAddress(order),
                 InvoiceTypeText = OrderHelper.GetInvoiceTypeText(order.InvoiceType),
                 CompanyTaxId = order.CompanyTaxId,

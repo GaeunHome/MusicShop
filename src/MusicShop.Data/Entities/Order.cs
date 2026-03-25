@@ -34,6 +34,12 @@ namespace MusicShop.Data.Entities
         [StringLength(20)]
         public string ReceiverPhone { get; set; } = string.Empty;
 
+        /// <summary>
+        /// 訂單聯絡 Email（非必填，供社群登入等無帳號 Email 的使用者填寫，用於訂單通知）
+        /// </summary>
+        [StringLength(256)]
+        public string? ContactEmail { get; set; }
+
         // ==================== 收件地址（條件必填：宅配到府時使用）====================
         [StringLength(50)]
         public string? City { get; set; }

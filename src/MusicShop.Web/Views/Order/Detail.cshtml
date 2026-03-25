@@ -102,6 +102,17 @@
                             @Model.ReceiverPhone
                         </div>
                     </div>
+                    @if (!string.IsNullOrEmpty(Model.ContactEmail))
+                    {
+                    <div class="row mb-2">
+                        <div class="col-4">
+                            <strong>聯絡 Email：</strong>
+                        </div>
+                        <div class="col-8">
+                            @Model.ContactEmail
+                        </div>
+                    </div>
+                    }
                     <div class="row mb-2">
                         <div class="col-4">
                             <strong>收件地址：</strong>

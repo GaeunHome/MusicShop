@@ -35,6 +35,7 @@ public class OrderDetailViewModel
     // 收件人資訊
     public string ReceiverName { get; set; } = string.Empty;
     public string ReceiverPhone { get; set; } = string.Empty;
+    public string? ContactEmail { get; set; }
 
     // 配送地址
     public string FullAddress { get; set; } = string.Empty;

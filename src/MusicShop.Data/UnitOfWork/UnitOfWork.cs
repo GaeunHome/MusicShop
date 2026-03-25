@@ -6,7 +6,8 @@ using MusicShop.Data.Repositories.Implementation;
 namespace MusicShop.Data.UnitOfWork
 {
     /// <summary>
-    /// Unit of Work 實作，管理所有 Repository 和資料庫交易
+    /// Unit of Work 實作，管理所有 Repository 和資料庫交易。
+    /// 透過 IDbContextFactory 建立 DbContext 實例，明確控制其生命週期。
     /// </summary>
     public class UnitOfWork : IUnitOfWork
     {
@@ -27,9 +28,9 @@ namespace MusicShop.Data.UnitOfWork
         private ICouponRepository? _coupons;
         private IPasswordHistoryRepository? _passwordHistories;
 
-        public UnitOfWork(ApplicationDbContext context)
+        public UnitOfWork(IDbContextFactory<ApplicationDbContext> contextFactory)
         {
-            _context = context;
+            _context = contextFactory.CreateDbContext();
         }
 
         // 延遲初始化（??=）：Repository 在首次存取時才建立，且所有 Repository 共用
@@ -108,12 +109,12 @@ namespace MusicShop.Data.UnitOfWork
         }
 
         /// <summary>
-        /// 釋放資源
+        /// 釋放資源（DbContext 由 Factory 建立，UnitOfWork 負責釋放）
         /// </summary>
         public void Dispose()
         {
             _transaction?.Dispose();
-            // 注意：DbContext 由 DI 容器管理，不需要手動 Dispose
+            _context.Dispose();
         }
     }
 }

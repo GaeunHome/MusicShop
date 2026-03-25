@@ -36,6 +36,7 @@ public class AdminOrderDetailViewModel
     // 收件人資訊
     public string ReceiverName { get; set; } = string.Empty;
     public string ReceiverPhone { get; set; } = string.Empty;
+    public string? ContactEmail { get; set; }
     public string FullAddress { get; set; } = string.Empty;
 
     // 發票資訊

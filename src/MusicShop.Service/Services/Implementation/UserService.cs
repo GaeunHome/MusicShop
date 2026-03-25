@@ -785,19 +785,17 @@ public class UserService : IUserService
         if (user == null && !string.IsNullOrEmpty(email))
         {
             // 以 Email 查詢是否已有帳號
-            user = await _userManager.FindByEmailAsync(email);
+            var existingUser = await _userManager.FindByEmailAsync(email);
 
-            if (user != null)
+            if (existingUser != null)
             {
-                // 帳號已存在，建立外部登入關聯
-                var addLoginResult = await _userManager.AddLoginAsync(user,
-                    new UserLoginInfo(provider, providerKey, provider));
-                if (!addLoginResult.Succeeded)
-                {
-                    _logger.LogWarning("無法關聯 {Provider} 登入至現有帳號 {Email}", provider, email);
-                    return (false, null, false);
-                }
-                _logger.LogInformation("已將 {Provider} 登入關聯至現有帳號 {Email}", provider, email);
+                // 安全考量：不自動綁定既有帳號，避免帳號劫持風險。
+                // 攻擊者可能使用受害者的 email 註冊社群帳號，藉此取得既有帳號的存取權。
+                // 使用者需自行在個人資料頁面手動綁定社群登入。
+                _logger.LogWarning(
+                    "{Provider} 登入的 email 與既有帳號相符，基於安全考量不自動關聯。UserId={UserId}",
+                    provider, existingUser.Id);
+                return (false, null, false);
             }
         }
 
