@@ -328,11 +328,11 @@
                                 <!-- 庫存狀態標籤 -->
                                 @if (card.IsSoldOut)
                                 {
-                                    <span class="position-absolute top-0 end-0 badge bg-danger m-2" style="z-index: 10;">已售完</span>
+                                    <span class="position-absolute top-0 end-0 badge bg-danger m-2 badge-stock">已售完</span>
                                 }
                                 else if (card.IsLowStock)
                                 {
-                                    <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2" style="z-index: 10;">@card.StockStatusText</span>
+                                    <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2 badge-stock">@card.StockStatusText</span>
                                 }
                             </div>
 

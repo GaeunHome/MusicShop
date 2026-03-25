@@ -21,7 +21,7 @@
         <div class="card-body">
             <form asp-action="Redeem" method="post" class="d-flex gap-2">
                 @Html.AntiForgeryToken()
-                <input type="text" name="code" class="form-control" placeholder="輸入兌換碼" style="max-width:300px;" required>
+                <input type="text" name="code" class="form-control input-max-w-md" placeholder="輸入兌換碼" required>
                 <button type="submit" class="btn btn-primary">兌換</button>
             </form>
         </div>

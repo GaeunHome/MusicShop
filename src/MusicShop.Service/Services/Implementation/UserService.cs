@@ -19,6 +19,7 @@ public class UserService : IUserService
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly SignInManager<AppUser> _signInManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<UserService> _logger;
 
@@ -30,11 +31,13 @@ public class UserService : IUserService
     public UserService(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
+        RoleManager<IdentityRole> roleManager,
         IUnitOfWork unitOfWork,
         ILogger<UserService> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _roleManager = roleManager;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -244,18 +247,36 @@ public class UserService : IUserService
     }
 
     /// <summary>
-    /// 取得所有使用者及其角色資訊
+    /// 取得所有使用者及其角色資訊。
+    /// 以「角色 → 使用者」方向查詢，避免 N+1 問題。
+    /// 原本每個使用者各查一次 GetRolesAsync（N+1），改為每個角色查一次 GetUsersInRoleAsync，
+    /// 系統只有 Admin 和 User 兩個角色，因此固定 3 次查詢（1 次使用者 + 2 次角色）。
     /// </summary>
     public async Task<List<UserManagementViewModel>> GetAllUsersWithRolesAsync()
     {
         var users = await _userManager.Users.ToListAsync();
-        var userViewModels = new List<UserManagementViewModel>();
 
-        foreach (var user in users)
+        // 建立 UserId → 角色列表 的對應字典
+        var userRoleDict = users.ToDictionary(u => u.Id, _ => new List<string>());
+
+        // 查詢每個角色包含哪些使用者（角色數量固定為 2，所以只有 2 次 DB 查詢）
+        var allRoles = await _roleManager.Roles.Select(r => r.Name!).ToListAsync();
+        foreach (var roleName in allRoles)
         {
-            var roles = await _userManager.GetRolesAsync(user);
+            var usersInRole = await _userManager.GetUsersInRoleAsync(roleName);
+            foreach (var user in usersInRole)
+            {
+                if (userRoleDict.TryGetValue(user.Id, out var roleList))
+                {
+                    roleList.Add(roleName);
+                }
+            }
+        }
 
-            userViewModels.Add(new UserManagementViewModel
+        return users.Select(user =>
+        {
+            var roleList = userRoleDict.GetValueOrDefault(user.Id, new List<string>());
+            return new UserManagementViewModel
             {
                 UserId = user.Id,
                 Email = user.Email ?? "",
@@ -264,12 +285,10 @@ public class UserService : IUserService
                 RegisteredAt = user.RegisteredAt,
                 EmailConfirmed = user.EmailConfirmed,
                 TwoFactorEnabled = user.TwoFactorEnabled,
-                IsAdmin = roles.Contains("Admin"),
-                Roles = roles.ToList()
-            });
-        }
-
-        return userViewModels;
+                IsAdmin = roleList.Contains("Admin"),
+                Roles = roleList
+            };
+        }).ToList();
     }
 
     /// <summary>

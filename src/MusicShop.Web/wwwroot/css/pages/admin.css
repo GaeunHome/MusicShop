@@ -344,3 +344,109 @@
 .admin-text-success { color: var(--color-success); }
 .admin-text-danger { color: var(--color-danger); }
 .admin-text-warning { color: var(--color-warning); }
+
+/* ==================== 圖片預覽樣式 ==================== */
+
+/* 後台表格內縮圖（幻燈片列表等） */
+.admin-thumb {
+    height: 60px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+}
+
+/* 圖片預覽：目前圖片 */
+.admin-img-preview {
+    max-height: 120px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+/* 圖片預覽：上傳預覽（稍大） */
+.admin-img-preview-lg {
+    max-height: 150px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+/* 圖片預覽：幻燈片（中等大小） */
+.admin-img-preview-banner {
+    max-height: 200px;
+}
+
+/* ==================== 精選藝人頭像（後台列表） ==================== */
+.admin-avatar-sm {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: var(--radius-full);
+}
+
+/* ==================== 後台篩選下拉選單寬度 ==================== */
+.admin-filter-w-sm {
+    width: 120px;
+}
+
+.admin-filter-w-md {
+    width: 160px;
+}
+
+/* ==================== 後台表格欄位寬度 ==================== */
+.admin-col-id { width: 60px; }
+.admin-col-count { width: 80px; }
+.admin-col-order { width: 70px; }
+.admin-col-status { width: 90px; }
+.admin-col-actions { width: 200px; }
+
+/* ==================== 自適應寬度選擇器 ==================== */
+.admin-select-auto {
+    width: auto;
+}
+
+/* ==================== 後台儀表板統計卡片色彩 ==================== */
+.admin-stat-purple {
+    border-color: var(--color-primary);
+}
+
+.admin-stat-purple .admin-stat-value {
+    color: var(--color-primary);
+}
+
+.admin-stat-orange {
+    border-color: #f0ad4e;
+}
+
+.admin-stat-orange .admin-stat-value {
+    color: #f0ad4e;
+}
+
+.admin-stat-red {
+    border-color: #e74c3c;
+}
+
+.admin-stat-red .admin-stat-value {
+    color: #e74c3c;
+}
+
+/* ==================== 分類管理圖示 ==================== */
+.admin-icon-md {
+    font-size: 1.1rem;
+}
+
+.admin-badge-sm {
+    font-size: 0.75rem;
+}
+
+/* ==================== 空狀態圖示 ==================== */
+.admin-empty-icon {
+    font-size: 2.5rem;
+    opacity: 0.5;
+}
+
+.admin-empty-icon-lg {
+    font-size: 3rem;
+}
+
+/* ==================== QR Code 圖片 ==================== */
+.admin-qr-code {
+    max-width: 200px;
+}

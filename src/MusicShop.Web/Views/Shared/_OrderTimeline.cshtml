@@ -1,105 +1,28 @@
 @*
     訂單狀態時間軸元件 (_OrderTimeline.cshtml)
-    接收 OrderStatus 列舉值，以視覺化方式呈現訂單進度。
-
-    正常流程：待處理 → 已付款 → 已出貨 → 已完成
-    已取消狀態：在取消發生的步驟顯示紅色 X 標記
+    接收 OrderTimelineViewModel，以視覺化方式呈現訂單進度。
+    所有業務邏輯（進度計算、步驟狀態判斷）已在 ViewModel 的 Create 方法中完成，
+    View 僅負責顯示。
 
     使用方式：
-    @await Html.PartialAsync("_OrderTimeline", Model.Status)
+    @await Html.PartialAsync("_OrderTimeline", OrderTimelineViewModel.Create(Model.Status))
 *@
-@using MusicShop.Library.Enums
-@model OrderStatus
-
-@{
-    // 定義時間軸的四個步驟（正常流程）
-    var steps = new[]
-    {
-        new { Status = OrderStatus.Pending,   Icon = "bi-clipboard-check", Label = "待處理",  Desc = "訂單已建立" },
-        new { Status = OrderStatus.Paid,      Icon = "bi-credit-card",     Label = "已付款",  Desc = "款項已確認" },
-        new { Status = OrderStatus.Shipped,   Icon = "bi-truck",           Label = "已出貨",  Desc = "商品已寄出" },
-        new { Status = OrderStatus.Completed, Icon = "bi-check-circle",    Label = "已完成",  Desc = "交易完成" }
-    };
-
-    // 判斷是否已取消
-    var isCancelled = Model == OrderStatus.Cancelled;
-
-    // 目前狀態在正常流程中的索引（0-3），取消狀態不在正常流程中
-    var currentIndex = isCancelled ? -1 : Array.FindIndex(steps, s => s.Status == Model);
-
-    // 計算進度條寬度百分比
-    // 每個步驟佔 25%（共 4 步），進度條從第一個節點連到對應節點
-    var progressPercent = 0;
-    if (isCancelled)
-    {
-        // 取消時，根據取消前的最後一個狀態決定進度
-        // Pending 取消 → 0%，Paid 取消 → 33%，Shipped 取消 → 66%（不會有 Completed 取消）
-        // 簡化：取消訂單只能從 Pending 或 Paid 狀態取消
-        progressPercent = 0;
-    }
-    else if (currentIndex > 0)
-    {
-        progressPercent = (int)Math.Round((double)currentIndex / (steps.Length - 1) * 100);
-    }
-}
+@model MusicShop.Service.ViewModels.Order.OrderTimelineViewModel
 
 <div class="card order-timeline-card mb-4">
     <div class="card-body">
-        <div class="order-timeline @(isCancelled ? "is-cancelled" : "")">
+        <div class="order-timeline @(Model.IsCancelled ? "is-cancelled" : "")">
             @* 進度條（動態寬度） *@
-            <div class="timeline-progress" style="width: @(progressPercent)%;"></div>
+            <div class="timeline-progress" style="width: @(Model.ProgressPercent)%;"></div>
 
-            @for (var i = 0; i < steps.Length; i++)
+            @foreach (var step in Model.Steps)
             {
-                var step = steps[i];
-
-                // 決定步驟的 CSS 類別
-                string stepClass;
-                string iconClass;
-
-                if (isCancelled)
-                {
-                    // 取消狀態：所有步驟都顯示為灰色，最後一個改為取消標記不另外處理
-                    stepClass = "future";
-                    iconClass = step.Icon;
-                }
-                else if (i < currentIndex)
-                {
-                    // 已完成的步驟
-                    stepClass = "completed";
-                    iconClass = "bi-check-lg";
-                }
-                else if (i == currentIndex)
-                {
-                    // 當前步驟
-                    stepClass = "current";
-                    iconClass = step.Icon;
-                }
-                else
-                {
-                    // 未來步驟
-                    stepClass = "future";
-                    iconClass = step.Icon;
-                }
-
-                <div class="timeline-step @stepClass">
+                <div class="timeline-step @step.StepClass">
                     <div class="timeline-icon">
-                        <i class="bi @iconClass"></i>
+                        <i class="bi @step.IconClass"></i>
                     </div>
                     <span class="timeline-label">@step.Label</span>
-                    <span class="timeline-desc">@step.Desc</span>
-                </div>
-            }
-
-            @* 取消狀態：額外顯示取消標記 *@
-            @if (isCancelled)
-            {
-                <div class="timeline-step cancelled">
-                    <div class="timeline-icon">
-                        <i class="bi bi-x-lg"></i>
-                    </div>
-                    <span class="timeline-label">已取消</span>
-                    <span class="timeline-desc">訂單已取消</span>
+                    <span class="timeline-desc">@step.Description</span>
                 </div>
             }
         </div>

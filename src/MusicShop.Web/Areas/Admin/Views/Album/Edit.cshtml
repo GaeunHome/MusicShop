@@ -75,14 +75,14 @@
                             @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
                             {
                                 <div class="mb-2">
-                                    <img src="@Model.CoverImageUrl" alt="目前封面" style="max-height:120px; border-radius:4px; border:1px solid #dee2e6;" />
+                                    <img src="@Model.CoverImageUrl" alt="目前封面" class="admin-img-preview" />
                                     <div class="text-muted small mt-1">目前圖片，上傳新圖片可取代</div>
                                 </div>
                             }
                             <input type="file" name="coverImageFile" class="form-control" accept="image/*" id="coverImageInput" />
                             <small class="text-muted">支援 JPG、PNG、WebP，最大 5MB</small>
                             <div id="coverImagePreview" class="mt-2" style="display:none;">
-                                <img id="coverPreviewImg" src="" alt="預覽" style="max-height:150px; border-radius:4px; border:1px solid #dee2e6;" />
+                                <img id="coverPreviewImg" src="" alt="預覽" class="admin-img-preview-lg" />
                             </div>
                         </div>
                         <div class="mb-3">
@@ -90,14 +90,14 @@
                             @if (!string.IsNullOrEmpty(Model.DescriptionImageUrl))
                             {
                                 <div class="mb-2">
-                                    <img src="@Model.DescriptionImageUrl" alt="目前介紹圖" style="max-height:120px; border-radius:4px; border:1px solid #dee2e6;" />
+                                    <img src="@Model.DescriptionImageUrl" alt="目前介紹圖" class="admin-img-preview" />
                                     <div class="text-muted small mt-1">目前圖片，上傳新圖片可取代</div>
                                 </div>
                             }
                             <input type="file" name="descriptionImageFile" class="form-control" accept="image/*" id="descImageInput" />
                             <small class="text-muted">支援 JPG、PNG、WebP，最大 5MB（用於顯示詳細的商品組成內容）</small>
                             <div id="descImagePreview" class="mt-2" style="display:none;">
-                                <img id="descPreviewImg" src="" alt="預覽" style="max-height:150px; border-radius:4px; border:1px solid #dee2e6;" />
+                                <img id="descPreviewImg" src="" alt="預覽" class="admin-img-preview-lg" />
                             </div>
                         </div>
 

@@ -25,7 +25,7 @@
             <form method="get" asp-action="Index" class="row g-2 align-items-end">
                 <div class="col-auto">
                     <label class="form-label small mb-0">藝人分類</label>
-                    <select name="categoryId" class="form-select form-select-sm" style="width: 160px;">
+                    <select name="categoryId" class="form-select form-select-sm admin-filter-w-md">
                         <option value="">全部分類</option>
                         @if (ViewBag.ArtistCategories is Microsoft.AspNetCore.Mvc.Rendering.SelectList categories)
                         {
@@ -40,7 +40,7 @@
                 </div>
                 <div class="col-auto">
                     <label class="form-label small mb-0">上架狀態</label>
-                    <select name="isActive" class="form-select form-select-sm" style="width: 120px;">
+                    <select name="isActive" class="form-select form-select-sm admin-filter-w-sm">
                         <option value="">全部</option>
                         <option value="true" selected="@(selectedIsActive == true)">上架中</option>
                         <option value="false" selected="@(selectedIsActive == false)">已下架</option>
@@ -72,13 +72,13 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-dark">
                             <tr>
-                                <th style="width: 60px;">ID</th>
+                                <th class="admin-col-id">ID</th>
                                 <th>藝人名稱</th>
                                 <th>分類</th>
-                                <th style="width: 80px;" class="text-center">商品數</th>
-                                <th style="width: 70px;" class="text-center">排序</th>
-                                <th style="width: 90px;" class="text-center">狀態</th>
-                                <th style="width: 200px;" class="text-center">操作</th>
+                                <th class="admin-col-count text-center">商品數</th>
+                                <th class="admin-col-order text-center">排序</th>
+                                <th class="admin-col-status text-center">狀態</th>
+                                <th class="admin-col-actions text-center">操作</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -805,6 +805,62 @@ body > .container {
     color: white;
 }
 
+/* ==================== 庫存狀態徽章 ==================== */
+.badge-stock {
+    z-index: 10;
+}
+
+/* 列表項目庫存徽章（較小字體） */
+.badge-stock-sm {
+    font-size: 0.7rem;
+    z-index: 10;
+}
+
+/* ==================== 數量計數徽章（標題旁） ==================== */
+.badge-count {
+    font-size: 0.6em;
+}
+
+/* ==================== 確認頁面大圖示 ==================== */
+.icon-confirmation {
+    font-size: 3rem;
+}
+
+.icon-confirmation-success {
+    font-size: 3rem;
+    color: var(--color-success);
+}
+
+.icon-confirmation-info {
+    font-size: 3rem;
+    color: #007bff;
+}
+
+/* ==================== 手機選單漢堡圖示 ==================== */
+.nav-toggle-icon {
+    font-size: 1.6rem;
+    color: #555;
+}
+
+/* ==================== 表單最大寬度限制 ==================== */
+.input-max-w-sm {
+    max-width: 200px;
+}
+
+.input-max-w-md {
+    max-width: 300px;
+}
+
+/* ==================== 寬鬆行高列表 ==================== */
+.list-relaxed {
+    line-height: 1.8;
+}
+
+/* ==================== 小字提示文字 ==================== */
+.text-notice {
+    font-size: 0.9rem;
+}
+
 /* ==================== LINE 社群登入按鈕 ==================== */
 .btn-line {
     background-color: #06C755;

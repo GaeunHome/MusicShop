@@ -285,6 +285,20 @@ builder.Services.ConfigureApplicationCookie(options =>
 // 註冊 Response Caching（HTTP 層級快取，搭配 [ResponseCache] 使用）
 builder.Services.AddResponseCaching();
 
+// 註冊 Response Compression（Brotli + Gzip 壓縮，減少傳輸量）
+// Brotli 壓縮率優於 Gzip，現代瀏覽器皆支援；Gzip 作為 Fallback。
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = System.IO.Compression.CompressionLevel.Fastest;
+});
+
 builder.Services.AddControllersWithViews();
 
 // =====================================================================
@@ -358,6 +372,10 @@ if (!app.Environment.IsDevelopment())
 
 // HTTP → HTTPS 自動轉導（開發與正式環境皆啟用）
 app.UseHttpsRedirection();
+
+// Response Compression（需在 StaticFiles 和 Routing 之前，壓縮動態回應）
+app.UseResponseCompression();
+
 app.UseStaticFiles();
 
 // Serilog HTTP 請求日誌（記錄每個請求的方法、路徑、狀態碼與耗時）

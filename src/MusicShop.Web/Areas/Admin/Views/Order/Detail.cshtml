@@ -10,7 +10,7 @@
 </div>
 
 <!-- 訂單狀態時間軸 -->
-@await Html.PartialAsync("_OrderTimeline", Model.Status)
+@await Html.PartialAsync("_OrderTimeline", MusicShop.Service.ViewModels.Order.OrderTimelineViewModel.Create(Model.Status))
 
 <div class="row">
     <!-- 左側：訂單詳情 -->

@@ -27,7 +27,7 @@
     <h1 class="page-title mb-4">訂單詳情</h1>
 
     <!-- 訂單狀態時間軸 -->
-    @await Html.PartialAsync("_OrderTimeline", Model.Status)
+    @await Html.PartialAsync("_OrderTimeline", MusicShop.Service.ViewModels.Order.OrderTimelineViewModel.Create(Model.Status))
 
     <div class="row">
         <!-- 訂單資訊 -->

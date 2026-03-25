@@ -8,7 +8,7 @@
 <div class="container mt-4">
     <h3 class="mb-4">
         <i class="bi bi-heart-fill text-danger me-2"></i>我的收藏
-        <span class="badge bg-secondary ms-2" style="font-size: 0.6em;">@Model.Count() 件</span>
+        <span class="badge bg-secondary ms-2 badge-count">@Model.Count() 件</span>
     </h3>
 
     @if (!Model.Any())
@@ -51,11 +51,11 @@
 
                             @if (item.IsSoldOut)
                             {
-                                <span class="position-absolute top-0 end-0 badge bg-danger m-2" style="z-index:10;">已售完</span>
+                                <span class="position-absolute top-0 end-0 badge bg-danger m-2 badge-stock">已售完</span>
                             }
                             else if (item.IsLowStock)
                             {
-                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2" style="z-index:10;">
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2 badge-stock">
                                     @item.StockStatusText
                                 </span>
                             }

@@ -59,31 +59,31 @@
             </div>
         </div>
         <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="card text-center shadow-sm" style="border-color:#b19cd9;">
+            <div class="card text-center shadow-sm admin-stat-purple">
                 <div class="card-body">
                     <div class="fs-1">🖼️</div>
                     <h5 class="card-title mt-2">幻燈片數量</h5>
-                    <p class="display-6 fw-bold" style="color:#b19cd9;">@ViewBag.BannerCount</p>
+                    <p class="display-6 fw-bold admin-stat-value">@ViewBag.BannerCount</p>
                     <a asp-area="Admin" asp-controller="Banner" asp-action="Index" class="btn btn-sm btn-outline-secondary">管理幻燈片</a>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="card text-center shadow-sm" style="border-color:#f0ad4e;">
+            <div class="card text-center shadow-sm admin-stat-orange">
                 <div class="card-body">
                     <div class="fs-1">⭐</div>
                     <h5 class="card-title mt-2">精選藝人</h5>
-                    <p class="display-6 fw-bold" style="color:#f0ad4e;">@ViewBag.FeaturedArtistCount</p>
+                    <p class="display-6 fw-bold admin-stat-value">@ViewBag.FeaturedArtistCount</p>
                     <a asp-area="Admin" asp-controller="FeaturedArtist" asp-action="Index" class="btn btn-sm btn-outline-warning">管理精選藝人</a>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 col-sm-6">
-            <div class="card text-center shadow-sm" style="border-color:#e74c3c;">
+            <div class="card text-center shadow-sm admin-stat-red">
                 <div class="card-body">
                     <div class="fs-1">🎟️</div>
                     <h5 class="card-title mt-2">優惠券數量</h5>
-                    <p class="display-6 fw-bold" style="color:#e74c3c;">@ViewBag.CouponCount</p>
+                    <p class="display-6 fw-bold admin-stat-value">@ViewBag.CouponCount</p>
                     <a asp-area="Admin" asp-controller="Coupon" asp-action="Index" class="btn btn-sm btn-outline-danger">管理優惠券</a>
                 </div>
             </div>
@@ -127,7 +127,7 @@
             <div class="card shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">銷售趨勢</h5>
-                    <select id="salesTrendDays" class="form-select form-select-sm" style="width: auto;">
+                    <select id="salesTrendDays" class="form-select form-select-sm admin-select-auto">
                         <option value="7">近 7 天</option>
                         <option value="30" selected>近 30 天</option>
                         <option value="90">近 90 天</option>

@@ -15,17 +15,17 @@
         else
         {
             <div class="product-list-image-placeholder">
-                <span class="text-white" style="font-size: 40px;">♪</span>
+                <span class="text-white music-note-icon-lg">♪</span>
             </div>
         }
 
         @if (Model.IsSoldOut)
         {
-            <span class="position-absolute top-0 start-0 badge bg-danger m-1" style="font-size: 0.7rem;">已售完</span>
+            <span class="position-absolute top-0 start-0 badge bg-danger m-1 badge-stock-sm">已售完</span>
         }
         else if (Model.IsLowStock)
         {
-            <span class="position-absolute top-0 start-0 badge bg-warning text-dark m-1" style="font-size: 0.7rem;">@Model.StockStatusText</span>
+            <span class="position-absolute top-0 start-0 badge bg-warning text-dark m-1 badge-stock-sm">@Model.StockStatusText</span>
         }
     </div>
 

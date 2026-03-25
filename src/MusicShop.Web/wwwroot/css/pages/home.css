@@ -332,6 +332,11 @@
     }
 }
 
+/* ==================== 音樂符號佔位圖示 ==================== */
+.music-note-icon-lg {
+    font-size: 40px;
+}
+
 /* ==================== 商品卡片：預設封面佔位（無圖片時） ==================== */
 .album-placeholder-bg {
     background: linear-gradient(135deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);

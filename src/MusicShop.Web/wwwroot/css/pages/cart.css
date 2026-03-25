@@ -868,6 +868,15 @@
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
 
+/* ==================== 加入購物車 Modal 縮圖 ==================== */
+.cart-modal-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+}
+
 /* ==================== 資訊提示區塊 ==================== */
 .alert-info {
     background-color: #e7f3ff;

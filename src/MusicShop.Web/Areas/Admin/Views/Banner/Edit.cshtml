@@ -22,7 +22,7 @@
             <div class="mb-3">
                 <label class="form-label fw-bold">目前圖片</label>
                 <div>
-                    <img src="@Model.ImageUrl" alt="幻燈片" class="img-fluid rounded" style="max-height:200px;">
+                    <img src="@Model.ImageUrl" alt="幻燈片" class="img-fluid rounded admin-img-preview-banner">
                 </div>
             </div>
         }
@@ -33,7 +33,7 @@
             <input type="file" name="bannerImageFile" class="form-control" accept=".jpg,.jpeg,.png,.webp"
                    onchange="previewImage(this)">
             <div class="form-text">建議尺寸 1920×600，支援 JPG / PNG / WebP，上限 10MB</div>
-            <img id="imgPreview" src="#" alt="預覽" class="mt-2 img-fluid rounded" style="display:none;max-height:200px;">
+            <img id="imgPreview" src="#" alt="預覽" class="mt-2 img-fluid rounded admin-img-preview-banner" style="display:none;">
         </div>
 
         <!-- 連結商品 -->
