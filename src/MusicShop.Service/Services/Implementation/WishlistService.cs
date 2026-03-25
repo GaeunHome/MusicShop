@@ -21,12 +21,6 @@ namespace MusicShop.Service.Services.Implementation
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<WishlistItem>> GetWishlistAsync(string userId)
-        {
-            ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
-            return await _unitOfWork.Wishlists.GetByUserIdAsync(userId);
-        }
-
         public async Task<IEnumerable<WishlistItemViewModel>> GetWishlistItemViewModelsAsync(string userId)
         {
             ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));

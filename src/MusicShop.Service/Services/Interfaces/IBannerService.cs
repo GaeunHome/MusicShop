@@ -1,4 +1,3 @@
-using MusicShop.Data.Entities;
 using MusicShop.Service.ViewModels.Admin;
 using MusicShop.Service.ViewModels.Home;
 
@@ -9,12 +8,6 @@ namespace MusicShop.Service.Services.Interfaces
     /// </summary>
     public interface IBannerService
     {
-        /// <summary>
-        /// 取得首頁顯示的幻燈片（IsActive=true，依 DisplayOrder 排序）
-        /// 【內部使用，返回 Entity】
-        /// </summary>
-        Task<IEnumerable<Banner>> GetActiveBannersAsync();
-
         /// <summary>
         /// 取得首頁顯示的幻燈片 ViewModel（供展示層使用）
         /// </summary>

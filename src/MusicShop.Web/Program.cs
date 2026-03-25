@@ -44,6 +44,17 @@ builder.Services.Configure<SiteSettings>(builder.Configuration.GetSection("SiteS
 // 註冊記憶體快取
 builder.Services.AddMemoryCache();
 
+// 註冊 Session（登入驗證碼儲存用，基於已註冊的 MemoryCache）
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(20);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.Name = "MusicShop.Session";
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+});
+
 // 註冊健康檢查（檢測資料庫連線狀態）
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>("database");
@@ -93,9 +104,12 @@ builder.Services.AddScoped<ISiteSettingsProvider, SiteSettingsProvider>();
 builder.Services.AddScoped<IAlbumImageService, AlbumImageService>();
 builder.Services.AddScoped<IBannerImageService, BannerImageService>();
 
-// 註冊 SMTP Email 寄送服務
+// 註冊驗證碼服務（Singleton：無狀態工具類，驗證碼透過 Session 儲存）
+builder.Services.AddSingleton<ICaptchaService, CaptchaService>();
+
+// 註冊 SMTP Email 寄送服務（Singleton：無狀態工具類，每次寄送建立新的 SmtpClient）
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
-builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
 
 // 註冊 ECPay 金流服務
 builder.Services.AddScoped<IEcpayPaymentService, EcpayPaymentService>();
@@ -395,6 +409,7 @@ app.UseSerilogRequestLogging(options =>
 });
 
 app.UseRouting();
+app.UseSession();
 app.UseResponseCaching();
 
 // 健康檢查端點（供負載均衡器、容器編排工具檢測服務狀態）

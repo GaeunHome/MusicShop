@@ -24,13 +24,6 @@ public class CartService : ICartService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<CartItem>> GetUserCartAsync(string userId)
-    {
-        ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
-
-        return await _unitOfWork.Cart.GetCartItemsByUserIdAsync(userId);
-    }
-
     public async Task<List<CartItemViewModel>> GetCartItemViewModelsAsync(string userId)
     {
         ValidationHelper.ValidateNotEmpty(userId, "使用者 ID", nameof(userId));
@@ -40,7 +33,7 @@ public class CartService : ICartService
         return _mapper.Map<List<CartItemViewModel>>(cartItems);
     }
     // async 標記在方法上，表示「這個方法裡面有 await」
-    public async Task<CartItem> AddToCartAsync(string userId, int albumId, int quantity = 1)
+    public async Task AddToCartAsync(string userId, int albumId, int quantity = 1)
     {
         // 驗證參數
         // 一開始就驗證參數，不合法就直接拋出例外，避免進入後續邏輯造成不必要的資料庫查詢和運算
@@ -79,9 +72,7 @@ public class CartService : ICartService
 
             existingCartItem.Quantity = newQuantity;
             await _unitOfWork.Cart.UpdateCartItemAsync(existingCartItem);
-            // 統一由 Service 層呼叫 SaveChangesAsync() 決定什麼時候存
             await _unitOfWork.SaveChangesAsync();
-            return existingCartItem;
         }
         else
         {
@@ -94,10 +85,8 @@ public class CartService : ICartService
                 AddedAt = DateTime.UtcNow
             };
 
-            var added = await _unitOfWork.Cart.AddToCartAsync(cartItem);
-            // 統一由 Service 層呼叫 SaveChangesAsync() 決定什麼時候存
+            await _unitOfWork.Cart.AddToCartAsync(cartItem);
             await _unitOfWork.SaveChangesAsync();
-            return added;
         }
     }
 

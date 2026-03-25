@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Web.Infrastructure;
-using System.Security.Claims;
 
 namespace MusicShop.Web.Areas.Admin.Controllers;
 
@@ -34,25 +33,10 @@ public class UserController : AdminBaseController
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleAdminRole(string userId)
     {
-        var currentAdminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(currentAdminId))
-        {
-            TempData[TempDataKeys.Error] = "無法取得當前使用者資訊";
-            return RedirectToAction(nameof(Index));
-        }
-
+        var currentAdminId = GetAuthorizedUserId();
         var (success, message) = await _userService.ToggleAdminRoleAsync(userId, currentAdminId);
 
-        if (success)
-        {
-            TempData[TempDataKeys.Success] = message;
-        }
-        else
-        {
-            TempData[TempDataKeys.Error] = message;
-        }
-
+        TempData[success ? TempDataKeys.Success : TempDataKeys.Error] = message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -61,25 +45,10 @@ public class UserController : AdminBaseController
     [Authorize(Roles = "SuperAdmin")]
     public async Task<IActionResult> ToggleSuperAdminRole(string userId)
     {
-        var currentAdminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(currentAdminId))
-        {
-            TempData[TempDataKeys.Error] = "無法取得當前使用者資訊";
-            return RedirectToAction(nameof(Index));
-        }
-
+        var currentAdminId = GetAuthorizedUserId();
         var (success, message) = await _userService.ToggleSuperAdminRoleAsync(userId, currentAdminId);
 
-        if (success)
-        {
-            TempData[TempDataKeys.Success] = message;
-        }
-        else
-        {
-            TempData[TempDataKeys.Error] = message;
-        }
-
+        TempData[success ? TempDataKeys.Success : TempDataKeys.Error] = message;
         return RedirectToAction(nameof(Index));
     }
 

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MusicShop.Library.Enums;
 using MusicShop.Service.Services.Interfaces;
 using MusicShop.Web.Infrastructure;
 
@@ -77,35 +76,4 @@ public class OrderController : BaseController
         return RedirectToAction("Detail", new { id });
     }
 
-    // ==================== 管理員功能 ====================
-
-    // GET: /Order/Manage
-    // 管理所有訂單（管理員專用）
-    // 使用 ViewModel 取代直接回傳 Order Entity，確保展示層不接觸資料層實體
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Manage()
-    {
-        var orders = await _orderService.GetAdminOrderListViewModelsAsync();
-        return View(orders);
-    }
-
-    // POST: /Order/UpdateStatus
-    // 更新訂單狀態（管理員專用）
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateStatus(int orderId, OrderStatus status)
-    {
-        try
-        {
-            await _orderService.UpdateOrderStatusAsync(orderId, status);
-            TempData[TempDataKeys.Success] = "訂單狀態已更新";
-        }
-        catch (InvalidOperationException ex)
-        {
-            TempData[TempDataKeys.Error] = ex.Message;
-        }
-
-        return RedirectToAction("Manage");
-    }
 }

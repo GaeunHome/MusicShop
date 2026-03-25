@@ -22,16 +22,18 @@ public class DashboardController : AdminBaseController
 
     public async Task<IActionResult> Index()
     {
-        ViewBag.AlbumCount = await _statisticsService.GetAlbumCountAsync();
-        ViewBag.ArtistCount = await _statisticsService.GetArtistCountAsync();
-        ViewBag.CategoryCount = await _statisticsService.GetCategoryCountAsync();
-        ViewBag.OrderCount = await _statisticsService.GetOrderCountAsync();
-        ViewBag.UserCount = await _statisticsService.GetUserCountAsync();
-        ViewBag.TotalSales = await _statisticsService.GetTotalSalesAsync();
-        ViewBag.PendingOrderCount = await _statisticsService.GetPendingOrderCountAsync();
-        ViewBag.BannerCount = await _statisticsService.GetBannerCountAsync();
-        ViewBag.FeaturedArtistCount = await _statisticsService.GetFeaturedArtistCountAsync();
-        ViewBag.CouponCount = await _statisticsService.GetCouponCountAsync();
+        var stats = await _statisticsService.GetDashboardStatsAsync();
+
+        ViewBag.AlbumCount = stats.AlbumCount;
+        ViewBag.ArtistCount = stats.ArtistCount;
+        ViewBag.CategoryCount = stats.CategoryCount;
+        ViewBag.OrderCount = stats.OrderCount;
+        ViewBag.UserCount = stats.UserCount;
+        ViewBag.TotalSales = stats.TotalSales;
+        ViewBag.PendingOrderCount = stats.PendingOrderCount;
+        ViewBag.BannerCount = stats.BannerCount;
+        ViewBag.FeaturedArtistCount = stats.FeaturedArtistCount;
+        ViewBag.CouponCount = stats.CouponCount;
         return View();
     }
 

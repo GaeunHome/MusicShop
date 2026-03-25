@@ -25,7 +25,7 @@ public class BannerService : IBannerService
         _cacheService = cacheService;
     }
 
-    public async Task<IEnumerable<Banner>> GetActiveBannersAsync()
+    private async Task<IEnumerable<Banner>> GetActiveBannersAsync()
         => await _cacheService.GetOrCreateAsync(
             CacheKeys.Banners,
             () => _unitOfWork.Banners.GetActiveBannersAsync());

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
+using MusicShop.Service.ViewModels.Cart;
 
 namespace MusicShop.Web.Controllers.Api;
 
@@ -61,13 +62,4 @@ public class CartApiController : BaseApiController
             return BadRequest(new { success = false, message = ex.Message });
         }
     }
-}
-
-/// <summary>
-/// 加入購物車的請求模型
-/// </summary>
-public class AddToCartRequest
-{
-    public int AlbumId { get; set; }
-    public int Quantity { get; set; } = 1;
 }

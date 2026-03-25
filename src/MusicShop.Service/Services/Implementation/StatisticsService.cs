@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using MusicShop.Data.UnitOfWork;
 using MusicShop.Service.Services.Interfaces;
+using MusicShop.Service.ViewModels.Admin;
 
 namespace MusicShop.Service.Services.Implementation
 {
@@ -9,12 +10,6 @@ namespace MusicShop.Service.Services.Implementation
     /// </summary>
     public class StatisticsService : IStatisticsService
     {
-        /// <summary>
-        /// 使用者數量低於此值時記錄提示。
-        /// 門檻值 5 代表系統仍處於初始或測試階段，提醒管理員注意推廣。
-        /// </summary>
-        private const int LowUserCountThreshold = 5;
-
         /// <summary>
         /// 待處理訂單超過此值時記錄警告。
         /// 門檻值 10 是基於人工處理訂單的合理上限——超過此數量表示出貨流程可能積壓，
@@ -33,138 +28,61 @@ namespace MusicShop.Service.Services.Implementation
             _logger = logger;
         }
 
-        public async Task<int> GetAlbumCountAsync()
+        public async Task<DashboardStatsViewModel> GetDashboardStatsAsync()
         {
-            var count = await _unitOfWork.Statistics.GetAlbumCountAsync();
-
-            // 商業邏輯：如果數量為 0，記錄警告
-            if (count == 0)
+            var stats = new DashboardStatsViewModel
             {
-                _logger.LogWarning("系統中沒有任何專輯資料");
-            }
-            else
+                AlbumCount = await _unitOfWork.Statistics.GetAlbumCountAsync(),
+                ArtistCount = await _unitOfWork.Statistics.GetArtistCountAsync(),
+                CategoryCount = await _unitOfWork.Statistics.GetCategoryCountAsync(),
+                OrderCount = await _unitOfWork.Statistics.GetOrderCountAsync(),
+                UserCount = await _unitOfWork.Statistics.GetUserCountAsync(),
+                TotalSales = await _unitOfWork.Statistics.GetTotalSalesAsync(),
+                PendingOrderCount = await _unitOfWork.Statistics.GetPendingOrderCountAsync(),
+                BannerCount = await _unitOfWork.Statistics.GetBannerCountAsync(),
+                FeaturedArtistCount = await _unitOfWork.Statistics.GetFeaturedArtistCountAsync(),
+                CouponCount = await _unitOfWork.Statistics.GetCouponCountAsync()
+            };
+
+            // 僅記錄有業務價值的警告，避免每次 Dashboard 載入都產生大量日誌
+            if (stats.PendingOrderCount > HighPendingOrderThreshold)
             {
-                _logger.LogInformation("系統中共有 {AlbumCount} 個專輯", count);
+                _logger.LogWarning("待處理訂單數量過多：{PendingOrderCount} 筆，請盡快處理",
+                    stats.PendingOrderCount);
             }
 
-            return count;
+            return stats;
         }
+
+        public async Task<int> GetAlbumCountAsync()
+            => await _unitOfWork.Statistics.GetAlbumCountAsync();
 
         public async Task<int> GetCategoryCountAsync()
-        {
-            var count = await _unitOfWork.Statistics.GetCategoryCountAsync();
-
-            // 商業邏輯：如果分類數量為 0，記錄警告
-            if (count == 0)
-            {
-                _logger.LogWarning("系統中沒有任何分類資料");
-            }
-            else
-            {
-                _logger.LogInformation("系統中共有 {CategoryCount} 個分類", count);
-            }
-
-            return count;
-        }
+            => await _unitOfWork.Statistics.GetCategoryCountAsync();
 
         public async Task<int> GetOrderCountAsync()
-        {
-            var count = await _unitOfWork.Statistics.GetOrderCountAsync();
-
-            // 商業邏輯：記錄訂單總數資訊
-            if (count == 0)
-            {
-                _logger.LogInformation("系統中尚無訂單");
-            }
-            else
-            {
-                _logger.LogInformation("系統中共有 {OrderCount} 筆訂單", count);
-            }
-
-            return count;
-        }
+            => await _unitOfWork.Statistics.GetOrderCountAsync();
 
         public async Task<int> GetUserCountAsync()
-        {
-            var count = await _unitOfWork.Statistics.GetUserCountAsync();
-
-            // 商業邏輯：記錄使用者數量，少於 5 人時提示
-            if (count < LowUserCountThreshold)
-            {
-                _logger.LogInformation("系統中有 {UserCount} 位使用者（使用者數量較少）", count);
-            }
-            else
-            {
-                _logger.LogInformation("系統中共有 {UserCount} 位使用者", count);
-            }
-
-            return count;
-        }
+            => await _unitOfWork.Statistics.GetUserCountAsync();
 
         public async Task<decimal> GetTotalSalesAsync()
-        {
-            var totalSales = await _unitOfWork.Statistics.GetTotalSalesAsync();
-
-            // 商業邏輯：記錄總銷售額，如果為 0 記錄警告
-            if (totalSales == 0)
-            {
-                _logger.LogWarning("系統總銷售額為 0，尚未產生任何收益");
-            }
-            else
-            {
-                _logger.LogInformation("系統總銷售額：NT$ {TotalSales:N2}", totalSales);
-            }
-
-            return totalSales;
-        }
+            => await _unitOfWork.Statistics.GetTotalSalesAsync();
 
         public async Task<int> GetPendingOrderCountAsync()
-        {
-            var count = await _unitOfWork.Statistics.GetPendingOrderCountAsync();
-
-            // 商業邏輯：如果待處理訂單過多（超過 10 筆），記錄警告
-            if (count > HighPendingOrderThreshold)
-            {
-                _logger.LogWarning("待處理訂單數量過多：{PendingOrderCount} 筆，請盡快處理", count);
-            }
-            else if (count > 0)
-            {
-                _logger.LogInformation("目前有 {PendingOrderCount} 筆待處理訂單", count);
-            }
-
-            return count;
-        }
+            => await _unitOfWork.Statistics.GetPendingOrderCountAsync();
 
         public async Task<int> GetArtistCountAsync()
-        {
-            var count = await _unitOfWork.Statistics.GetArtistCountAsync();
-
-            if (count == 0)
-            {
-                _logger.LogWarning("系統中沒有任何藝人資料");
-            }
-            else
-            {
-                _logger.LogInformation("系統中共有 {ArtistCount} 位藝人", count);
-            }
-
-            return count;
-        }
+            => await _unitOfWork.Statistics.GetArtistCountAsync();
 
         public async Task<int> GetBannerCountAsync()
-        {
-            return await _unitOfWork.Statistics.GetBannerCountAsync();
-        }
+            => await _unitOfWork.Statistics.GetBannerCountAsync();
 
         public async Task<int> GetFeaturedArtistCountAsync()
-        {
-            return await _unitOfWork.Statistics.GetFeaturedArtistCountAsync();
-        }
+            => await _unitOfWork.Statistics.GetFeaturedArtistCountAsync();
 
         public async Task<int> GetCouponCountAsync()
-        {
-            return await _unitOfWork.Statistics.GetCouponCountAsync();
-        }
+            => await _unitOfWork.Statistics.GetCouponCountAsync();
 
         public async Task<List<(DateTime Date, decimal Amount, int Count)>> GetDailySalesTrendAsync(int days = 30)
         {

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
+using MusicShop.Service.ViewModels.Wishlist;
 
 namespace MusicShop.Web.Controllers.Api;
 
@@ -77,12 +78,4 @@ public class WishlistApiController : BaseApiController
         var wishlistIds = await _wishlistService.GetWishlistAlbumIdsAsync(userId);
         return Ok(new { count = wishlistIds.Count });
     }
-}
-
-/// <summary>
-/// 收藏切換的請求模型
-/// </summary>
-public class WishlistToggleRequest
-{
-    public int AlbumId { get; set; }
 }

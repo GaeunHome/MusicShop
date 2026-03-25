@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicShop.Service.Services.Interfaces;
+using MusicShop.Service.ViewModels.Coupon;
 
 namespace MusicShop.Web.Controllers.Api;
 
@@ -55,15 +56,4 @@ public class CouponApiController : BaseApiController
 
         return Ok(new { success, message });
     }
-}
-
-public class CouponValidateRequest
-{
-    public int UserCouponId { get; set; }
-    public decimal TotalAmount { get; set; }
-}
-
-public class CouponRedeemRequest
-{
-    public string Code { get; set; } = string.Empty;
 }

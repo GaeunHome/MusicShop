@@ -3,6 +3,10 @@
     ViewData["Title"] = "登入";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/captcha.css" />
+}
+
 <!-- 引用共用的 TempData 通知元件（SweetAlert2 彈跳視窗） -->
 <partial name="_TempDataNotifications" />
 
@@ -36,6 +40,23 @@
                         <div class="mb-3 form-check">
                             <input asp-for="RememberMe" class="form-check-input" />
                             <label asp-for="RememberMe" class="form-check-label"></label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CaptchaCode" class="form-label required"></label>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <img id="captchaImage"
+                                     src="@Url.Action("CaptchaImage", "Account")"
+                                     alt="驗證碼" class="captcha-image rounded" />
+                                <button type="button" id="refreshCaptcha"
+                                        class="btn btn-outline-secondary btn-sm"
+                                        title="重新產生驗證碼">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                            <input asp-for="CaptchaCode" class="form-control"
+                                   placeholder="請輸入上方驗證碼" autocomplete="off" maxlength="6" />
+                            <span asp-validation-for="CaptchaCode" class="text-danger small"></span>
                         </div>
 
                         <div class="d-grid mt-4">
@@ -90,4 +111,5 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script src="~/js/features/auth/captcha.js"></script>
 }

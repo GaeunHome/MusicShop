@@ -1,3 +1,5 @@
+using MusicShop.Service.ViewModels.Admin;
+
 namespace MusicShop.Service.Services.Interfaces
 {
     /// <summary>
@@ -5,6 +7,11 @@ namespace MusicShop.Service.Services.Interfaces
     /// </summary>
     public interface IStatisticsService
     {
+        /// <summary>
+        /// 取得儀表板所有統計資料（合併多個查詢為單次服務呼叫）
+        /// </summary>
+        Task<DashboardStatsViewModel> GetDashboardStatsAsync();
+
         /// <summary>
         /// 取得專輯總數
         /// </summary>

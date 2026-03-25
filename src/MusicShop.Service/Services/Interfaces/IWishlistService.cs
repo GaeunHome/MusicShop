@@ -1,4 +1,3 @@
-using MusicShop.Data.Entities;
 using MusicShop.Service.ViewModels.Wishlist;
 
 namespace MusicShop.Service.Services.Interfaces
@@ -8,9 +7,6 @@ namespace MusicShop.Service.Services.Interfaces
     /// </summary>
     public interface IWishlistService
     {
-        /// <summary>取得使用者的完整收藏清單（Entity，內部使用）</summary>
-        Task<IEnumerable<WishlistItem>> GetWishlistAsync(string userId);
-
         /// <summary>取得使用者的完整收藏清單 ViewModel（供展示層使用）</summary>
         Task<IEnumerable<WishlistItemViewModel>> GetWishlistItemViewModelsAsync(string userId);
 

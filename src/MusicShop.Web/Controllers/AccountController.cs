@@ -20,15 +20,29 @@ public class AccountController : BaseController
     private readonly IOrderService _orderService;
     private readonly IUserService _userService;
     private readonly IEmailService _emailService;
+    private readonly ICaptchaService _captchaService;
 
     public AccountController(
         IOrderService orderService,
         IUserService userService,
-        IEmailService emailService)
+        IEmailService emailService,
+        ICaptchaService captchaService)
     {
         _orderService = orderService;
         _userService = userService;
         _emailService = emailService;
+        _captchaService = captchaService;
+    }
+
+    // ==================== 驗證碼 ====================
+
+    // GET: /Account/CaptchaImage
+    // 產生驗證碼圖片（供登入頁面 <img> 標籤載入）
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public IActionResult CaptchaImage()
+    {
+        var imageBytes = _captchaService.GenerateCaptchaImage(HttpContext.Session);
+        return File(imageBytes, "image/png");
     }
 
     // ==================== 註冊與 Email 驗證 ====================
@@ -125,7 +139,17 @@ public class AccountController : BaseController
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
+        // 驗證失敗返回 View 時需要外部登入提供者資料
+        ViewBag.ExternalProviders = await _userService.GetExternalAuthenticationSchemesAsync();
+
         if (!ModelState.IsValid) return View(model);
+
+        // 驗證碼檢查（在密碼驗證之前，避免無效請求消耗 Identity 資源）
+        if (!_captchaService.ValidateCaptcha(HttpContext.Session, model.CaptchaCode))
+        {
+            ModelState.AddModelError(nameof(model.CaptchaCode), "驗證碼不正確，請重新輸入");
+            return View(model);
+        }
 
         var (success, fullName, isLockedOut, lockoutMinutes, remainingAttempts, requiresTwoFactor)
             = await _userService.LoginAsync(model.Email, model.Password, model.RememberMe);

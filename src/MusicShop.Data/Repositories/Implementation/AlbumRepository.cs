@@ -46,7 +46,8 @@ namespace MusicShop.Data.Repositories.Implementation
             string? sortBy = null,
             int? excludeId = null)
         {
-            var query = await BuildFilteredQueryAsync(searchTerm, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy, excludeId);
+            var childIds = await GetChildCategoryIdsAsync(parentProductTypeId);
+            var query = BuildFilteredQuery(searchTerm, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy, excludeId, childIds);
             return await query.ToListAsync();
         }
 
@@ -65,7 +66,8 @@ namespace MusicShop.Data.Repositories.Implementation
             string? sortBy = null,
             int? excludeId = null)
         {
-            var query = await BuildFilteredQueryAsync(searchTerm, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy, excludeId);
+            var childIds = await GetChildCategoryIdsAsync(parentProductTypeId);
+            var query = BuildFilteredQuery(searchTerm, artistCategoryId, artistId, productTypeId, parentProductTypeId, sortBy, excludeId, childIds);
 
             // 先計算符合條件的總筆數（用於分頁計算）
             var totalCount = await query.CountAsync();
@@ -81,15 +83,17 @@ namespace MusicShop.Data.Repositories.Implementation
 
         /// <summary>
         /// 建立篩選與排序後的查詢（共用邏輯，供 GetAlbumsAsync 與 GetAlbumsPagedAsync 使用）
+        /// parentProductTypeId 需要額外查詢取得子分類 ID，因此該分支使用 async。
         /// </summary>
-        private async Task<IQueryable<Album>> BuildFilteredQueryAsync(
+        private IQueryable<Album> BuildFilteredQuery(
             string? searchTerm,
             int? artistCategoryId,
             int? artistId,
             int? productTypeId,
             int? parentProductTypeId,
             string? sortBy,
-            int? excludeId)
+            int? excludeId,
+            List<int>? childCategoryIds = null)
         {
             var query = _context.Albums
                 .AsNoTracking()
@@ -130,20 +134,10 @@ namespace MusicShop.Data.Repositories.Implementation
             {
                 query = query.Where(album => album.ProductTypeId == productTypeId);
             }
-            // 父分類篩選需額外查一次 DB 取得所有子分類 ID，再以 Contains 展開為 WHERE IN。
-            // 目前商品類型數量有限（約十幾筆），效能影響不大；
-            // 若子分類數量大幅增長，可考慮改用子查詢或快取。
-            else if (parentProductTypeId.HasValue)
+            // 父分類篩選：使用預先查詢的 childCategoryIds 展開為 WHERE IN。
+            else if (parentProductTypeId.HasValue && childCategoryIds != null && childCategoryIds.Count > 0)
             {
-                var childCategoryIds = await _context.ProductTypes
-                    .Where(pt => pt.ParentId == parentProductTypeId)
-                    .Select(pt => pt.Id)
-                    .ToListAsync();
-
-                if (childCategoryIds.Any())
-                {
-                    query = query.Where(album => album.ProductTypeId.HasValue && childCategoryIds.Contains(album.ProductTypeId.Value));
-                }
+                query = query.Where(album => album.ProductTypeId.HasValue && childCategoryIds.Contains(album.ProductTypeId.Value));
             }
 
             // 排序邏輯
@@ -180,6 +174,19 @@ namespace MusicShop.Data.Repositories.Implementation
             }
 
             return query;
+        }
+
+        /// <summary>
+        /// 父分類篩選時需要預先查詢子分類 ID
+        /// </summary>
+        private async Task<List<int>?> GetChildCategoryIdsAsync(int? parentProductTypeId)
+        {
+            if (!parentProductTypeId.HasValue) return null;
+
+            return await _context.ProductTypes
+                .Where(pt => pt.ParentId == parentProductTypeId)
+                .Select(pt => pt.Id)
+                .ToListAsync();
         }
 
         /// <summary>
