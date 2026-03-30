@@ -74,5 +74,10 @@ namespace MusicShop.Service.Services.Interfaces
         /// 取得使用者訂單統計（總訂單數、總消費金額）
         /// </summary>
         Task<(int TotalOrders, decimal TotalSpent)> GetUserOrderStatsAsync(string userId);
+
+        /// <summary>
+        /// 匯出訂單為 CSV 位元組陣列（管理員用）
+        /// </summary>
+        Task<byte[]> ExportOrdersToCsvAsync();
     }
 }

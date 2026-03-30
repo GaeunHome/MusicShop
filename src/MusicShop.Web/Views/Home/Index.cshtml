@@ -122,7 +122,7 @@
 
     @if (User.Identity!.IsAuthenticated)
     {
-        <form id="wishlistForm" style="display:none;">@Html.AntiForgeryToken()</form>
+        <form id="wishlistForm" class="d-none">@Html.AntiForgeryToken()</form>
     }
 
     @if (Model != null && Model.Any())

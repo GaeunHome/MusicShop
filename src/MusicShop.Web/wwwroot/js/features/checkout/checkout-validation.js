@@ -56,7 +56,7 @@ const CheckoutValidation = (function () {
             }
         }
         errorSpan.textContent = message;
-        errorSpan.style.display = 'block';
+        errorSpan.classList.remove('d-none');
     }
 
     /**
@@ -71,7 +71,7 @@ const CheckoutValidation = (function () {
                         field.parentElement.querySelector('.invalid-feedback');
         if (errorSpan) {
             errorSpan.textContent = '';
-            errorSpan.style.display = 'none';
+            errorSpan.classList.add('d-none');
         }
     }
 
@@ -86,7 +86,7 @@ const CheckoutValidation = (function () {
                         field.parentElement.querySelector('.invalid-feedback');
         if (errorSpan) {
             errorSpan.textContent = '';
-            errorSpan.style.display = 'none';
+            errorSpan.classList.add('d-none');
         }
     }
 

@@ -41,6 +41,11 @@ public static class DisplayConstants
     public const int AdminOrderPageSize = 20;
 
     /// <summary>
+    /// 後台專輯列表每頁顯示筆數
+    /// </summary>
+    public const int AdminAlbumPageSize = 20;
+
+    /// <summary>
     /// 商品不存在時的預設顯示文字
     /// </summary>
     public const string UnknownProduct = "未知商品";

@@ -148,7 +148,7 @@
                 <!-- 加入最愛 -->
                 @if (User.Identity!.IsAuthenticated)
                 {
-                    <form id="wishlistForm" style="display:none;">@Html.AntiForgeryToken()</form>
+                    <form id="wishlistForm" class="d-none">@Html.AntiForgeryToken()</form>
                     <div class="wishlist-section mt-3">
                         <button type="button"
                                 class="btn btn-outline-secondary btn-wishlist wishlist-toggle @(isInWishlist ? "wishlisted" : "")"

@@ -18,13 +18,16 @@ namespace MusicShop.Service.Services.Implementation
         private const int HighPendingOrderThreshold = 10;
 
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ISystemSettingService _systemSettingService;
         private readonly ILogger<StatisticsService> _logger;
 
         public StatisticsService(
             IUnitOfWork unitOfWork,
+            ISystemSettingService systemSettingService,
             ILogger<StatisticsService> logger)
         {
             _unitOfWork = unitOfWork;
+            _systemSettingService = systemSettingService;
             _logger = logger;
         }
 
@@ -44,8 +47,12 @@ namespace MusicShop.Service.Services.Implementation
                 CouponCount = await _unitOfWork.Statistics.GetCouponCountAsync()
             };
 
+            // 從系統參數讀取門檻值，若未設定則使用預設常數
+            var thresholdStr = await _systemSettingService.GetValueAsync("order.high_pending_threshold");
+            var threshold = int.TryParse(thresholdStr, out var t) ? t : HighPendingOrderThreshold;
+
             // 僅記錄有業務價值的警告，避免每次 Dashboard 載入都產生大量日誌
-            if (stats.PendingOrderCount > HighPendingOrderThreshold)
+            if (stats.PendingOrderCount > threshold)
             {
                 _logger.LogWarning("待處理訂單數量過多：{PendingOrderCount} 筆，請盡快處理",
                     stats.PendingOrderCount);

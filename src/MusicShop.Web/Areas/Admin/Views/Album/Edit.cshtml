@@ -81,7 +81,7 @@
                             }
                             <input type="file" name="coverImageFile" class="form-control" accept="image/*" id="coverImageInput" />
                             <small class="text-muted">支援 JPG、PNG、WebP，最大 5MB</small>
-                            <div id="coverImagePreview" class="mt-2" style="display:none;">
+                            <div id="coverImagePreview" class="mt-2 d-none">
                                 <img id="coverPreviewImg" src="" alt="預覽" class="admin-img-preview-lg" />
                             </div>
                         </div>
@@ -96,7 +96,7 @@
                             }
                             <input type="file" name="descriptionImageFile" class="form-control" accept="image/*" id="descImageInput" />
                             <small class="text-muted">支援 JPG、PNG、WebP，最大 5MB（用於顯示詳細的商品組成內容）</small>
-                            <div id="descImagePreview" class="mt-2" style="display:none;">
+                            <div id="descImagePreview" class="mt-2 d-none">
                                 <img id="descPreviewImg" src="" alt="預覽" class="admin-img-preview-lg" />
                             </div>
                         </div>
@@ -142,7 +142,7 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById(previewImgId).src = e.target.result;
-                    document.getElementById(previewContainerId).style.display = 'block';
+                    document.getElementById(previewContainerId).classList.remove('d-none');
                 };
                 reader.readAsDataURL(file);
             });

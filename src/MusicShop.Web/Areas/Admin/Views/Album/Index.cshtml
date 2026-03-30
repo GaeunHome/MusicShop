@@ -1,13 +1,36 @@
-@model IEnumerable<MusicShop.Service.ViewModels.Admin.AlbumListItemViewModel>
+@model MusicShop.Library.Helpers.PagedResult<MusicShop.Service.ViewModels.Admin.AlbumListItemViewModel>
 @{
     ViewData["Title"] = "商品管理";
     ViewData["PageId"] = "admin-albums";
+
+    ViewBag.CurrentPage = Model.CurrentPage;
+    ViewBag.TotalPages = Model.TotalPages;
+    ViewBag.HasPreviousPage = Model.HasPreviousPage;
+    ViewBag.HasNextPage = Model.HasNextPage;
+
+    var currentKeyword = Context.Request.Query["keyword"].FirstOrDefault();
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
         <h3>🎵 商品管理</h3>
-        <a asp-action="Create" class="btn btn-primary">➕ 新增商品</a>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small">共 @Model.TotalCount 筆商品</span>
+            <a asp-action="Create" class="btn btn-primary">➕ 新增商品</a>
+        </div>
     </div>
+
+    @* 搜尋列 *@
+    <form method="get" asp-action="Index" class="mb-3">
+        <div class="input-group" style="max-width: 400px;">
+            <input type="text" name="keyword" class="form-control" placeholder="搜尋商品名稱或藝人..."
+                   value="@currentKeyword" />
+            <button type="submit" class="btn btn-outline-secondary">搜尋</button>
+            @if (!string.IsNullOrEmpty(currentKeyword))
+            {
+                <a asp-action="Index" class="btn btn-outline-danger">清除</a>
+            }
+        </div>
+    </form>
 
     <div class="table-responsive">
         <table class="table table-hover align-middle">
@@ -23,7 +46,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var album in Model)
+                @foreach (var album in Model.Items)
                 {
                     <tr>
                         <td>@album.Id</td>
@@ -60,5 +83,6 @@
         </table>
     </div>
 
-<a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary mt-3">← 返回後台</a>
+    <partial name="_Pagination" />
 
+<a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary mt-3">← 返回後台</a>

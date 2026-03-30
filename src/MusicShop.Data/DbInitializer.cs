@@ -245,6 +245,8 @@ public static class DbInitializer
             new SystemSetting { Key = "order.shipping_fee", Value = "60", Description = "訂單運費（元）", Group = "訂單設定", ValueType = "decimal" },
             new SystemSetting { Key = "order.free_shipping_threshold", Value = "1000", Description = "免運門檻金額（元）", Group = "訂單設定", ValueType = "decimal" },
             new SystemSetting { Key = "order.auto_cancel_hours", Value = "24", Description = "未付款訂單自動取消時數", Group = "訂單設定", ValueType = "int" },
+            new SystemSetting { Key = "order.credit_card_timeout_minutes", Value = "15", Description = "信用卡訂單未付款自動取消時間（分鐘）", Group = "訂單設定", ValueType = "int" },
+            new SystemSetting { Key = "order.high_pending_threshold", Value = "10", Description = "待處理訂單數量警示門檻", Group = "訂單設定", ValueType = "int" },
             new SystemSetting { Key = "order.min_order_amount", Value = "0", Description = "最低訂購金額（元）", Group = "訂單設定", ValueType = "decimal" },
 
             // ===== 優惠券設定 =====

@@ -12,7 +12,7 @@
     <form asp-action="Create" method="post">
         @Html.AntiForgeryToken()
 
-        <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none;"></div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none"></div>
 
         <div class="mb-3">
             <label asp-for="Code" class="form-label fw-bold">兌換碼 <span class="text-danger">*</span></label>

@@ -37,10 +37,10 @@ public class AlbumController : AdminBaseController
     }
 
     // ─── 商品列表 ─────────────────────────────────────────
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1, string? keyword = null)
     {
-        var albums = await _albumService.GetAlbumListItemsAsync();
-        return View(albums);
+        var pagedAlbums = await _albumService.GetAdminAlbumListPagedAsync(page, keyword);
+        return View(pagedAlbums);
     }
 
     // ─── 新增商品 ─────────────────────────────────────────

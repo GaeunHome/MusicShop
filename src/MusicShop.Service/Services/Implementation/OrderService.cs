@@ -21,6 +21,7 @@ namespace MusicShop.Service.Services.Implementation
         private readonly IUnitOfWork _unitOfWork;
         private readonly IOrderValidationService _orderValidationService;
         private readonly ICouponService _couponService;
+        private readonly ISystemSettingService _systemSettingService;
         private readonly IMapper _mapper;
         private readonly ILogger<OrderService> _logger;
 
@@ -28,12 +29,14 @@ namespace MusicShop.Service.Services.Implementation
             IUnitOfWork unitOfWork,
             IOrderValidationService orderValidationService,
             ICouponService couponService,
+            ISystemSettingService systemSettingService,
             IMapper mapper,
             ILogger<OrderService> logger)
         {
             _unitOfWork = unitOfWork;
             _orderValidationService = orderValidationService;
             _couponService = couponService;
+            _systemSettingService = systemSettingService;
             _mapper = mapper;
             _logger = logger;
         }
@@ -483,7 +486,11 @@ namespace MusicShop.Service.Services.Implementation
         private async Task AutoCancelExpiredCreditCardOrdersAsync(string userId)
         {
             var orders = await _unitOfWork.Orders.GetOrdersByUserIdAsync(userId);
-            var cutoffTime = DateTime.UtcNow.AddMinutes(-OrderHelper.CreditCardPaymentTimeoutMinutes);
+
+            // 從系統參數讀取信用卡逾時時間，若未設定則使用 OrderHelper 預設常數
+            var timeoutStr = await _systemSettingService.GetValueAsync("order.credit_card_timeout_minutes");
+            var timeoutMinutes = int.TryParse(timeoutStr, out var t) ? t : OrderHelper.CreditCardPaymentTimeoutMinutes;
+            var cutoffTime = DateTime.UtcNow.AddMinutes(-timeoutMinutes);
 
             var expiredOrders = orders.Where(o =>
                 o.Status == OrderStatus.Pending &&
@@ -589,6 +596,68 @@ namespace MusicShop.Service.Services.Implementation
                     TotalItemCount = order.OrderItems.Count
                 };
             }).ToList();
+        }
+
+        public async Task<byte[]> ExportOrdersToCsvAsync()
+        {
+            var orderList = (await _unitOfWork.Orders.GetAllOrdersAsync()).ToList();
+
+            var sb = new System.Text.StringBuilder();
+
+            // CSV 標題列
+            sb.AppendLine("訂單編號,會員信箱,下單時間,商品明細,數量合計,原始金額,折扣金額,實付金額,付款方式,配送方式,訂單狀態,收件人,收件人電話,配送地址");
+
+            foreach (var order in orderList)
+            {
+                // 商品明細：「商品名 x 數量」以分號分隔
+                var itemDetails = string.Join("；",
+                    order.OrderItems.Select(oi =>
+                        $"{oi.Album?.Title ?? DisplayConstants.UnknownProduct} x{oi.Quantity}"));
+
+                var totalQuantity = order.OrderItems.Sum(oi => oi.Quantity);
+
+                // 組合配送地址
+                var address = order.DeliveryMethod == DeliveryMethod.HomeDelivery
+                    ? $"{order.PostalCode} {order.City}{order.District}{order.Address}"
+                    : $"{order.StoreName}（{order.StoreAddress}）";
+
+                sb.Append(order.Id).Append(',');
+                sb.Append(CsvEscape(order.User?.Email ?? DisplayConstants.Unknown)).Append(',');
+                sb.Append(order.OrderDate.ToString("yyyy/MM/dd HH:mm")).Append(',');
+                sb.Append(CsvEscape(itemDetails)).Append(',');
+                sb.Append(totalQuantity).Append(',');
+                sb.Append(order.TotalAmount.ToString("F0")).Append(',');
+                sb.Append(order.DiscountAmount.ToString("F0")).Append(',');
+                sb.Append((order.TotalAmount - order.DiscountAmount).ToString("F0")).Append(',');
+                sb.Append(CsvEscape(OrderHelper.GetPaymentMethodText(order.PaymentMethod))).Append(',');
+                sb.Append(CsvEscape(OrderHelper.GetDeliveryMethodText(order.DeliveryMethod))).Append(',');
+                sb.Append(CsvEscape(OrderHelper.GetOrderStatusText(order.Status))).Append(',');
+                sb.Append(CsvEscape(order.ReceiverName ?? string.Empty)).Append(',');
+                sb.Append(CsvEscape(order.ReceiverPhone ?? string.Empty)).Append(',');
+                sb.AppendLine(CsvEscape(address));
+            }
+
+            _logger.LogInformation("訂單 CSV 匯出完成，共 {OrderCount} 筆", orderList.Count);
+
+            // 加上 UTF-8 BOM，確保 Excel 正確辨識中文
+            var bom = new byte[] { 0xEF, 0xBB, 0xBF };
+            var csvBytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var result = new byte[bom.Length + csvBytes.Length];
+            bom.CopyTo(result, 0);
+            csvBytes.CopyTo(result, bom.Length);
+
+            return result;
+        }
+
+        /// <summary>
+        /// CSV 欄位轉義：若包含逗號、雙引號或換行，以雙引號包裹並轉義內部雙引號
+        /// </summary>
+        private static string CsvEscape(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return string.Empty;
+            if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+                return $"\"{value.Replace("\"", "\"\"")}\"";
+            return value;
         }
     }
 }

@@ -122,6 +122,17 @@ public class AlbumService : IAlbumService
         return _mapper.Map<IEnumerable<AlbumListItemViewModel>>(albums);
     }
 
+    public async Task<PagedResult<AlbumListItemViewModel>> GetAdminAlbumListPagedAsync(int page, string? keyword = null)
+    {
+        ValidationHelper.ValidatePositive(page, "頁碼", nameof(page));
+
+        var (albums, totalCount) = await _unitOfWork.Albums.GetAlbumsPagedAsync(
+            page, DisplayConstants.AdminAlbumPageSize, searchTerm: keyword);
+
+        var viewModels = _mapper.Map<IEnumerable<AlbumListItemViewModel>>(albums);
+        return new PagedResult<AlbumListItemViewModel>(viewModels, totalCount, page, DisplayConstants.AdminAlbumPageSize);
+    }
+
     public async Task<AlbumFormViewModel?> GetAlbumFormByIdAsync(int id)
     {
         var album = await _unitOfWork.Albums.GetAlbumByIdAsync(id);

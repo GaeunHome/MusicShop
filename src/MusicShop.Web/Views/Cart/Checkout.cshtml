@@ -120,7 +120,7 @@
                         <span asp-validation-for="DeliveryMethod" class="text-danger small"></span>
 
                         <!-- 宅配地址資訊（條件顯示）-->
-                        <div id="address-fields" class="mt-3 p-3 bg-light rounded" style="display: none;">
+                        <div id="address-fields" class="mt-3 p-3 bg-light rounded d-none">
                             <h6 class="mb-3"><i class="bi bi-geo-alt-fill me-2"></i>收件地址</h6>
                             <div class="row g-3">
                                 <div class="col-md-4">
@@ -155,7 +155,7 @@
                         </div>
 
                         <!-- 7-11 門市資訊（條件顯示）-->
-                        <div id="seven-eleven-fields" class="mt-3 p-3 bg-light rounded" style="display: none;">
+                        <div id="seven-eleven-fields" class="mt-3 p-3 bg-light rounded d-none">
                             <h6 class="mb-3"><i class="bi bi-shop me-2"></i>7-11 門市資訊</h6>
 
                             <!-- 門市選擇按鈕 -->
@@ -185,7 +185,7 @@
                         </div>
 
                         <!-- 全家門市資訊（條件顯示）-->
-                        <div id="family-mart-fields" class="mt-3 p-3 bg-light rounded" style="display: none;">
+                        <div id="family-mart-fields" class="mt-3 p-3 bg-light rounded d-none">
                             <h6 class="mb-3"><i class="bi bi-shop me-2"></i>全家門市資訊</h6>
 
                             <!-- 門市選擇按鈕 -->
@@ -255,7 +255,7 @@
                         <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
 
                         <!-- 信用卡付款說明（條件顯示）-->
-                        <div id="credit-card-fields" class="mt-3 p-3 bg-light rounded" style="display: none;">
+                        <div id="credit-card-fields" class="mt-3 p-3 bg-light rounded d-none">
                             <div class="alert alert-info mb-0">
                                 <i class="bi bi-shield-lock me-2"></i>
                                 <strong>安全線上付款</strong>
@@ -321,7 +321,7 @@
                         <span asp-validation-for="InvoiceType" class="text-danger small"></span>
 
                         <!-- 三聯式發票欄位（條件顯示）-->
-                        <div id="triplicate-fields" class="mt-3 p-3 bg-light rounded" style="display: none;">
+                        <div id="triplicate-fields" class="mt-3 p-3 bg-light rounded d-none">
                             <h6 class="mb-3">公司發票資訊</h6>
                             <div class="row g-3">
                                 <div class="col-md-4">
@@ -338,7 +338,7 @@
                         </div>
 
                         <!-- 電子發票欄位（條件顯示）-->
-                        <div id="einvoice-fields" class="mt-3 p-3 bg-light rounded" style="display: none;">
+                        <div id="einvoice-fields" class="mt-3 p-3 bg-light rounded d-none">
                             <h6 class="mb-3">電子發票資訊</h6>
                             <div class="row g-3">
                                 <div class="col-12">
@@ -438,7 +438,7 @@
                             <span>運費</span>
                             <span class="text-success">免費</span>
                         </div>
-                        <div class="summary-row" id="discount-row" style="display:none;">
+                        <div class="summary-row d-none" id="discount-row">
                             <span>優惠券折扣</span>
                             <span class="text-danger" id="discount-amount">-NT$ 0</span>
                         </div>
@@ -508,7 +508,7 @@
                 </div>
 
                 <!-- 無結果提示 -->
-                <div id="no-stores-message" class="alert alert-info" style="display: none;">
+                <div id="no-stores-message" class="alert alert-info d-none">
                     <i class="bi bi-info-circle me-2"></i>
                     查無符合的門市，請調整搜尋條件
                 </div>

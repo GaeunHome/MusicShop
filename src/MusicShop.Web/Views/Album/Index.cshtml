@@ -137,7 +137,7 @@
     <!-- 收藏切換表單（含 AntiForgeryToken，供 JS 使用） -->
     @if (User.Identity!.IsAuthenticated)
     {
-        <form id="wishlistForm" style="display:none;">@Html.AntiForgeryToken()</form>
+        <form id="wishlistForm" class="d-none">@Html.AntiForgeryToken()</form>
     }
 
     @if (!items.Any())

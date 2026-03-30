@@ -23,7 +23,7 @@
 
         if (!userCouponId) {
             // 取消選擇優惠券
-            discountRow.style.display = 'none';
+            discountRow.classList.add('d-none');
             finalAmount.textContent = 'NT$ ' + Math.round(originalTotal).toLocaleString();
             return;
         }
@@ -36,11 +36,11 @@
             });
 
             if (result.success) {
-                discountRow.style.display = 'flex';
+                discountRow.classList.remove('d-none');
                 discountAmount.textContent = '-NT$ ' + Math.round(result.discountAmount).toLocaleString();
                 finalAmount.textContent = 'NT$ ' + Math.round(result.finalAmount).toLocaleString();
             } else {
-                discountRow.style.display = 'none';
+                discountRow.classList.add('d-none');
                 finalAmount.textContent = 'NT$ ' + Math.round(originalTotal).toLocaleString();
                 if (typeof showError === 'function') {
                     showError(result.message || '優惠券驗證失敗');

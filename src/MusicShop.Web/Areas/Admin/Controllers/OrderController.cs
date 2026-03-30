@@ -46,6 +46,14 @@ public class OrderController : AdminBaseController
         }
     }
 
+    // ─── 匯出訂單 CSV ──────────────────────────────────────
+    public async Task<IActionResult> ExportCsv()
+    {
+        var csvBytes = await _orderService.ExportOrdersToCsvAsync();
+        var fileName = $"Orders_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
+        return File(csvBytes, "text/csv", fileName);
+    }
+
     // ─── 更新訂單狀態 ─────────────────────────────────────
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStatus(int orderId, int status)

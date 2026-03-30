@@ -47,7 +47,8 @@ builder.Services.AddMemoryCache();
 // 註冊 Session（登入驗證碼儲存用，基於已註冊的 MemoryCache）
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(20);
+    options.IdleTimeout = TimeSpan.FromMinutes(
+        builder.Configuration.GetValue("SessionSettings:IdleTimeoutMinutes", 20));
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.Name = "MusicShop.Session";
@@ -117,7 +118,8 @@ builder.Services.AddScoped<IEcpayPaymentService, EcpayPaymentService>();
 // 註冊 ECPay 物流服務（含 HttpClient，設定 30 秒逾時避免請求掛起）
 builder.Services.AddHttpClient<IEcpayLogisticsService, EcpayLogisticsService>(client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(30);
+    client.Timeout = TimeSpan.FromSeconds(
+        builder.Configuration.GetValue("EcpayLogisticsHttpClient:TimeoutSeconds", 30));
 });
 
 // =====================================================================

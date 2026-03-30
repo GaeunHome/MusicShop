@@ -65,6 +65,12 @@ namespace MusicShop.Service.Services.Interfaces
         Task<IEnumerable<AlbumListItemViewModel>> GetAlbumListItemsAsync();
 
         /// <summary>
+        /// 取得後台商品分頁列表（支援關鍵字搜尋）
+        /// 【後台管理使用，返回 PagedResult，供 Admin/AlbumController 使用】
+        /// </summary>
+        Task<PagedResult<AlbumListItemViewModel>> GetAdminAlbumListPagedAsync(int page, string? keyword = null);
+
+        /// <summary>
         /// 根據 ID 取得後台商品表單 ViewModel（用於編輯頁面預填資料）
         /// 【架構說明】服務層負責 Entity → ViewModel 轉換，Controller 與 View 只使用 ViewModel
         /// </summary>

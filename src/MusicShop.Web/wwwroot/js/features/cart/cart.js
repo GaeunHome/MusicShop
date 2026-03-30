@@ -134,7 +134,7 @@ const Cart = {
     showLoading(cartItemId) {
         const loadingOverlay = document.getElementById(`loading-${cartItemId}`);
         if (loadingOverlay) {
-            loadingOverlay.style.display = 'flex';
+            loadingOverlay.classList.remove('d-none');
         }
     },
 
@@ -145,7 +145,7 @@ const Cart = {
     hideLoading(cartItemId) {
         const loadingOverlay = document.getElementById(`loading-${cartItemId}`);
         if (loadingOverlay) {
-            loadingOverlay.style.display = 'none';
+            loadingOverlay.classList.add('d-none');
         }
     },
 
@@ -299,14 +299,14 @@ const Cart = {
             // 先隱藏所有受控欄位
             allElementIds.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.style.display = 'none';
+                if (el) el.classList.add('d-none');
             });
 
             // 顯示選中值對應的欄位
             const showIds = valueToElementsMap[selectedValue] || [];
             showIds.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.style.display = 'block';
+                if (el) el.classList.remove('d-none');
             });
         };
 
@@ -439,7 +439,7 @@ const Cart = {
         const storeList = document.getElementById('store-list');
         const noStoresMessage = document.getElementById('no-stores-message');
         storeList.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">載入門市資料中...</p></div>';
-        if (noStoresMessage) noStoresMessage.style.display = 'none';
+        if (noStoresMessage) noStoresMessage.classList.add('d-none');
 
         AjaxHelper.get('/Cart/GetStoreList', { type: cvsType }, {
             onSuccess: (data) => {
@@ -524,11 +524,11 @@ const Cart = {
         storeList.innerHTML = '';
 
         if (!stores || stores.length === 0) {
-            if (noStoresMessage) noStoresMessage.style.display = 'block';
+            if (noStoresMessage) noStoresMessage.classList.remove('d-none');
             return;
         }
 
-        if (noStoresMessage) noStoresMessage.style.display = 'none';
+        if (noStoresMessage) noStoresMessage.classList.add('d-none');
 
         const displayStores = stores.slice(0, MAX_DISPLAY);
         const fragment = document.createDocumentFragment();
