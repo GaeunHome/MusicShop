@@ -39,7 +39,7 @@
 ## 核心功能
 
 | 模組 | 功能 | 狀態 | 說明 |
-|------|------|------|------|
+|-  -----|------|------|------|
 | **使用者系統** | 註冊/登入/登出 | ✅ | ASP.NET Core Identity |
 | | 社群登入（Google / LINE） | ✅ | OAuth 2.0 第三方登入 |
 | | 個人資料管理 | ✅ | 姓名、電話、生日、性別 |
@@ -215,7 +215,7 @@ dotnet run
 dotnet watch run
 ```
 
-應用程式將在 `http://localhost:5281` 啟動。
+應用程式將在 `https://localhost:7188` 啟動。
 
 ## 專案結構
 
@@ -224,9 +224,9 @@ dotnet watch run
 ```
 MusicShop/
 ├── src/
-│   ├── MusicShop.Data/                  # 資料存取層
-│   │   ├── Entities/                    # 實體模型
-│   │   │   ├── AppUser.cs              # 使用者（擴充 IdentityUser）
+│   ├── MusicShop.Data/                # 資料存取層
+│   │   ├── Entities/                  # 實體模型
+│   │   │   ├── AppUser.cs             # 使用者（擴充 IdentityUser）
 │   │   │   ├── Album.cs               # 專輯商品
 │   │   │   ├── Artist.cs              # 藝人
 │   │   │   ├── ArtistCategory.cs      # 藝人分類
@@ -243,33 +243,33 @@ MusicShop/
 │   │   │   ├── PasswordHistory.cs     # 密碼歷史紀錄
 │   │   │   └── ISoftDeletable.cs      # 軟刪除介面
 │   │   ├── Repositories/
-│   │   │   ├── Interfaces/              # Repository 介面
-│   │   │   └── Implementation/          # Repository 實作
-│   │   ├── UnitOfWork/                  # IUnitOfWork / UnitOfWork
-│   │   ├── ApplicationDbContext.cs      # DbContext（含軟刪除攔截與 Global Query Filter）
-│   │   ├── DbInitializer.cs            # 種子資料初始化
-│   │   └── Migrations/                  # EF Core 遷移檔案
+│   │   │   ├── Interfaces/            # Repository 介面
+│   │   │   └── Implementation/        # Repository 實作
+│   │   ├── UnitOfWork/                # IUnitOfWork / UnitOfWork
+│   │   ├── ApplicationDbContext.cs    # DbContext（含軟刪除攔截與 Global Query Filter）
+│   │   ├── DbInitializer.cs           # 種子資料初始化
+│   │   └── Migrations/                # EF Core 遷移檔案
 │   │
-│   ├── MusicShop.Service/               # 商業邏輯層
+│   ├── MusicShop.Service/             # 商業邏輯層
 │   │   ├── Services/
-│   │   │   ├── Interfaces/              # 18 個 Service 介面
-│   │   │   └── Implementation/          # Service 實作
-│   │   ├── ViewModels/                  # ViewModel 定義（依功能分資料夾）
-│   │   ├── Constants/                   # CacheKeys 等常數定義
-│   │   └── Mapper/                      # AutoMapper MapperProfile
+│   │   │   ├── Interfaces/            # 18 個 Service 介面
+│   │   │   └── Implementation/        # Service 實作
+│   │   ├── ViewModels/                # ViewModel 定義（依功能分資料夾）
+│   │   ├── Constants/                 # CacheKeys 等常數定義
+│   │   └── Mapper/                    # AutoMapper MapperProfile
 │   │
-│   ├── MusicShop.Library/               # 共用工具庫
-│   │   ├── Helpers/                     # ValidationHelper, OrderHelper, PagedResult<T>, TaiwanDistricts, DisplayConstants
-│   │   │   └── Extensions/             # DateTimeExtensions, PriceExtensions, StockExtensions
-│   │   └── Enums/                       # OrderStatus, PaymentMethod, DeliveryMethod, InvoiceType, DiscountType, CouponSource, TwoFactorMethod, Gender
+│   ├── MusicShop.Library/             # 共用工具庫
+│   │   ├── Helpers/                   # ValidationHelper, OrderHelper, PagedResult<T>, TaiwanDistricts, DisplayConstants
+│   │   │   └── Extensions/            # DateTimeExtensions, PriceExtensions, StockExtensions
+│   │   └── Enums/                     # OrderStatus, PaymentMethod, DeliveryMethod, InvoiceType, DiscountType, CouponSource, TwoFactorMethod, Gender
 │   │
-│   └── MusicShop.Web/                   # 展示層
-│       ├── Controllers/                 # 前台控制器（Home, Album, Cart, Order, Account, Wishlist, Payment, Coupon）
-│       │   └── Api/                     # RESTful API（CartApi, AlbumApi, WishlistApi, CouponApi）
-│       ├── Areas/Admin/                 # 後台管理 Area
-│       │   ├── Controllers/             # Dashboard, Album, Artist, Category, Order, User, Banner, FeaturedArtist, Coupon, SystemSetting
-│       │   └── Views/                   # 後台管理 Views
-│       ├── Infrastructure/              # Web 基礎設施
+│   └── MusicShop.Web/                 # 展示層
+│       ├── Controllers/               # 前台控制器（Home, Album, Cart, Order, Account, Wishlist, Payment, Coupon）
+│       │   └── Api/                   # RESTful API（CartApi, AlbumApi, WishlistApi, CouponApi）
+│       ├── Areas/Admin/               # 後台管理 Area
+│       │   ├── Controllers/           # Dashboard, Album, Artist, Category, Order, User, Banner, FeaturedArtist, Coupon, SystemSetting
+│       │   └── Views/                 # 後台管理 Views
+│       ├── Infrastructure/            # Web 基礎設施
 │       │   ├── GlobalExceptionMiddleware.cs     # 全域例外攔截
 │       │   ├── SecurityHeadersMiddleware.cs     # 安全標頭
 │       │   ├── CorrelationIdMiddleware.cs       # 關聯識別碼
@@ -277,17 +277,17 @@ MusicShop/
 │       │   ├── CartBadgeViewComponent.cs        # 購物車徽章
 │       │   └── ...                              # 圖片服務、設定模型、常數
 │       ├── Views/
-│       │   ├── Shared/                  # 共用局部視圖（_Layout, _AlbumCard, _Pagination 等）
-│       │   └── Home/                    # 動態幻燈片首頁
+│       │   ├── Shared/                # 共用局部視圖（_Layout, _AlbumCard, _Pagination 等）
+│       │   └── Home/                  # 動態幻燈片首頁
 │       └── wwwroot/
-│           ├── css/                     # 全域、元件、頁面專屬樣式
-│           ├── js/                      # JavaScript 模組（core/, features/, admin/, utils/）
-│           └── images/                  # 專輯封面、幻燈片圖片
+│           ├── css/                   # 全域、元件、頁面專屬樣式
+│           ├── js/                    # JavaScript 模組（core/, features/, admin/, utils/）
+│           └── images/                # 專輯封面、幻燈片圖片
 │
-├── .vscode/                             # VS Code 設定（偵錯啟動設定）
-├── CLAUDE.md                            # Claude Code 專案指引
-├── README.md                            # 本文件
-└── MusicShop.slnx                       # 解決方案檔案
+├── .vscode/                           # VS Code 設定（偵錯啟動設定）
+├── CLAUDE.md                          # Claude Code 專案指引
+├── README.md                          # 本文件
+└── MusicShop.slnx                     # 解決方案檔案
 ```
 
 ## 資料庫架構
@@ -403,7 +403,7 @@ Response
 |------|------|
 | `dotnet restore` | 還原 NuGet 套件 |
 | `dotnet build` | 建置專案 |
-| `dotnet run` | 執行專案（`http://localhost:5281`） |
+| `dotnet run` | 執行專案（`https://localhost:7188`） |
 | `dotnet watch run` | 開發模式（自動重新載入） |
 | `dotnet build --configuration Release` | 建置正式版本 |
 
